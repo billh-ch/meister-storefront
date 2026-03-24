@@ -57,6 +57,19 @@ body {
 }
 
 /* ============================================================
+   Categories marquee animation
+   ============================================================ */
+@keyframes categories-marquee {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-50%); }
+}
+
+.animate-categories-marquee {
+  animation: categories-marquee 30s linear infinite;
+  will-change: transform;
+}
+
+/* ============================================================
    Gold button base utility
    ============================================================ */
 .btn-gold {

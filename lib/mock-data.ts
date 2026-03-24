@@ -98,6 +98,52 @@ export const products: Product[] = [
   },
 ]
 
+export interface Category {
+  id: string
+  slug: string
+  name: string
+  image: string
+}
+
+export const categories: Category[] = [
+  {
+    id: 'c1',
+    slug: 'fins',
+    name: 'FINS',
+    image: 'https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=800&q=80',
+  },
+  {
+    id: 'c2',
+    slug: 'spearguns',
+    name: 'SPEARGUNS',
+    image: 'https://images.unsplash.com/photo-1559827260-dc66d52bef19?w=800&q=80',
+  },
+  {
+    id: 'c3',
+    slug: 'masks',
+    name: 'MASKS',
+    image: 'https://images.unsplash.com/photo-1512101176959-07636cac869c?w=800&q=80',
+  },
+  {
+    id: 'c4',
+    slug: 'wetsuits',
+    name: 'WETSUITS',
+    image: 'https://images.unsplash.com/photo-1537519883498-f7e6d8df3ef6?w=800&q=80',
+  },
+  {
+    id: 'c5',
+    slug: 'accessories',
+    name: 'ACCESSORIES',
+    image: 'https://images.unsplash.com/photo-1530870110042-98b2cb110834?w=800&q=80',
+  },
+  {
+    id: 'c6',
+    slug: 'knives',
+    name: 'KNIVES',
+    image: 'https://images.unsplash.com/photo-1617196034183-421b4040ed20?w=800&q=80',
+  },
+]
+
 export const testimonials: Testimonial[] = [
   {
     id: 't1',
