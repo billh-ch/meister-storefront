@@ -65,7 +65,7 @@ body {
 }
 
 .animate-categories-marquee {
-  animation: categories-marquee 30s linear infinite;
+  animation: categories-marquee 60s linear infinite;
   will-change: transform;
 }
 

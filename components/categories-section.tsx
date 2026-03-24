@@ -15,9 +15,16 @@ function CategoryCard({ category }: { category: Category }) {
       style={{
         width: '400px',
         height: '670px',
-        border: '10px solid #ffffff',
+        border: '1px solid #000000',
       }}
     >
+      {/* White inner border */}
+      <div
+        className="absolute inset-0 z-10 pointer-events-none"
+        style={{ border: '10px solid #ffffff' }}
+        aria-hidden="true"
+      />
+
       {/* Image */}
       <div className="absolute inset-0">
         <Image
@@ -27,7 +34,6 @@ function CategoryCard({ category }: { category: Category }) {
           sizes="400px"
           className="object-cover"
         />
-        {/* Gradient overlay for legibility */}
         <div
           className="pointer-events-none absolute inset-0"
           style={{
@@ -39,9 +45,9 @@ function CategoryCard({ category }: { category: Category }) {
       </div>
 
       {/* Bottom content — left aligned */}
-      <div className="absolute bottom-0 left-0 right-0 flex items-end justify-between p-6">
+      <div className="absolute bottom-0 left-0 right-0 z-20 flex items-end justify-between p-6">
         <h3
-          className="text-2xl text-white md:text-3xl"
+          className="text-lg text-white md:text-xl"
           style={{ fontFamily: 'var(--font-dela-gothic), sans-serif' }}
         >
           {category.name}
@@ -58,25 +64,17 @@ function CategoryCard({ category }: { category: Category }) {
 }
 
 export default function CategoriesSection({ categories }: CategoriesSectionProps) {
-  // Double the array for seamless infinite loop
   const doubled = [...categories, ...categories]
 
   return (
     <section
-      className="w-full overflow-hidden py-16"
+      className="w-full overflow-hidden"
       style={{ backgroundColor: '#1B1B18' }}
       aria-label="Product categories"
     >
-      <h2
-        className="mb-10 px-6 text-3xl text-white md:px-10 md:text-5xl"
-        style={{ fontFamily: 'var(--font-dela-gothic), sans-serif' }}
-      >
-        CATEGORIES
-      </h2>
-
-      {/* Marquee container — pauses on hover */}
+      {/* Marquee — pauses on hover */}
       <div className="group">
-        <div className="flex w-max animate-categories-marquee gap-6 group-hover:[animation-play-state:paused]">
+        <div className="flex w-max animate-categories-marquee group-hover:[animation-play-state:paused]">
           {doubled.map((category, i) => (
             <CategoryCard key={`${category.id}-${i}`} category={category} />
           ))}
