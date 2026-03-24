@@ -1,26 +1,80 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+/* ============================================================
+   Meister Design System Tokens (Tailwind v4 CSS-based config)
+   ============================================================ */
+@theme {
+  /* Brand colours */
+  --color-gold: #FFD700;
+  --color-dark: #1B1B18;
+  --color-card-border: #222222;
+  --color-nav: #111111;
+  --color-background: #1B1B18;
+  --color-foreground: #ffffff;
+
+  /* Typography */
+  --font-display: var(--font-dela-gothic), sans-serif;
+  --font-sans: var(--font-space-mono), ui-monospace, monospace;
+  --font-mono: var(--font-space-mono), ui-monospace, monospace;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+/* Global base */
+html {
+  scroll-behavior: smooth;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background-color: #1B1B18;
+  color: #ffffff;
+  font-family: var(--font-space-mono), ui-monospace, monospace;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ============================================================
+   Card hatching pattern — diagonal SVG tile, 64px, rgba(136,136,136,0.2)
+   Source: extracted directly from Framer design source
+   ============================================================ */
+.hatching-bg {
+  background-repeat: repeat;
+  background-position: left top;
+  background-size: 64px auto;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='126' height='126'%3E%3Cpath d='M126 0v21.584L21.584 126H0v-17.585L108.415 0H126Zm0 108.414V126h-17.586L126 108.414Zm0-84v39.171L63.585 126H24.414L126 24.414Zm0 42v39.17L105.584 126h-39.17L126 66.414ZM105.586 0 0 105.586V66.415L66.415 0h39.171Zm-42 0L0 63.586V24.415L24.415 0h39.171Zm-42 0L0 21.586V0h21.586Z' fill='rgba(136%2C136%2C136%2C0.2)' fill-rule='evenodd'/%3E%3C/svg%3E");
+}
+
+/* ============================================================
+   Marquee ticker animation
+   ============================================================ */
+@keyframes marquee {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-50%); }
+}
+
+.animate-marquee {
+  animation: marquee 20s linear infinite;
+  will-change: transform;
+  display: flex;
+  width: max-content;
+}
+
+/* ============================================================
+   Gold button base utility
+   ============================================================ */
+.btn-gold {
+  background-color: #FFD700;
+  color: #1B1B18;
+  font-family: var(--font-space-mono), ui-monospace, monospace;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  transition: opacity 0.15s ease, transform 0.1s ease;
+  cursor: pointer;
+}
+
+.btn-gold:hover {
+  opacity: 0.88;
+  transform: translateY(-1px);
+}
+
+.btn-gold:active {
+  opacity: 1;
+  transform: translateY(0);
 }
