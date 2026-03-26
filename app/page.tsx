@@ -6,7 +6,7 @@ import TestimonialsSection from '@/components/testimonials-section'
 import NewsletterSection from '@/components/newsletter-section'
 import Footer from '@/components/footer'
 import CategoriesSection from '@/components/categories-section'
-import { products, categories } from '@/lib/mock-data'
+import { products, categoryDetails } from '@/lib/mock-data'
 
 /**
  * Meister homepage — assembles all 8 sections in order.
@@ -21,7 +21,7 @@ export default function HomePage() {
       <Navbar />
       <HeroSection />
       <ProductCarousel products={products} />
-      <CategoriesSection categories={categories} />
+      <CategoriesSection categoryDetails={categoryDetails} products={products} />
       <MerchSection />
       <TestimonialsSection />
       <NewsletterSection />

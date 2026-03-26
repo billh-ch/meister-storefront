@@ -57,16 +57,49 @@ body {
 }
 
 /* ============================================================
-   Categories marquee animation
+   Category showcase — image crossfade + zoom
    ============================================================ */
-@keyframes categories-marquee {
-  from { transform: translateX(0); }
-  to   { transform: translateX(-50%); }
+.category-image {
+  opacity: 0;
+  transform: scale(1.05);
+  transition: opacity 0.5s ease, transform 0.6s ease;
+  position: absolute;
+  inset: 0;
 }
 
-.animate-categories-marquee {
-  animation: categories-marquee 60s linear infinite;
-  will-change: transform;
+.category-image[data-active="true"] {
+  opacity: 1;
+  transform: scale(1);
+}
+
+/* ============================================================
+   Category showcase — accordion expand/collapse
+   ============================================================ */
+.accordion-content {
+  display: grid;
+  grid-template-rows: 0fr;
+  opacity: 0;
+  transition: grid-template-rows 0.35s ease, opacity 0.3s ease;
+}
+
+.accordion-content[data-open="true"] {
+  grid-template-rows: 1fr;
+  opacity: 1;
+}
+
+.accordion-content > div {
+  overflow: hidden;
+}
+
+/* ============================================================
+   Category showcase — chevron rotation
+   ============================================================ */
+.accordion-chevron {
+  transition: transform 0.3s ease;
+}
+
+.accordion-chevron[data-open="true"] {
+  transform: rotate(45deg);
 }
 
 /* ============================================================
