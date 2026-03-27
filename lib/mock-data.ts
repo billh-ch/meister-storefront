@@ -228,6 +228,10 @@ export const categoryDetails: readonly CategoryDetail[] = [
     image: 'https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=1200&q=80',
     accordionItems: [
       {
+        headline: 'The Meister Approach',
+        body: 'Every fin Meister makes begins the same way — with a question. How does the ocean actually move? How does a body respond under pressure? The answers live in the blade, the rail, the angle of the foot pocket. Not theory. Years of it.',
+      },
+      {
         headline: 'Carbon That Earns Its Place',
         body: "We don't add carbon fiber to say we use carbon fiber. Each layer is placed with intent — angle, thickness, sequence — to deliver a return of energy that feels less like equipment and more like instinct.",
       },
@@ -245,6 +249,10 @@ export const categoryDetails: readonly CategoryDetail[] = [
     tagline: 'Second Skin. First Choice.',
     image: 'https://images.unsplash.com/photo-1537519883498-f7e6d8df3ef6?w=1200&q=80',
     accordionItems: [
+      {
+        headline: 'Designed to Disappear',
+        body: "A suit that fits right disappears. You stop thinking about warmth, about drag, about the seam across your shoulder. You start thinking about depth. That's what Meister suits are made for — to get out of your way.",
+      },
       {
         headline: 'Precision Cuts. No Compromise on Movement.',
         body: "The ocean demands full range — every stroke, every turn, every ascent. Our suits are patterned around movement first, then sealed for protection. The result is a suit that moves before you ask it to.",
@@ -264,6 +272,10 @@ export const categoryDetails: readonly CategoryDetail[] = [
     image: 'https://images.unsplash.com/photo-1530870110042-98b2cb110834?w=1200&q=80',
     accordionItems: [
       {
+        headline: 'The Things That Decide a Dive',
+        body: "A mask strap that doesn't slip. A bag that drains completely. A glove that doesn't cost you feel. These aren't small things — they're the things that quietly decide how a dive goes. Meister accessories exist because we've had enough bad ones.",
+      },
+      {
         headline: 'Designed Around Real Dives',
         body: "Not photoshoots. Not spec sheets. The accessories we make came out of conversations with people who dive seriously — in cold water, on long boats, before early mornings. Everything here has a reason.",
       },
@@ -277,6 +289,10 @@ export const categoryDetails: readonly CategoryDetail[] = [
     tagline: 'Wear It Like You Mean It.',
     image: 'https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=1200&q=80',
     accordionItems: [
+      {
+        headline: 'For the Salt-Stained',
+        body: "This isn't branded sportswear. It's for the people who come home salt-stained and already thinking about the next one. Cut clean, made to last, and quiet enough that only the right people recognize it.",
+      },
       {
         headline: "Craft Doesn't Clock Out",
         body: 'The same care that goes into our fins goes into the fabric we put our name on. Because if it carries the Meister mark, it has to be worth wearing.',

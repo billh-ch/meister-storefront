@@ -7,12 +7,11 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import ProductCard from './product-card'
 import {
   type CategoryDetail,
-  type AccordionItem,
   type Product,
 } from '@/lib/mock-data'
 
 /* ================================================================
-   TabBar — horizontal tabs with gold sliding underline
+   TabBar — centered browser-tab style with boxes
    ================================================================ */
 
 function TabBar({
@@ -24,51 +23,30 @@ function TabBar({
   activeIndex: number
   onTabChange: (i: number) => void
 }) {
-  const tabRefs = useRef<(HTMLButtonElement | null)[]>([])
-  const [underline, setUnderline] = useState({ left: 0, width: 0 })
-
-  useEffect(() => {
-    function measure() {
-      const el = tabRefs.current[activeIndex]
-      if (el) {
-        setUnderline({ left: el.offsetLeft, width: el.offsetWidth })
-      }
-    }
-    measure()
-    // Recalculate after fonts load
-    document.fonts.ready.then(measure)
-    window.addEventListener('resize', measure)
-    return () => window.removeEventListener('resize', measure)
-  }, [activeIndex])
-
   return (
-    <div className="relative flex gap-6 overflow-x-auto px-6 md:gap-10 md:px-10">
-      {tabs.map((tab, i) => (
-        <button
-          key={tab.id}
-          ref={(el) => { tabRefs.current[i] = el }}
-          onClick={() => onTabChange(i)}
-          className="whitespace-nowrap pb-4 text-xl transition-colors duration-200 md:text-3xl lg:text-4xl"
-          style={{
-            fontFamily: 'var(--font-dela-gothic), sans-serif',
-            color: i === activeIndex ? '#FFD700' : '#666666',
-          }}
-        >
-          {tab.name}
-        </button>
-      ))}
-
-      {/* Sliding gold underline */}
-      <div
-        className="pointer-events-none absolute bottom-0 h-[3px]"
-        style={{
-          left: underline.left,
-          width: underline.width,
-          backgroundColor: '#FFD700',
-          transition: 'left 0.3s ease, width 0.3s ease',
-        }}
-        aria-hidden="true"
-      />
+    <div className="flex justify-center px-6 md:px-10">
+      <div className="flex">
+        {tabs.map((tab, i) => {
+          const isActive = i === activeIndex
+          return (
+            <button
+              key={tab.id}
+              onClick={() => onTabChange(i)}
+              className="relative px-6 py-4 text-base transition-all duration-200 md:px-10 md:py-5 md:text-xl lg:text-2xl"
+              style={{
+                fontFamily: 'var(--font-dela-gothic), sans-serif',
+                color: isActive ? '#FFFFFF' : '#666666',
+                backgroundColor: isActive ? '#2A2A25' : 'transparent',
+                border: isActive ? '1px solid #444444' : '1px solid transparent',
+                borderBottom: isActive ? '1px solid #2A2A25' : '1px solid #444444',
+                marginBottom: '-1px',
+              }}
+            >
+              {tab.name}
+            </button>
+          )
+        })}
+      </div>
     </div>
   )
 }
@@ -85,7 +63,10 @@ function CategoryImage({
   activeIndex: number
 }) {
   return (
-    <div className="relative h-[300px] w-full overflow-hidden lg:h-auto lg:w-1/2">
+    <div
+      className="relative h-[300px] w-full overflow-hidden lg:h-auto lg:w-1/2"
+      style={{ border: '1px solid #FFD700' }}
+    >
       {tabs.map((tab, i) => (
         <div
           key={tab.id}
@@ -108,14 +89,14 @@ function CategoryImage({
 }
 
 /* ================================================================
-   Accordion — clean headlines with thin dividers + rotating chevron
+   Accordion — hover to expand, collapse on mouse leave
    ================================================================ */
 
 function Accordion({
   items,
   activeTab,
 }: {
-  items: readonly AccordionItem[]
+  items: readonly { headline: string; body: string }[]
   activeTab: string
 }) {
   const [openIndex, setOpenIndex] = useState<number | null>(null)
@@ -130,12 +111,18 @@ function Accordion({
       {items.map((item, i) => {
         const isOpen = openIndex === i
         return (
-          <div key={i} style={{ borderTop: '1px solid #333333' }}>
-            <button
-              className="flex w-full items-center justify-between py-5 text-left text-sm font-bold text-white transition-colors hover:text-[#FFD700] md:text-base"
-              style={{ fontFamily: 'var(--font-space-mono), monospace' }}
-              onClick={() => setOpenIndex(isOpen ? null : i)}
-              aria-expanded={isOpen}
+          <div
+            key={i}
+            style={{ borderTop: '1px solid #333333' }}
+            onMouseEnter={() => setOpenIndex(i)}
+            onMouseLeave={() => setOpenIndex(null)}
+          >
+            <div
+              className="flex w-full items-center justify-between py-5 text-left text-sm font-bold text-white transition-colors md:text-base"
+              style={{
+                fontFamily: 'var(--font-space-mono), monospace',
+                color: isOpen ? '#FFD700' : '#FFFFFF',
+              }}
             >
               {item.headline}
               <span
@@ -145,7 +132,7 @@ function Accordion({
               >
                 +
               </span>
-            </button>
+            </div>
             <div className="accordion-content" data-open={isOpen}>
               <div>
                 <p
@@ -331,13 +318,19 @@ export default function CategoriesSection({
         onTabChange={setActiveIndex}
       />
 
+      {/* Border line below tabs */}
+      <div className="mx-6 md:mx-10" style={{ borderBottom: '1px solid #444444' }} />
+
       {/* Split layout */}
       <div className="mt-10 flex flex-col lg:flex-row" style={{ minHeight: '500px' }}>
         {/* Left — image */}
         <CategoryImage tabs={categoryDetails} activeIndex={activeIndex} />
 
         {/* Right — content */}
-        <div className="flex w-full flex-col justify-center px-6 py-10 md:px-10 lg:w-1/2 lg:px-16">
+        <div
+          className="flex w-full flex-col justify-center px-6 py-10 md:px-10 lg:w-1/2 lg:px-16"
+          style={{ border: '1px solid #FFD700' }}
+        >
           {/* Label */}
           <span
             className="text-xs tracking-[0.25em] text-[#FFD700] uppercase"
@@ -346,9 +339,9 @@ export default function CategoriesSection({
             {active.label}
           </span>
 
-          {/* Tagline */}
+          {/* Tagline — smaller */}
           <h2
-            className="mt-4 text-3xl leading-tight text-white md:text-4xl lg:text-5xl"
+            className="mt-4 text-2xl leading-tight text-white md:text-3xl lg:text-4xl"
             style={{ fontFamily: 'var(--font-dela-gothic), sans-serif' }}
           >
             {active.tagline}
