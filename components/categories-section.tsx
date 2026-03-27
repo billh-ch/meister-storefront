@@ -117,23 +117,25 @@ function Accordion({
             onMouseEnter={() => setOpenIndex(i)}
             onMouseLeave={() => setOpenIndex(null)}
           >
-            <div
-              className="flex w-full items-center justify-between py-5 text-left text-sm font-bold text-white transition-colors md:text-base"
+            <button
+              className="flex w-full items-center justify-between py-5 text-left text-sm font-bold transition-colors md:text-base"
               style={{
                 fontFamily: 'var(--font-space-mono), monospace',
                 color: isOpen ? '#FFD700' : '#FFFFFF',
               }}
+              onClick={() => setOpenIndex(isOpen ? null : i)}
+              aria-expanded={isOpen}
             >
               {item.headline}
               <span
                 className="accordion-chevron ml-4 flex-shrink-0 text-lg text-[#FFD700]"
-                data-open={isOpen}
+                data-open={isOpen ? 'true' : 'false'}
                 aria-hidden="true"
               >
                 +
               </span>
-            </div>
-            <div className="accordion-content" data-open={isOpen}>
+            </button>
+            <div className="accordion-content" data-open={isOpen ? 'true' : 'false'}>
               <div>
                 <p
                   className="pb-5 text-sm leading-relaxed text-[#999999]"
