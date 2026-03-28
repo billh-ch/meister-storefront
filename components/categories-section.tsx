@@ -333,27 +333,23 @@ export default function CategoriesSection({
           className="flex w-full flex-col justify-center px-6 py-10 md:px-10 lg:w-1/2 lg:px-16"
           style={{ border: '1px solid #FFD700' }}
         >
-          {/* Label */}
-          <span
-            className="text-xs tracking-[0.25em] text-[#FFD700] uppercase"
-            style={{ fontFamily: 'var(--font-space-mono), monospace' }}
-          >
-            {active.label}
-          </span>
-
-          {/* Marquee ticker */}
+          {/* Marquee ticker — two identical halves so -50% loops seamlessly */}
           <div
-            className="mt-4 w-full overflow-hidden border-y border-[#333333] py-3"
+            className="w-full overflow-hidden border-y border-[#333333] py-3"
             aria-hidden="true"
           >
             <div className="animate-marquee whitespace-nowrap">
-              {Array.from({ length: 12 }).map((_, i) => (
-                <span
-                  key={i}
-                  className="pr-8 text-sm font-bold tracking-[0.2em] text-[#FFD700] uppercase"
-                  style={{ fontFamily: 'var(--font-space-mono), monospace' }}
-                >
-                  {active.marqueeText} •{' '}
+              {[0, 1].map((half) => (
+                <span key={half} className="inline-block">
+                  {Array.from({ length: 8 }).map((_, i) => (
+                    <span
+                      key={i}
+                      className="pr-8 text-sm font-bold tracking-[0.2em] text-[#FFD700] uppercase"
+                      style={{ fontFamily: 'var(--font-space-mono), monospace' }}
+                    >
+                      {active.marqueeText} •{' '}
+                    </span>
+                  ))}
                 </span>
               ))}
             </div>
