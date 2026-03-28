@@ -341,6 +341,24 @@ export default function CategoriesSection({
             {active.label}
           </span>
 
+          {/* Marquee ticker */}
+          <div
+            className="mt-4 w-full overflow-hidden border-y border-[#333333] py-3"
+            aria-hidden="true"
+          >
+            <div className="animate-marquee whitespace-nowrap">
+              {Array.from({ length: 12 }).map((_, i) => (
+                <span
+                  key={i}
+                  className="pr-8 text-sm font-bold tracking-[0.2em] text-[#FFD700] uppercase"
+                  style={{ fontFamily: 'var(--font-space-mono), monospace' }}
+                >
+                  {active.marqueeText} •{' '}
+                </span>
+              ))}
+            </div>
+          </div>
+
           {/* Tagline — smaller */}
           <h2
             className="mt-4 text-2xl leading-tight text-white md:text-3xl lg:text-4xl"

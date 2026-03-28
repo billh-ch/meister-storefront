@@ -38,6 +38,7 @@ export interface CategoryDetail {
   readonly name: string
   readonly label: string
   readonly tagline: string
+  readonly marqueeText: string
   readonly image: string
   readonly accordionItems: readonly AccordionItem[]
 }
@@ -225,6 +226,7 @@ export const categoryDetails: readonly CategoryDetail[] = [
     name: 'FINS',
     label: '01 — DIVING FINS',
     tagline: 'Built for the Water. Shaped by Obsession.',
+    marqueeText: 'Meister Carbon Diving Fins',
     image: 'https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=1200&q=80',
     accordionItems: [
       {
@@ -247,6 +249,7 @@ export const categoryDetails: readonly CategoryDetail[] = [
     name: 'SUITS',
     label: '02 — DIVING SUITS',
     tagline: 'Second Skin. First Choice.',
+    marqueeText: 'Meister Diving Suits',
     image: 'https://images.unsplash.com/photo-1537519883498-f7e6d8df3ef6?w=1200&q=80',
     accordionItems: [
       {
@@ -269,6 +272,7 @@ export const categoryDetails: readonly CategoryDetail[] = [
     name: 'ACCESSORIES',
     label: '03 — ACCESSORIES',
     tagline: 'The Details That Make a Difference.',
+    marqueeText: 'Accessories',
     image: 'https://images.unsplash.com/photo-1530870110042-98b2cb110834?w=1200&q=80',
     accordionItems: [
       {
@@ -287,6 +291,7 @@ export const categoryDetails: readonly CategoryDetail[] = [
     name: 'MERCH',
     label: '04 — MERCH',
     tagline: 'Wear It Like You Mean It.',
+    marqueeText: 'Meister Merch',
     image: 'https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=1200&q=80',
     accordionItems: [
       {
