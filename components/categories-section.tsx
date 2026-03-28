@@ -24,22 +24,25 @@ function TabBar({
   onTabChange: (i: number) => void
 }) {
   return (
-    <div className="flex justify-center overflow-x-auto px-4 md:px-10">
-      <div className="relative z-10 flex">
+    <div className="overflow-x-auto px-4 md:px-10">
+      <div className="flex justify-center border-b border-[#444444]">
         {tabs.map((tab, i) => {
           const isActive = i === activeIndex
           return (
             <button
               key={tab.id}
+              type="button"
               onClick={() => onTabChange(i)}
-              className="relative min-w-0 shrink-0 cursor-pointer whitespace-nowrap px-4 py-3 text-sm transition-all duration-200 sm:px-6 sm:py-4 sm:text-base md:px-10 md:py-5 md:text-xl lg:text-2xl"
+              className="relative shrink-0 cursor-pointer whitespace-nowrap px-4 py-3 text-sm transition-all duration-200 sm:px-6 sm:py-4 sm:text-base md:px-10 md:py-5 md:text-xl lg:text-2xl"
               style={{
                 fontFamily: 'var(--font-dela-gothic), sans-serif',
                 color: isActive ? '#FFFFFF' : '#666666',
                 backgroundColor: isActive ? '#2A2A25' : 'transparent',
-                border: isActive ? '1px solid #444444' : '1px solid transparent',
-                borderBottom: isActive ? '1px solid #2A2A25' : '1px solid #444444',
-                marginBottom: '-1px',
+                borderTop: isActive ? '1px solid #444444' : '1px solid transparent',
+                borderLeft: isActive ? '1px solid #444444' : '1px solid transparent',
+                borderRight: isActive ? '1px solid #444444' : '1px solid transparent',
+                borderBottom: isActive ? '1px solid #2A2A25' : 'none',
+                marginBottom: isActive ? '-1px' : '0',
               }}
             >
               {tab.name}
@@ -314,9 +317,6 @@ export default function CategoriesSection({
         activeIndex={activeIndex}
         onTabChange={setActiveIndex}
       />
-
-      {/* Border line below tabs */}
-      <div className="mx-4 sm:mx-6 md:mx-10" style={{ borderBottom: '1px solid #444444' }} />
 
       {/* Split layout */}
       <div className="mt-6 flex flex-col md:mt-10 lg:flex-row" style={{ minHeight: '400px' }}>
