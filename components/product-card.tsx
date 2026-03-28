@@ -9,15 +9,10 @@ interface ProductCardProps {
 }
 
 /**
- * Product card — faithful to Framer design:
- * - Fixed height 575px
- * - Diagonal SVG hatching background (via .hatching-bg CSS class)
- * - Image area: ~85% of card height
- * - Footer: product name + options + price (left 80%) + gold ADD button (right 20%)
- * - Border: 1px solid #222222
- * - Color swatches: grey #969696, orange #E8510C, red #FF0000
- *
- * Must be "use client" because of onClick handler.
+ * Product card — responsive version:
+ * - Scales from ~400px on mobile to 575px on desktop
+ * - Footer adapts text size on smaller screens
+ * - Touch-friendly ADD button
  */
 export default function ProductCard({ product, onAddToCart }: ProductCardProps) {
   const handleAddToCart = () => {
@@ -27,16 +22,16 @@ export default function ProductCard({ product, onAddToCart }: ProductCardProps) 
   return (
     <article
       className="hatching-bg relative flex h-full w-full flex-col overflow-hidden"
-      style={{ border: '1px solid #222222', minHeight: '575px' }}
+      style={{ border: '1px solid #222222', minHeight: '400px' }}
       aria-label={`${product.name}, ${formatPrice(product.price)}`}
     >
-      {/* Image area — ~85% height */}
+      {/* Image area — flexible height */}
       <div className="relative flex-1 overflow-hidden">
         <Image
           src={product.image}
           alt={product.name}
           fill
-          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+          sizes="(max-width: 640px) 85vw, (max-width: 1024px) 50vw, 33vw"
           className="object-cover"
           priority={false}
         />
@@ -48,34 +43,34 @@ export default function ProductCard({ product, onAddToCart }: ProductCardProps) 
         />
       </div>
 
-      {/* Footer row — 1px top border, dark background */}
+      {/* Footer row — responsive height */}
       <footer
         className="flex items-stretch"
         style={{
           borderTop: '1px solid #222222',
           backgroundColor: '#1B1B18',
-          height: '88px',
+          minHeight: '72px',
         }}
       >
         {/* Left: name + swatches + price (80%) */}
         <div
-          className="flex flex-col justify-center gap-1.5 overflow-hidden px-3 py-2"
+          className="flex flex-col justify-center gap-1 overflow-hidden px-3 py-2"
           style={{ width: '80%' }}
         >
           {/* Product name */}
           <h2
-            className="truncate text-sm font-bold text-white"
+            className="truncate text-xs font-bold text-white sm:text-sm"
             style={{ fontFamily: 'var(--font-space-mono), monospace' }}
           >
             {product.name}
           </h2>
 
           {/* Swatches + options */}
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5 sm:gap-2">
             {product.swatches.map((color) => (
               <span
                 key={color}
-                className="inline-block h-3.5 w-3.5 flex-shrink-0"
+                className="inline-block h-3 w-3 flex-shrink-0 sm:h-3.5 sm:w-3.5"
                 style={{
                   backgroundColor: color,
                   borderRadius: '200px',
@@ -84,7 +79,7 @@ export default function ProductCard({ product, onAddToCart }: ProductCardProps) 
               />
             ))}
             <span
-              className="truncate text-xs text-[#969696]"
+              className="truncate text-[10px] text-[#969696] sm:text-xs"
               style={{ fontFamily: 'var(--font-space-mono), monospace' }}
             >
               {product.options}
@@ -93,18 +88,19 @@ export default function ProductCard({ product, onAddToCart }: ProductCardProps) 
 
           {/* Price */}
           <p
-            className="text-sm font-bold text-[#FFD700]"
+            className="text-xs font-bold text-[#FFD700] sm:text-sm"
             style={{ fontFamily: 'var(--font-space-mono), monospace' }}
           >
             {formatPrice(product.price)}
           </p>
         </div>
 
-        {/* Right: ADD button (20%) */}
+        {/* Right: ADD button (20%) — min-width for touch target */}
         <button
-          className="btn-gold flex flex-shrink-0 items-center justify-center text-xs font-bold tracking-wider uppercase"
+          className="btn-gold flex flex-shrink-0 cursor-pointer items-center justify-center text-[10px] font-bold tracking-wider uppercase sm:text-xs"
           style={{
             width: '20%',
+            minWidth: '44px',
             borderLeft: '1px solid #222222',
           }}
           onClick={handleAddToCart}

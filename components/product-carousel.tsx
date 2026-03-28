@@ -15,7 +15,7 @@ function useSlideWidth() {
   useEffect(() => {
     function update() {
       if (window.innerWidth < 640) {
-        setSlideWidth('100%')
+        setSlideWidth('85%')
       } else if (window.innerWidth < 1024) {
         setSlideWidth('50%')
       } else {
@@ -63,9 +63,9 @@ export default function ProductCarousel({ products }: ProductCarouselProps) {
       aria-label="Most wanted products"
     >
       {/* Section header */}
-      <div className="mb-8 flex items-center justify-between px-6 md:px-10">
+      <div className="mb-6 flex items-center justify-between px-4 sm:mb-8 sm:px-6 md:px-10">
         <h2
-          className="text-3xl text-white md:text-5xl"
+          className="text-2xl text-white sm:text-3xl md:text-5xl"
           style={{ fontFamily: 'var(--font-dela-gothic), sans-serif' }}
         >
           MOST WANTED
@@ -74,7 +74,7 @@ export default function ProductCarousel({ products }: ProductCarouselProps) {
         {/* VIEW ALL button — thick yellow border, dark bg, white text */}
         <a
           href="/shop"
-          className="hidden items-center justify-center px-8 py-3 text-xs font-bold tracking-wider text-white uppercase transition-opacity hover:opacity-80 sm:flex"
+          className="flex items-center justify-center px-4 py-2 text-[10px] font-bold tracking-wider text-white uppercase transition-opacity hover:opacity-80 sm:px-8 sm:py-3 sm:text-xs"
           style={{
             border: '3px solid #FFD700',
             backgroundColor: '#1B1B18',
@@ -89,7 +89,7 @@ export default function ProductCarousel({ products }: ProductCarouselProps) {
       <div className="relative">
         {/* Embla viewport */}
         <div className="overflow-hidden" ref={emblaRef}>
-          <div className="flex" style={{ touchAction: 'pan-y' }}>
+          <div className="flex" style={{ touchAction: 'pan-y pinch-zoom' }}>
             {products.map((product) => (
               <div
                 key={product.id}
@@ -105,7 +105,7 @@ export default function ProductCarousel({ products }: ProductCarouselProps) {
         {/* Left arrow — inside the slider */}
         <button
           onClick={scrollPrev}
-          className="absolute left-3 top-1/2 z-10 flex h-11 w-11 -translate-y-1/2 items-center justify-center border border-[#444444] bg-[#1B1B18]/80 text-white backdrop-blur-sm transition-colors hover:border-[#FFD700] hover:text-[#FFD700] disabled:opacity-30"
+          className="absolute left-2 top-1/2 z-10 flex h-10 w-10 -translate-y-1/2 cursor-pointer items-center justify-center border border-[#444444] bg-[#1B1B18]/80 text-white backdrop-blur-sm transition-colors hover:border-[#FFD700] hover:text-[#FFD700] disabled:opacity-30 sm:left-3 sm:h-11 sm:w-11"
           aria-label="Show previous products"
           disabled={!canScrollPrev}
         >
@@ -115,7 +115,7 @@ export default function ProductCarousel({ products }: ProductCarouselProps) {
         {/* Right arrow — inside the slider */}
         <button
           onClick={scrollNext}
-          className="absolute right-3 top-1/2 z-10 flex h-11 w-11 -translate-y-1/2 items-center justify-center border border-[#444444] bg-[#1B1B18]/80 text-white backdrop-blur-sm transition-colors hover:border-[#FFD700] hover:text-[#FFD700] disabled:opacity-30"
+          className="absolute right-2 top-1/2 z-10 flex h-10 w-10 -translate-y-1/2 cursor-pointer items-center justify-center border border-[#444444] bg-[#1B1B18]/80 text-white backdrop-blur-sm transition-colors hover:border-[#FFD700] hover:text-[#FFD700] disabled:opacity-30 sm:right-3 sm:h-11 sm:w-11"
           aria-label="Show next products"
           disabled={!canScrollNext}
         >

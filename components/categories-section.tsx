@@ -3,7 +3,7 @@
 import Image from 'next/image'
 import Link from 'next/link'
 import useEmblaCarousel from 'embla-carousel-react'
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import ProductCard from './product-card'
 import {
   type CategoryDetail,
@@ -11,7 +11,7 @@ import {
 } from '@/lib/mock-data'
 
 /* ================================================================
-   TabBar — centered browser-tab style with boxes
+   TabBar — centered browser-tab style with boxes, scrollable on mobile
    ================================================================ */
 
 function TabBar({
@@ -24,15 +24,15 @@ function TabBar({
   onTabChange: (i: number) => void
 }) {
   return (
-    <div className="flex justify-center px-6 md:px-10">
-      <div className="flex">
+    <div className="flex justify-center overflow-x-auto px-4 md:px-10">
+      <div className="relative z-10 flex">
         {tabs.map((tab, i) => {
           const isActive = i === activeIndex
           return (
             <button
               key={tab.id}
               onClick={() => onTabChange(i)}
-              className="relative px-6 py-4 text-base transition-all duration-200 md:px-10 md:py-5 md:text-xl lg:text-2xl"
+              className="relative min-w-0 shrink-0 cursor-pointer whitespace-nowrap px-4 py-3 text-sm transition-all duration-200 sm:px-6 sm:py-4 sm:text-base md:px-10 md:py-5 md:text-xl lg:text-2xl"
               style={{
                 fontFamily: 'var(--font-dela-gothic), sans-serif',
                 color: isActive ? '#FFFFFF' : '#666666',
@@ -64,14 +64,14 @@ function CategoryImage({
 }) {
   return (
     <div
-      className="relative h-[300px] w-full overflow-hidden lg:h-auto lg:w-1/2"
+      className="relative h-[250px] w-full overflow-hidden sm:h-[300px] md:h-[400px] lg:h-auto lg:w-1/2"
       style={{ border: '1px solid #FFD700' }}
     >
       {tabs.map((tab, i) => (
         <div
           key={tab.id}
           className="category-image"
-          data-active={i === activeIndex}
+          data-active={i === activeIndex ? 'true' : 'false'}
         >
           <Image
             src={tab.image}
@@ -89,7 +89,7 @@ function CategoryImage({
 }
 
 /* ================================================================
-   Accordion — hover to expand, collapse on mouse leave
+   Accordion — click to expand/collapse (works on all devices)
    ================================================================ */
 
 function Accordion({
@@ -107,18 +107,13 @@ function Accordion({
   }, [activeTab])
 
   return (
-    <div className="mt-8">
+    <div className="mt-6 md:mt-8">
       {items.map((item, i) => {
         const isOpen = openIndex === i
         return (
-          <div
-            key={i}
-            style={{ borderTop: '1px solid #333333' }}
-            onMouseEnter={() => setOpenIndex(i)}
-            onMouseLeave={() => setOpenIndex(null)}
-          >
+          <div key={i} style={{ borderTop: '1px solid #333333' }}>
             <button
-              className="flex w-full items-center justify-between py-5 text-left text-sm font-bold transition-colors md:text-base"
+              className="flex w-full cursor-pointer items-center justify-between py-4 text-left text-sm font-bold transition-colors md:py-5 md:text-base"
               style={{
                 fontFamily: 'var(--font-space-mono), monospace',
                 color: isOpen ? '#FFD700' : '#FFFFFF',
@@ -126,9 +121,9 @@ function Accordion({
               onClick={() => setOpenIndex(isOpen ? null : i)}
               aria-expanded={isOpen}
             >
-              {item.headline}
+              <span className="pr-4">{item.headline}</span>
               <span
-                className="accordion-chevron ml-4 flex-shrink-0 text-lg text-[#FFD700]"
+                className="accordion-chevron flex-shrink-0 text-lg text-[#FFD700]"
                 data-open={isOpen ? 'true' : 'false'}
                 aria-hidden="true"
               >
@@ -138,7 +133,7 @@ function Accordion({
             <div className="accordion-content" data-open={isOpen ? 'true' : 'false'}>
               <div>
                 <p
-                  className="pb-5 text-sm leading-relaxed text-[#999999]"
+                  className="pb-5 text-xs leading-relaxed text-[#999999] sm:text-sm"
                   style={{ fontFamily: 'var(--font-space-mono), monospace' }}
                 >
                   {item.body}
@@ -162,7 +157,7 @@ function useSlideWidth() {
   useEffect(() => {
     function update() {
       if (window.innerWidth < 640) {
-        setSlideWidth('100%')
+        setSlideWidth('85%')
       } else if (window.innerWidth < 1024) {
         setSlideWidth('50%')
       } else {
@@ -225,18 +220,18 @@ function CategoryProducts({
   if (filtered.length === 0) return null
 
   return (
-    <div className="mt-12">
+    <div className="mt-8 md:mt-12">
       {/* Header row */}
-      <div className="mb-6 flex items-center justify-between px-6 md:px-10">
+      <div className="mb-4 flex items-center justify-between px-4 sm:mb-6 sm:px-6 md:px-10">
         <h3
-          className="text-xl text-white md:text-2xl"
+          className="text-lg text-white sm:text-xl md:text-2xl"
           style={{ fontFamily: 'var(--font-dela-gothic), sans-serif' }}
         >
           FROM THIS CATEGORY
         </h3>
         <Link
           href={`/${categorySlug}`}
-          className="hidden items-center justify-center px-8 py-3 text-xs font-bold tracking-wider text-white uppercase transition-opacity hover:opacity-80 sm:flex"
+          className="flex items-center justify-center px-4 py-2 text-xs font-bold tracking-wider text-white uppercase transition-opacity hover:opacity-80 sm:px-8 sm:py-3"
           style={{
             border: '3px solid #FFD700',
             backgroundColor: '#1B1B18',
@@ -250,11 +245,11 @@ function CategoryProducts({
       {/* Carousel */}
       <div className="relative">
         <div className="overflow-hidden" ref={emblaRef}>
-          <div className="flex" style={{ touchAction: 'pan-y' }}>
+          <div className="flex" style={{ touchAction: 'pan-y pinch-zoom' }}>
             {filtered.map((product) => (
               <div
                 key={product.id}
-                className="flex-shrink-0"
+                className="flex-shrink-0 px-1 sm:px-0"
                 style={{ width: slideWidth }}
               >
                 <ProductCard product={product} />
@@ -266,7 +261,7 @@ function CategoryProducts({
         {/* Left arrow */}
         <button
           onClick={scrollPrev}
-          className="absolute left-3 top-1/2 z-10 flex h-11 w-11 -translate-y-1/2 items-center justify-center border border-[#444444] bg-[#1B1B18]/80 text-white backdrop-blur-sm transition-colors hover:border-[#FFD700] hover:text-[#FFD700] disabled:opacity-30"
+          className="absolute left-2 top-1/2 z-10 flex h-10 w-10 -translate-y-1/2 cursor-pointer items-center justify-center border border-[#444444] bg-[#1B1B18]/80 text-white backdrop-blur-sm transition-colors hover:border-[#FFD700] hover:text-[#FFD700] disabled:opacity-30 sm:left-3 sm:h-11 sm:w-11"
           aria-label="Show previous products"
           disabled={!canScrollPrev}
         >
@@ -278,7 +273,7 @@ function CategoryProducts({
         {/* Right arrow */}
         <button
           onClick={scrollNext}
-          className="absolute right-3 top-1/2 z-10 flex h-11 w-11 -translate-y-1/2 items-center justify-center border border-[#444444] bg-[#1B1B18]/80 text-white backdrop-blur-sm transition-colors hover:border-[#FFD700] hover:text-[#FFD700] disabled:opacity-30"
+          className="absolute right-2 top-1/2 z-10 flex h-10 w-10 -translate-y-1/2 cursor-pointer items-center justify-center border border-[#444444] bg-[#1B1B18]/80 text-white backdrop-blur-sm transition-colors hover:border-[#FFD700] hover:text-[#FFD700] disabled:opacity-30 sm:right-3 sm:h-11 sm:w-11"
           aria-label="Show next products"
           disabled={!canScrollNext}
         >
@@ -309,7 +304,7 @@ export default function CategoriesSection({
 
   return (
     <section
-      className="w-full py-16"
+      className="w-full py-10 md:py-16"
       style={{ backgroundColor: '#1B1B18' }}
       aria-label="Category showcase"
     >
@@ -321,21 +316,21 @@ export default function CategoriesSection({
       />
 
       {/* Border line below tabs */}
-      <div className="mx-6 md:mx-10" style={{ borderBottom: '1px solid #444444' }} />
+      <div className="mx-4 sm:mx-6 md:mx-10" style={{ borderBottom: '1px solid #444444' }} />
 
       {/* Split layout */}
-      <div className="mt-10 flex flex-col lg:flex-row" style={{ minHeight: '500px' }}>
+      <div className="mt-6 flex flex-col md:mt-10 lg:flex-row" style={{ minHeight: '400px' }}>
         {/* Left — image */}
         <CategoryImage tabs={categoryDetails} activeIndex={activeIndex} />
 
         {/* Right — content */}
         <div
-          className="flex w-full flex-col justify-center px-6 py-10 md:px-10 lg:w-1/2 lg:px-16"
+          className="flex w-full flex-col justify-center px-4 py-8 sm:px-6 md:px-10 md:py-10 lg:w-1/2 lg:px-16"
           style={{ border: '1px solid #FFD700' }}
         >
           {/* Marquee ticker — two identical halves so -50% loops seamlessly */}
           <div
-            className="w-full overflow-hidden border-y border-[#333333] py-3"
+            className="w-full overflow-hidden border-y border-[#333333] py-2 sm:py-3"
             aria-hidden="true"
           >
             <div className="animate-marquee whitespace-nowrap">
@@ -344,7 +339,7 @@ export default function CategoriesSection({
                   {Array.from({ length: 8 }).map((_, i) => (
                     <span
                       key={i}
-                      className="pr-8 text-sm font-bold tracking-[0.2em] text-[#FFD700] uppercase"
+                      className="pr-6 text-xs font-bold tracking-[0.2em] text-[#FFD700] uppercase sm:pr-8 sm:text-sm"
                       style={{ fontFamily: 'var(--font-space-mono), monospace' }}
                     >
                       {active.marqueeText} •{' '}
@@ -355,9 +350,9 @@ export default function CategoriesSection({
             </div>
           </div>
 
-          {/* Tagline — smaller */}
+          {/* Tagline */}
           <h2
-            className="mt-4 text-2xl leading-tight text-white md:text-3xl lg:text-4xl"
+            className="mt-4 text-xl leading-tight text-white sm:text-2xl md:text-3xl lg:text-4xl"
             style={{ fontFamily: 'var(--font-dela-gothic), sans-serif' }}
           >
             {active.tagline}

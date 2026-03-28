@@ -7,12 +7,10 @@ export default function HeroSection() {
       style={{ backgroundColor: '#1B1B18' }}
       aria-label="Hero — Meister diving equipment"
     >
-      {/* Navy radial glow — subtle circle behind text */}
+      {/* Navy radial glow — subtle circle behind text, scales on mobile */}
       <div
-        className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2"
+        className="pointer-events-none absolute left-1/2 top-1/2 h-[300px] w-[300px] -translate-x-1/2 -translate-y-1/2 sm:h-[450px] sm:w-[450px] md:h-[600px] md:w-[600px]"
         style={{
-          width: '600px',
-          height: '600px',
           background: 'radial-gradient(circle at center, rgba(15,30,80,0.35) 0%, rgba(15,30,80,0.12) 40%, transparent 70%)',
           borderRadius: '50%',
           zIndex: 0,
