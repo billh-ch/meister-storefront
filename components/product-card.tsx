@@ -22,7 +22,7 @@ export default function ProductCard({ product, onAddToCart }: ProductCardProps) 
   return (
     <article
       className="hatching-bg relative flex h-full w-full flex-col overflow-hidden"
-      style={{ border: '1px solid #222222', minHeight: '400px' }}
+      style={{ border: '1px solid #222222', minHeight: '575px' }}
       aria-label={`${product.name}, ${formatPrice(product.price)}`}
     >
       {/* Image area — flexible height */}
@@ -48,7 +48,7 @@ export default function ProductCard({ product, onAddToCart }: ProductCardProps) 
         className="flex items-stretch"
         style={{
           borderTop: '1px solid #222222',
-          backgroundColor: '#1B1B18',
+          backgroundColor: '#FFFFFF',
           minHeight: '72px',
         }}
       >
@@ -59,7 +59,7 @@ export default function ProductCard({ product, onAddToCart }: ProductCardProps) 
         >
           {/* Product name */}
           <h2
-            className="truncate text-xs font-bold text-white sm:text-sm"
+            className="truncate text-xs font-bold text-[#1B1B18] sm:text-sm"
             style={{ fontFamily: 'var(--font-space-mono), monospace' }}
           >
             {product.name}
@@ -79,7 +79,7 @@ export default function ProductCard({ product, onAddToCart }: ProductCardProps) 
               />
             ))}
             <span
-              className="truncate text-[10px] text-[#969696] sm:text-xs"
+              className="truncate text-[10px] text-[#666666] sm:text-xs"
               style={{ fontFamily: 'var(--font-space-mono), monospace' }}
             >
               {product.options}
@@ -88,7 +88,7 @@ export default function ProductCard({ product, onAddToCart }: ProductCardProps) 
 
           {/* Price */}
           <p
-            className="text-xs font-bold text-[#FFD700] sm:text-sm"
+            className="text-xs font-bold text-[#1B1B18] sm:text-sm"
             style={{ fontFamily: 'var(--font-space-mono), monospace' }}
           >
             {formatPrice(product.price)}
@@ -101,7 +101,7 @@ export default function ProductCard({ product, onAddToCart }: ProductCardProps) 
           style={{
             width: '20%',
             minWidth: '44px',
-            borderLeft: '1px solid #222222',
+            borderLeft: '1px solid #E0E0E0',
           }}
           onClick={handleAddToCart}
           aria-label={`Add ${product.name} to cart`}
