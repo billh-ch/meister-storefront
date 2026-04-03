@@ -130,10 +130,10 @@ export default function CategoriesSection({
         className="mt-6 flex flex-col md:mt-10 lg:flex-row"
         style={{ minHeight: '550px' }}
       >
-        {/* Left — image with crossfade, fixed min-height on desktop */}
+        {/* Left — image with crossfade, stretches with right panel on lg */}
         <div
-          className="relative h-[300px] w-full overflow-hidden sm:h-[350px] md:h-[400px] lg:w-1/2"
-          style={{ border: '1px solid #FFD700', minHeight: 'inherit' }}
+          className="relative h-[300px] w-full overflow-hidden sm:h-[350px] md:h-[400px] lg:h-auto lg:w-1/2"
+          style={{ border: '1px solid #FFD700' }}
         >
           {categoryDetails.map((tab, i) => (
             <div
