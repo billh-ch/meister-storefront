@@ -128,12 +128,12 @@ export default function CategoriesSection({
       {/* ── SPLIT LAYOUT ── */}
       <div
         className="mt-6 flex flex-col md:mt-10 lg:flex-row"
-        style={{ minHeight: '400px' }}
+        style={{ minHeight: '550px' }}
       >
-        {/* Left — image with crossfade */}
+        {/* Left — image with crossfade, fixed min-height on desktop */}
         <div
-          className="relative h-[250px] w-full overflow-hidden sm:h-[300px] md:h-[400px] lg:h-auto lg:w-1/2"
-          style={{ border: '1px solid #FFD700' }}
+          className="relative h-[300px] w-full overflow-hidden sm:h-[350px] md:h-[400px] lg:w-1/2"
+          style={{ border: '1px solid #FFD700', minHeight: 'inherit' }}
         >
           {categoryDetails.map((tab, i) => (
             <div
