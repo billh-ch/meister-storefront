@@ -1,7 +1,6 @@
 import Navbar from '@/components/navbar'
 import HeroSection from '@/components/hero-section'
 import ProductCarousel from '@/components/product-carousel'
-import MerchSection from '@/components/merch-section'
 import TestimonialsSection from '@/components/testimonials-section'
 import NewsletterSection from '@/components/newsletter-section'
 import Footer from '@/components/footer'
@@ -22,7 +21,6 @@ export default function HomePage() {
       <HeroSection />
       <ProductCarousel products={products} />
       <CategoriesSection categoryDetails={categoryDetails} products={products} />
-      <MerchSection />
       <TestimonialsSection />
       <NewsletterSection />
       <Footer />
