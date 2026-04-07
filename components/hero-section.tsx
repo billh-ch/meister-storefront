@@ -30,13 +30,6 @@ export default function HeroSection() {
           Go Meister.
         </h1>
 
-        <p
-          className="max-w-xl text-sm text-[#999999] md:text-base"
-          style={{ fontFamily: 'var(--font-space-mono), monospace' }}
-        >
-          Premium diving equipment. Athens, Greece.
-        </p>
-
         <Link
           href="/shop"
           className="btn-gold inline-block px-10 py-4 text-sm tracking-[0.15em] uppercase"
