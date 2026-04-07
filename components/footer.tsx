@@ -59,8 +59,8 @@ export default function Footer() {
   const marqueeContent = Array.from({ length: 8 }, (_, i) => (
     <span
       key={i}
-      className="mx-8 flex h-full items-center whitespace-nowrap text-5xl tracking-[0.15em] text-white md:text-7xl"
-      style={{ fontFamily: 'var(--font-dela-gothic), sans-serif' }}
+      className="mx-8 flex h-full items-center whitespace-nowrap tracking-[0.15em] text-white"
+      style={{ fontFamily: 'var(--font-dela-gothic), sans-serif', fontSize: '200px', lineHeight: '200px' }}
     >
       {MARQUEE_TEXT}
     </span>
@@ -90,7 +90,7 @@ export default function Footer() {
           className="flex w-full items-center overflow-hidden"
           style={{ height: '200px' }}
         >
-          <div className="animate-marquee flex" style={{ animationDuration: '40s', height: '200px' }}>
+          <div className="animate-marquee flex" style={{ animationDuration: '120s', height: '200px' }}>
             {marqueeContent}
             {marqueeContent}
           </div>
