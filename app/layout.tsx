@@ -7,22 +7,22 @@ import './globals.css'
 const headingProWide = localFont({
   src: [
     {
-      path: '../public/heading_pro_wide/Heading-Pro-Wide-Regular-trial.ttf',
+      path: '../fonts/Heading-Pro-Wide-Regular-trial.ttf',
       weight: '400',
       style: 'normal',
     },
     {
-      path: '../public/heading_pro_wide/Heading-Pro-Wide-Bold-trial.ttf',
+      path: '../fonts/Heading-Pro-Wide-Bold-trial.ttf',
       weight: '700',
       style: 'normal',
     },
     {
-      path: '../public/heading_pro_wide/Heading-Pro-Wide-ExtraBold-trial.ttf',
+      path: '../fonts/Heading-Pro-Wide-ExtraBold-trial.ttf',
       weight: '800',
       style: 'normal',
     },
     {
-      path: '../public/heading_pro_wide/Heading-Pro-Wide-Black-trial.ttf',
+      path: '../fonts/Heading-Pro-Wide-Black-trial.ttf',
       weight: '900',
       style: 'normal',
     },
