@@ -110,6 +110,7 @@ export default function CategoriesSection({
               className="shrink-0 whitespace-nowrap px-5 py-3 text-sm sm:px-8 sm:py-4 sm:text-base md:px-10 md:py-5 md:text-xl lg:text-2xl"
               style={{
                 fontFamily: 'var(--font-dela-gothic), sans-serif',
+                fontWeight: 700,
                 color: i === activeIndex ? '#FFFFFF' : '#666666',
                 backgroundColor: i === activeIndex ? '#2A2A25' : 'transparent',
                 borderTop: i === activeIndex ? '1px solid #444444' : '1px solid transparent',
@@ -184,7 +185,7 @@ export default function CategoriesSection({
           {/* Tagline */}
           <h2
             className="mt-4 text-xl leading-tight text-white sm:text-2xl md:text-3xl lg:text-4xl"
-            style={{ fontFamily: 'var(--font-dela-gothic), sans-serif' }}
+            style={{ fontFamily: 'var(--font-dela-gothic), sans-serif', fontWeight: 800 }}
           >
             {active.tagline}
           </h2>
@@ -241,7 +242,7 @@ export default function CategoriesSection({
           <div className="mb-4 flex items-center justify-between px-4 sm:mb-6 sm:px-6 md:px-10">
             <h3
               className="text-lg text-white sm:text-xl md:text-2xl"
-              style={{ fontFamily: 'var(--font-dela-gothic), sans-serif' }}
+              style={{ fontFamily: 'var(--font-dela-gothic), sans-serif', fontWeight: 700 }}
             >
               FROM THIS CATEGORY
             </h3>

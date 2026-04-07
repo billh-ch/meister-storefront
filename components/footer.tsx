@@ -60,7 +60,7 @@ export default function Footer() {
     <span
       key={i}
       className="mx-8 flex h-full items-center whitespace-nowrap tracking-[0.15em] text-white"
-      style={{ fontFamily: 'var(--font-dela-gothic), sans-serif', fontSize: '200px', lineHeight: '200px' }}
+      style={{ fontFamily: 'var(--font-dela-gothic), sans-serif', fontSize: '200px', lineHeight: '200px', fontWeight: 800 }}
     >
       {MARQUEE_TEXT}
     </span>
@@ -110,7 +110,7 @@ export default function Footer() {
           >
             <span
               className="text-xl tracking-[0.1em] text-[#FFD700] md:text-2xl"
-              style={{ fontFamily: 'var(--font-dela-gothic), sans-serif' }}
+              style={{ fontFamily: 'var(--font-dela-gothic), sans-serif', fontWeight: 700 }}
             >
               MEISTER
             </span>

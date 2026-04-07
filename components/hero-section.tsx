@@ -23,7 +23,7 @@ export default function HeroSection() {
       <div className="relative z-10 flex flex-col items-center gap-8 text-center">
         <h1
           className="text-5xl leading-[1.1] text-white md:text-7xl lg:text-8xl xl:text-9xl"
-          style={{ fontFamily: 'var(--font-dela-gothic), sans-serif' }}
+          style={{ fontFamily: 'var(--font-dela-gothic), sans-serif', fontWeight: 800 }}
         >
           Go Deep.
           <br />

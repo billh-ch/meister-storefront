@@ -39,7 +39,7 @@ function TestimonialCard({ testimonial }: { testimonial: Testimonial }) {
       <footer>
         <cite
           className="not-italic text-base text-white"
-          style={{ fontFamily: 'var(--font-dela-gothic), sans-serif' }}
+          style={{ fontFamily: 'var(--font-dela-gothic), sans-serif', fontWeight: 700 }}
         >
           {testimonial.name}
         </cite>
@@ -66,7 +66,7 @@ export default function TestimonialsSection() {
       {/* Heading */}
       <h2
         className="mb-12 text-center text-3xl text-white md:text-5xl"
-        style={{ fontFamily: 'var(--font-dela-gothic), sans-serif' }}
+        style={{ fontFamily: 'var(--font-dela-gothic), sans-serif', fontWeight: 800 }}
       >
         WHAT DIVERS SAY
       </h2>

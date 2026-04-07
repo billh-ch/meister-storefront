@@ -66,7 +66,7 @@ export default function ProductCarousel({ products }: ProductCarouselProps) {
       <div className="mb-6 flex items-center justify-between px-4 sm:mb-8 sm:px-6 md:px-10">
         <h2
           className="text-2xl text-white sm:text-3xl md:text-5xl"
-          style={{ fontFamily: 'var(--font-dela-gothic), sans-serif' }}
+          style={{ fontFamily: 'var(--font-dela-gothic), sans-serif', fontWeight: 800 }}
         >
           MOST WANTED
         </h2>

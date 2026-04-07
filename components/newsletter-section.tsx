@@ -63,7 +63,7 @@ export default function NewsletterSection() {
         {/* Heading */}
         <h2
           className="text-3xl text-white md:text-4xl"
-          style={{ fontFamily: 'var(--font-dela-gothic), sans-serif' }}
+          style={{ fontFamily: 'var(--font-dela-gothic), sans-serif', fontWeight: 800 }}
         >
           JOIN THE MEISTER COMMUNITY
         </h2>

@@ -31,7 +31,7 @@ export default function Navbar() {
         >
           <span
             className="text-2xl tracking-widest text-[#FFD700]"
-            style={{ fontFamily: 'var(--font-dela-gothic), sans-serif' }}
+            style={{ fontFamily: 'var(--font-dela-gothic), sans-serif', fontWeight: 700 }}
           >
             MEISTER
           </span>

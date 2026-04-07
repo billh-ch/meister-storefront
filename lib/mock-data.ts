@@ -273,7 +273,7 @@ export const categoryDetails: readonly CategoryDetail[] = [
     label: '03 — ACCESSORIES',
     tagline: 'The Details That Make a Difference.',
     marqueeText: 'Accessories',
-    image: '/images/accessories-category-image.HEIC',
+    image: '/images/accessories-category-image.jpg',
     accordionItems: [
       {
         headline: 'The Things That Decide a Dive',
