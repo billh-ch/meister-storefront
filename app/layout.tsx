@@ -1,19 +1,32 @@
 import type { Metadata } from 'next'
-import { Anton, Space_Mono, Dela_Gothic_One } from 'next/font/google'
+import { Space_Mono } from 'next/font/google'
+import localFont from 'next/font/local'
 import './globals.css'
 
-/** Anton — wide display font, replaces "Heading Pro Wide Trial ExtraBold" from Framer */
-const anton = Anton({
-  weight: '400',
-  subsets: ['latin'],
-  variable: '--font-anton',
-  display: 'swap',
-})
-
-/** Dela Gothic One — display heading font */
-const delaGothicOne = Dela_Gothic_One({
-  weight: '400',
-  subsets: ['latin'],
+/** Heading Pro Wide — local display heading font */
+const headingProWide = localFont({
+  src: [
+    {
+      path: '../public/heading_pro_wide/Heading-Pro-Wide-Regular-trial.ttf',
+      weight: '400',
+      style: 'normal',
+    },
+    {
+      path: '../public/heading_pro_wide/Heading-Pro-Wide-Bold-trial.ttf',
+      weight: '700',
+      style: 'normal',
+    },
+    {
+      path: '../public/heading_pro_wide/Heading-Pro-Wide-ExtraBold-trial.ttf',
+      weight: '800',
+      style: 'normal',
+    },
+    {
+      path: '../public/heading_pro_wide/Heading-Pro-Wide-Black-trial.ttf',
+      weight: '900',
+      style: 'normal',
+    },
+  ],
   variable: '--font-dela-gothic',
   display: 'swap',
 })
@@ -47,7 +60,7 @@ export default function RootLayout({
     <html
       lang="el"
       dir="ltr"
-      className={`${anton.variable} ${delaGothicOne.variable} ${spaceMono.variable}`}
+      className={`${headingProWide.variable} ${spaceMono.variable}`}
     >
       <body className="min-h-screen antialiased">{children}</body>
     </html>

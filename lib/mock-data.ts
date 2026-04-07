@@ -227,7 +227,7 @@ export const categoryDetails: readonly CategoryDetail[] = [
     label: '01 — DIVING FINS',
     tagline: 'Built for the Water. Shaped by Obsession.',
     marqueeText: 'Meister Carbon Diving Fins',
-    image: 'https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=1200&q=80',
+    image: '/images/diving-fins-category-image.jpg',
     accordionItems: [
       {
         headline: 'The Meister Approach',
@@ -250,7 +250,7 @@ export const categoryDetails: readonly CategoryDetail[] = [
     label: '02 — DIVING SUITS',
     tagline: 'Second Skin. First Choice.',
     marqueeText: 'Meister Diving Suits',
-    image: 'https://images.unsplash.com/photo-1537519883498-f7e6d8df3ef6?w=1200&q=80',
+    image: '/images/diving-suits-category-image.jpg',
     accordionItems: [
       {
         headline: 'Designed to Disappear',
@@ -273,7 +273,7 @@ export const categoryDetails: readonly CategoryDetail[] = [
     label: '03 — ACCESSORIES',
     tagline: 'The Details That Make a Difference.',
     marqueeText: 'Accessories',
-    image: 'https://images.unsplash.com/photo-1530870110042-98b2cb110834?w=1200&q=80',
+    image: '/images/accessories-category-image.HEIC',
     accordionItems: [
       {
         headline: 'The Things That Decide a Dive',
@@ -292,7 +292,7 @@ export const categoryDetails: readonly CategoryDetail[] = [
     label: '04 — MERCH',
     tagline: 'Wear It Like You Mean It.',
     marqueeText: 'Meister Merch',
-    image: 'https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=1200&q=80',
+    image: '/images/meister-merch-category-image.png',
     accordionItems: [
       {
         headline: 'For the Salt-Stained',

@@ -70,8 +70,7 @@ export default function Footer() {
     <footer
       className="relative w-full"
       style={{
-        backgroundImage:
-          'url(https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=1920&q=80)',
+        backgroundImage: 'url(/images/footer-section-image.JPG)',
         backgroundSize: 'cover',
         backgroundPosition: 'center',
         backgroundAttachment: 'fixed',
