@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, type FormEvent } from 'react'
+import { useState } from 'react'
 
 type SubmitState = 'idle' | 'loading' | 'success' | 'error'
 
@@ -23,7 +23,7 @@ export default function NewsletterSection() {
   const [submitState, setSubmitState] = useState<SubmitState>('idle')
   const [validationError, setValidationError] = useState<string | null>(null)
 
-  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault()
     setValidationError(null)
 
