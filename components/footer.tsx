@@ -59,7 +59,7 @@ export default function Footer() {
   const marqueeContent = Array.from({ length: 8 }, (_, i) => (
     <span
       key={i}
-      className="mx-8 whitespace-nowrap text-3xl tracking-[0.15em] text-white md:text-4xl"
+      className="mx-8 flex h-full items-center whitespace-nowrap text-5xl tracking-[0.15em] text-white md:text-7xl"
       style={{ fontFamily: 'var(--font-dela-gothic), sans-serif' }}
     >
       {MARQUEE_TEXT}
@@ -90,7 +90,7 @@ export default function Footer() {
           className="flex w-full items-center overflow-hidden"
           style={{ height: '200px' }}
         >
-          <div className="animate-marquee flex">
+          <div className="animate-marquee flex" style={{ animationDuration: '40s', height: '200px' }}>
             {marqueeContent}
             {marqueeContent}
           </div>
@@ -197,19 +197,19 @@ export default function Footer() {
         {/* ── Row 3: Links grid ── */}
         <div className="grid w-full grid-cols-1 gap-10 px-6 py-14 md:grid-cols-4 md:px-10 lg:px-16">
           {/* Column 1 — Boring Stuff */}
-          <div className="flex flex-col gap-4">
+          <div className="flex flex-col items-center gap-4 text-center">
             <h3
-              className="text-sm font-bold tracking-[0.1em] text-white underline"
+              className="text-base font-bold tracking-[0.1em] text-white underline"
               style={{ fontFamily: 'var(--font-space-mono), monospace' }}
             >
               Boring Stuff
             </h3>
-            <ul className="flex flex-col gap-2" role="list">
+            <ul className="flex flex-col items-center gap-2" role="list">
               {BORING_STUFF.map(({ label, href }) => (
                 <li key={label}>
                   <Link
                     href={href}
-                    className="text-sm text-[#999999] transition-colors hover:text-[#FFD700]"
+                    className="text-base text-[#999999] transition-colors hover:text-[#FFD700]"
                     style={{ fontFamily: 'var(--font-space-mono), monospace' }}
                   >
                     {label}
@@ -220,21 +220,21 @@ export default function Footer() {
           </div>
 
           {/* Column 2 — Links */}
-          <div className="flex flex-col gap-4">
+          <div className="flex flex-col items-center gap-4 text-center">
             <h3
-              className="text-sm font-bold tracking-[0.1em] text-white underline"
+              className="text-base font-bold tracking-[0.1em] text-white underline"
               style={{ fontFamily: 'var(--font-space-mono), monospace' }}
             >
               Links
             </h3>
-            <ul className="flex flex-col gap-2" role="list">
+            <ul className="flex flex-col items-center gap-2" role="list">
               {SOCIAL_LINKS.map(({ label, href }) => (
                 <li key={label}>
                   <a
                     href={href}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-sm text-[#999999] transition-colors hover:text-[#FFD700]"
+                    className="text-base text-[#999999] transition-colors hover:text-[#FFD700]"
                     style={{ fontFamily: 'var(--font-space-mono), monospace' }}
                   >
                     {label}
@@ -245,15 +245,15 @@ export default function Footer() {
           </div>
 
           {/* Column 3 — Location */}
-          <div className="flex flex-col gap-4">
+          <div className="flex flex-col items-center gap-4 text-center">
             <h3
-              className="text-sm font-bold tracking-[0.1em] text-white underline"
+              className="text-base font-bold tracking-[0.1em] text-white underline"
               style={{ fontFamily: 'var(--font-space-mono), monospace' }}
             >
               Location
             </h3>
             <address
-              className="flex flex-col gap-2 text-sm not-italic text-[#999999]"
+              className="flex flex-col items-center gap-2 text-base not-italic text-[#999999]"
               style={{ fontFamily: 'var(--font-space-mono), monospace' }}
             >
               <p>Leoforos Athinon 387, Aigaleo</p>
@@ -267,7 +267,7 @@ export default function Footer() {
           </div>
 
           {/* Column 4 — Google Maps */}
-          <div className="flex flex-col gap-0">
+          <div className="flex flex-col items-center gap-0">
             <div className="overflow-hidden" style={{ width: '280px', height: '230px' }}>
               <iframe
                 title="Meister Dive store location — Aigaleo, Athens"
