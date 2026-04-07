@@ -88,9 +88,9 @@ export default function Footer() {
         {/* ── Row 1: Marquee ── */}
         <div
           className="flex w-full items-center overflow-hidden"
-          style={{ height: '200px' }}
+          style={{ height: '200px', marginBottom: '40px' }}
         >
-          <div className="animate-marquee flex" style={{ animationDuration: '120s', height: '200px' }}>
+          <div className="animate-marquee flex" style={{ animationDuration: '300s', height: '200px' }}>
             {marqueeContent}
             {marqueeContent}
           </div>
