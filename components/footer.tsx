@@ -1,86 +1,215 @@
+'use client'
+
+import { useState } from 'react'
 import Link from 'next/link'
 
-const QUICK_LINKS = [
-  { label: 'Fins', href: '/fins' },
-  { label: 'Spearguns', href: '/guns' },
-  { label: 'Accessories', href: '/accessories' },
-  { label: 'Merch', href: '/merch' },
-  { label: 'About Us', href: '/about' },
+type SubmitState = 'idle' | 'loading' | 'success' | 'error'
+
+function isValidEmail(email: string): boolean {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())
+}
+
+const BORING_STUFF = [
+  { label: 'Privacy Policy', href: '/privacy' },
+  { label: 'Returns Policy', href: '/returns' },
   { label: 'Contact', href: '/contact' },
+  { label: 'About', href: '/about' },
+  { label: 'Terms & Conditions', href: '/terms' },
 ] as const
 
-const YEAR = new Date().getFullYear()
+const SOCIAL_LINKS = [
+  { label: 'Instagram', href: 'https://instagram.com' },
+  { label: 'TikTok', href: 'https://tiktok.com' },
+  { label: 'YouTube', href: 'https://youtube.com' },
+  { label: 'Facebook', href: 'https://facebook.com' },
+] as const
 
-/**
- * 4-column dark footer:
- * 1. Brand info + wordmark
- * 2. Quick links
- * 3. Contact information (Athens, Greece)
- * 4. Google Maps embed — Meister Dive location
- *
- * Server Component — static markup, no client state.
- */
+const MARQUEE_TEXT = 'PREMIUM EQUIPMENT FOR PREMIUM DIVES'
+
 export default function Footer() {
+  const [email, setEmail] = useState('')
+  const [submitState, setSubmitState] = useState<SubmitState>('idle')
+  const [validationError, setValidationError] = useState<string | null>(null)
+
+  const handleSubmit = async (e: React.SyntheticEvent<HTMLFormElement>) => {
+    e.preventDefault()
+    setValidationError(null)
+
+    if (!email.trim()) {
+      setValidationError('Please enter your email address.')
+      return
+    }
+
+    if (!isValidEmail(email)) {
+      setValidationError('Please enter a valid email address.')
+      return
+    }
+
+    setSubmitState('loading')
+
+    try {
+      await new Promise<void>((resolve) => setTimeout(resolve, 800))
+      setSubmitState('success')
+      setEmail('')
+    } catch {
+      setSubmitState('error')
+    }
+  }
+
+  const marqueeContent = Array.from({ length: 8 }, (_, i) => (
+    <span
+      key={i}
+      className="mx-8 whitespace-nowrap text-3xl tracking-[0.15em] text-white md:text-4xl"
+      style={{ fontFamily: 'var(--font-dela-gothic), sans-serif' }}
+    >
+      {MARQUEE_TEXT}
+    </span>
+  ))
+
   return (
     <footer
-      className="w-full"
-      style={{ backgroundColor: '#111111', borderTop: '1px solid #222222' }}
+      className="relative w-full"
+      style={{
+        backgroundImage:
+          'url(https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=1920&q=80)',
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundAttachment: 'fixed',
+      }}
     >
-      {/* Main grid */}
-      <div className="mx-auto grid max-w-[1400px] grid-cols-1 gap-12 px-6 py-16 md:grid-cols-2 lg:grid-cols-4">
-        {/* Column 1 — Brand */}
-        <div className="flex flex-col gap-5">
-          <span
-            className="text-3xl text-[#FFD700]"
-            style={{ fontFamily: 'var(--font-dela-gothic), sans-serif' }}
-          >
-            MEISTER
-          </span>
-          <p
-            className="text-sm leading-relaxed text-[#888888]"
-            style={{ fontFamily: 'var(--font-space-mono), monospace' }}
-          >
-            Premium diving equipment for freediving and spearfishing enthusiasts.
-            Serving Athens and Greece since 2010.
-          </p>
-          {/* Social links */}
-          <div className="flex gap-4 pt-2">
-            <a
-              href="https://instagram.com"
-              aria-label="Meister on Instagram"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-[#666666] transition-colors hover:text-[#FFD700]"
-            >
-              <InstagramIcon />
-            </a>
-            <a
-              href="https://facebook.com"
-              aria-label="Meister on Facebook"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-[#666666] transition-colors hover:text-[#FFD700]"
-            >
-              <FacebookIcon />
-            </a>
+      {/* Dark overlay */}
+      <div
+        className="absolute inset-0"
+        style={{ backgroundColor: 'rgba(0, 0, 0, 0.85)' }}
+      />
+
+      {/* Content wrapper */}
+      <div className="relative z-10 flex w-full flex-col">
+        {/* ── Row 1: Marquee ── */}
+        <div
+          className="flex w-full items-center overflow-hidden"
+          style={{ height: '200px' }}
+        >
+          <div className="animate-marquee flex">
+            {marqueeContent}
+            {marqueeContent}
           </div>
         </div>
 
-        {/* Column 2 — Quick Links */}
-        <div className="flex flex-col gap-4">
-          <h3
-            className="text-sm font-bold tracking-[0.2em] text-white"
-            style={{ fontFamily: 'var(--font-space-mono), monospace' }}
+        {/* ── Row 2: Logo + Newsletter ── */}
+        <div
+          className="flex w-full"
+          style={{ height: '100px' }}
+        >
+          {/* Logo — 20% */}
+          <div
+            className="flex items-center justify-center"
+            style={{
+              width: '20%',
+              border: '1px solid #ffffff',
+            }}
           >
-            QUICK LINKS
-          </h3>
-          <nav aria-label="Footer navigation">
+            <span
+              className="text-xl tracking-[0.1em] text-[#FFD700] md:text-2xl"
+              style={{ fontFamily: 'var(--font-dela-gothic), sans-serif' }}
+            >
+              MEISTER
+            </span>
+          </div>
+
+          {/* Newsletter — 80% */}
+          <div
+            className="flex items-center gap-4 px-6 md:gap-6 md:px-10"
+            style={{
+              width: '80%',
+              border: '1px solid #ffffff',
+              borderLeft: 'none',
+            }}
+          >
+            <p
+              className="hidden shrink-0 text-xs tracking-[0.05em] text-white md:block md:text-sm"
+              style={{ fontFamily: 'var(--font-space-mono), monospace' }}
+            >
+              SIGN UP TO OUR NEWSLETTER TO RECEIVE LATEST UPDATES
+            </p>
+
+            {submitState === 'success' ? (
+              <span
+                className="text-xs text-[#FFD700]"
+                role="status"
+                style={{ fontFamily: 'var(--font-space-mono), monospace' }}
+              >
+                You&apos;re in! Welcome to Meister.
+              </span>
+            ) : (
+              <form
+                onSubmit={handleSubmit}
+                className="flex flex-1 items-center gap-2"
+                noValidate
+              >
+                <label htmlFor="footer-email" className="sr-only">
+                  Email address
+                </label>
+                <input
+                  id="footer-email"
+                  type="email"
+                  value={email}
+                  onChange={(e) => {
+                    setEmail(e.target.value)
+                    if (validationError) setValidationError(null)
+                    if (submitState === 'error') setSubmitState('idle')
+                  }}
+                  placeholder="your@email.com"
+                  className="w-full min-w-0 bg-transparent px-3 py-2 text-xs text-white placeholder-[#666666] outline-none md:text-sm"
+                  style={{
+                    border: '1px solid #444444',
+                    fontFamily: 'var(--font-space-mono), monospace',
+                  }}
+                  aria-describedby={
+                    validationError ? 'footer-email-error' : undefined
+                  }
+                  aria-invalid={!!validationError}
+                  disabled={submitState === 'loading'}
+                />
+                <button
+                  type="submit"
+                  className="btn-gold shrink-0 px-5 py-2 text-xs tracking-[0.1em] uppercase disabled:opacity-50 md:text-sm"
+                  disabled={submitState === 'loading'}
+                >
+                  {submitState === 'loading' ? 'SENDING...' : 'SUBMIT'}
+                </button>
+              </form>
+            )}
+
+            {validationError && (
+              <p
+                id="footer-email-error"
+                className="text-xs text-red-400"
+                role="alert"
+                style={{ fontFamily: 'var(--font-space-mono), monospace' }}
+              >
+                {validationError}
+              </p>
+            )}
+          </div>
+        </div>
+
+        {/* ── Row 3: Links grid ── */}
+        <div className="grid w-full grid-cols-1 gap-10 px-6 py-14 md:grid-cols-4 md:px-10 lg:px-16">
+          {/* Column 1 — Boring Stuff */}
+          <div className="flex flex-col gap-4">
+            <h3
+              className="text-sm font-bold tracking-[0.1em] text-white underline"
+              style={{ fontFamily: 'var(--font-space-mono), monospace' }}
+            >
+              Boring Stuff
+            </h3>
             <ul className="flex flex-col gap-2" role="list">
-              {QUICK_LINKS.map(({ label, href }) => (
+              {BORING_STUFF.map(({ label, href }) => (
                 <li key={label}>
                   <Link
                     href={href}
-                    className="text-sm text-[#888888] transition-colors hover:text-[#FFD700]"
+                    className="text-sm text-[#999999] transition-colors hover:text-[#FFD700]"
                     style={{ fontFamily: 'var(--font-space-mono), monospace' }}
                   >
                     {label}
@@ -88,98 +217,85 @@ export default function Footer() {
                 </li>
               ))}
             </ul>
-          </nav>
-        </div>
+          </div>
 
-        {/* Column 3 — Contact */}
-        <div className="flex flex-col gap-4">
-          <h3
-            className="text-sm font-bold tracking-[0.2em] text-white"
-            style={{ fontFamily: 'var(--font-space-mono), monospace' }}
-          >
-            CONTACT
-          </h3>
-          <address
-            className="not-italic"
-            style={{ fontFamily: 'var(--font-space-mono), monospace' }}
-          >
-            <div className="flex flex-col gap-3 text-sm text-[#888888]">
-              <p>
-                Meister &amp; Meister Dive<br />
-                Athens, Greece
-              </p>
+          {/* Column 2 — Links */}
+          <div className="flex flex-col gap-4">
+            <h3
+              className="text-sm font-bold tracking-[0.1em] text-white underline"
+              style={{ fontFamily: 'var(--font-space-mono), monospace' }}
+            >
+              Links
+            </h3>
+            <ul className="flex flex-col gap-2" role="list">
+              {SOCIAL_LINKS.map(({ label, href }) => (
+                <li key={label}>
+                  <a
+                    href={href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-sm text-[#999999] transition-colors hover:text-[#FFD700]"
+                    style={{ fontFamily: 'var(--font-space-mono), monospace' }}
+                  >
+                    {label}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          {/* Column 3 — Location */}
+          <div className="flex flex-col gap-4">
+            <h3
+              className="text-sm font-bold tracking-[0.1em] text-white underline"
+              style={{ fontFamily: 'var(--font-space-mono), monospace' }}
+            >
+              Location
+            </h3>
+            <address
+              className="flex flex-col gap-2 text-sm not-italic text-[#999999]"
+              style={{ fontFamily: 'var(--font-space-mono), monospace' }}
+            >
+              <p>Leoforos Athinon 387, Aigaleo</p>
               <a
-                href="tel:+302101234567"
+                href="mailto:info@meister.gr"
                 className="transition-colors hover:text-[#FFD700]"
               >
-                +30 210 123 4567
+                info@meister.gr
               </a>
-              <a
-                href="mailto:info@meisterdive.gr"
-                className="transition-colors hover:text-[#FFD700]"
-              >
-                info@meisterdive.gr
-              </a>
-              <p className="text-xs text-[#555555]">
-                Mon–Fri: 10:00 – 19:00<br />
-                Sat: 10:00 – 15:00
-              </p>
+            </address>
+          </div>
+
+          {/* Column 4 — Google Maps */}
+          <div className="flex flex-col gap-0">
+            <div className="overflow-hidden" style={{ width: '280px', height: '230px' }}>
+              <iframe
+                title="Meister Dive store location — Aigaleo, Athens"
+                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3145.5!2d23.6822!3d37.9927!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x14a1bb8c4f6f0001%3A0x0!2sLeoforos%20Athinon%20387%2C%20Aigaleo!5e0!3m2!1sen!2sgr!4v1710000000000!5m2!1sen!2sgr"
+                width="280"
+                height="230"
+                style={{ border: 0, filter: 'grayscale(0.8) brightness(0.8)' }}
+                allowFullScreen={false}
+                loading="lazy"
+                referrerPolicy="no-referrer-when-downgrade"
+              />
             </div>
-          </address>
-        </div>
-
-        {/* Column 4 — Google Maps embed (Athens, Greece) */}
-        <div className="flex flex-col gap-4">
-          <h3
-            className="text-sm font-bold tracking-[0.2em] text-white"
-            style={{ fontFamily: 'var(--font-space-mono), monospace' }}
-          >
-            FIND US
-          </h3>
-          <div className="overflow-hidden" style={{ border: '1px solid #333333' }}>
-            <iframe
-              title="Meister Dive store location — Athens, Greece"
-              src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d25106.25897975744!2d23.72136!3d37.97945!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x14a1bd1f067043f1%3A0x2736354576668ddd!2sAthens%2C%20Greece!5e0!3m2!1sen!2sus!4v1710000000000!5m2!1sen!2sus"
-              width="100%"
-              height="180"
-              style={{ border: 0, filter: 'grayscale(1) brightness(0.7)' }}
-              allowFullScreen={false}
-              loading="lazy"
-              referrerPolicy="no-referrer-when-downgrade"
-            />
           </div>
         </div>
-      </div>
 
-      {/* Copyright bar */}
-      <div
-        className="border-t border-[#222222] px-6 py-5"
-      >
-        <p
-          className="text-center text-xs text-[#555555]"
-          style={{ fontFamily: 'var(--font-space-mono), monospace' }}
+        {/* ── Row 4: Copyright ── */}
+        <div
+          className="w-full px-6 py-5"
+          style={{ borderTop: '1px solid #ffffff' }}
         >
-          &copy; {YEAR} Meister &amp; Meister Dive. All rights reserved.
-        </p>
+          <p
+            className="text-center text-xs text-[#999999]"
+            style={{ fontFamily: 'var(--font-space-mono), monospace' }}
+          >
+            &copy;Meister &amp; Meister Dive 2025 | All rights reserved.
+          </p>
+        </div>
       </div>
     </footer>
-  )
-}
-
-function InstagramIcon() {
-  return (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      <rect x="2" y="2" width="20" height="20" rx="5" ry="5" />
-      <circle cx="12" cy="12" r="4" />
-      <circle cx="17.5" cy="6.5" r="0.5" fill="currentColor" />
-    </svg>
-  )
-}
-
-function FacebookIcon() {
-  return (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z" />
-    </svg>
   )
 }

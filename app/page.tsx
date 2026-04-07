@@ -2,7 +2,6 @@ import Navbar from '@/components/navbar'
 import HeroSection from '@/components/hero-section'
 import ProductCarousel from '@/components/product-carousel'
 import TestimonialsSection from '@/components/testimonials-section'
-import NewsletterSection from '@/components/newsletter-section'
 import Footer from '@/components/footer'
 import CategoriesSection from '@/components/categories-section'
 import { products, categoryDetails } from '@/lib/mock-data'
@@ -22,7 +21,6 @@ export default function HomePage() {
       <ProductCarousel products={products} />
       <CategoriesSection categoryDetails={categoryDetails} products={products} />
       <TestimonialsSection />
-      <NewsletterSection />
       <Footer />
     </main>
   )
