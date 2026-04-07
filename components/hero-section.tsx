@@ -20,7 +20,7 @@ export default function HeroSection() {
       />
 
       {/* Content */}
-      <div className="relative z-10 flex flex-col items-center gap-8 text-center">
+      <div className="relative z-10 flex flex-col items-center gap-4 text-center">
         <h1
           className="text-5xl leading-[1.1] text-white md:text-7xl lg:text-8xl xl:text-9xl"
           style={{ fontFamily: 'var(--font-dela-gothic), sans-serif', fontWeight: 800 }}
@@ -39,15 +39,6 @@ export default function HeroSection() {
         </Link>
       </div>
 
-      {/* Bottom gradient fade */}
-      <div
-        className="pointer-events-none absolute bottom-0 left-0 right-0 h-32"
-        style={{
-          background: 'linear-gradient(to bottom, transparent, #1B1B18)',
-          zIndex: 1,
-        }}
-        aria-hidden="true"
-      />
     </section>
   )
 }

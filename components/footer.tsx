@@ -59,7 +59,7 @@ export default function Footer() {
   const marqueeContent = Array.from({ length: 8 }, (_, i) => (
     <span
       key={i}
-      className="mx-8 flex h-full items-center whitespace-nowrap tracking-[0.15em] text-white"
+      className="mx-8 flex h-full items-center whitespace-nowrap tracking-[-0.02em] text-white"
       style={{ fontFamily: 'var(--font-dela-gothic), sans-serif', fontSize: '200px', lineHeight: '200px', fontWeight: 800 }}
     >
       {MARQUEE_TEXT}
