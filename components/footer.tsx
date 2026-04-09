@@ -114,7 +114,6 @@ export default function Footer() {
               alt="Meister"
               width={120}
               height={35}
-              style={{ filter: 'brightness(0) invert(1) sepia(1) saturate(5) hue-rotate(15deg)' }}
             />
           </div>
 

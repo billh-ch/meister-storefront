@@ -35,7 +35,6 @@ export default function Navbar() {
             alt="Meister"
             width={140}
             height={40}
-            style={{ filter: 'brightness(0) invert(1) sepia(1) saturate(5) hue-rotate(15deg)' }}
             priority
           />
         </Link>
