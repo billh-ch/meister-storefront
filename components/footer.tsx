@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import Image from 'next/image'
 import Link from 'next/link'
 
 type SubmitState = 'idle' | 'loading' | 'success' | 'error'
@@ -108,12 +109,13 @@ export default function Footer() {
               border: '1px solid #ffffff',
             }}
           >
-            <span
-              className="text-xl tracking-[0.1em] text-[#FFD700] md:text-2xl"
-              style={{ fontFamily: 'var(--font-dela-gothic), sans-serif', fontWeight: 700 }}
-            >
-              MEISTER
-            </span>
+            <Image
+              src="/meister-logo.svg"
+              alt="Meister"
+              width={120}
+              height={35}
+              style={{ filter: 'brightness(0) invert(1) sepia(1) saturate(5) hue-rotate(15deg)' }}
+            />
           </div>
 
           {/* Newsletter — 80% */}
