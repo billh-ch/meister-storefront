@@ -4,19 +4,18 @@ import ProductCarousel from '@/components/product-carousel'
 import TestimonialsSection from '@/components/testimonials-section'
 import Footer from '@/components/footer'
 import CategoriesSection from '@/components/categories-section'
-import { getProducts, getCategoryDetails } from '@/lib/bigcommerce'
+import { getProducts } from '@/lib/bigcommerce'
+import { categoryDetails } from '@/lib/mock-data'
 
 /**
  * Meister homepage — assembles all 8 sections in order.
  *
- * Server Component: fetches products and category details from BigCommerce
- * (or mock data when NEXT_PUBLIC_USE_MOCK_DATA=true).
+ * Products: fetched from BigCommerce (or mock data when NEXT_PUBLIC_USE_MOCK_DATA=true).
+ * Category UI content (taglines, marquee, accordions): lives in mock-data.ts — it's
+ * storefront design data, not backend data.
  */
 export default async function HomePage() {
-  const [products, categoryDetails] = await Promise.all([
-    getProducts(),
-    getCategoryDetails(),
-  ])
+  const products = await getProducts()
 
   return (
     <main>
