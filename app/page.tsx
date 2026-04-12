@@ -4,16 +4,20 @@ import ProductCarousel from '@/components/product-carousel'
 import TestimonialsSection from '@/components/testimonials-section'
 import Footer from '@/components/footer'
 import CategoriesSection from '@/components/categories-section'
-import { products, categoryDetails } from '@/lib/mock-data'
+import { getProducts, getCategoryDetails } from '@/lib/bigcommerce'
 
 /**
  * Meister homepage — assembles all 8 sections in order.
  *
- * Server Component: data co-located here (currently mock data).
- * When BigCommerce Catalyst is connected, replace `products` import with
- * a Catalyst GraphQL fetch and wrap ProductCarousel in <Suspense>.
+ * Server Component: fetches products and category details from BigCommerce
+ * (or mock data when NEXT_PUBLIC_USE_MOCK_DATA=true).
  */
-export default function HomePage() {
+export default async function HomePage() {
+  const [products, categoryDetails] = await Promise.all([
+    getProducts(),
+    getCategoryDetails(),
+  ])
+
   return (
     <main>
       <Navbar />
