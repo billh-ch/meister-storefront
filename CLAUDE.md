@@ -53,10 +53,8 @@ lib/
 2. HeroSection (100vh)
 3. ProductCarousel ("MOST WANTED")
 4. CategoriesSection (tabbed showcase: Fins / Suits / Accessories / Merch)
-5. MerchSection
-6. TestimonialsSection
-7. NewsletterSection
-8. Footer
+5. TestimonialsSection
+6. Footer
 
 ## Categories Section Details
 

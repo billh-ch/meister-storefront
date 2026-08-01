@@ -9,10 +9,10 @@ export async function getProducts(): Promise<Product[]> {
   if (useMock) return mockProducts
 
   try {
-    const bcProducts = await fetchProducts()
-    return bcProducts.map(mapProduct)
+    const wcProducts = await fetchProducts()
+    return wcProducts.map(mapProduct)
   } catch (error) {
-    console.error('[BigCommerce] Failed to fetch products, falling back to mock data:', error)
+    console.error('[WooCommerce] Failed to fetch products, falling back to mock data:', error)
     return mockProducts
   }
 }

@@ -1,7 +1,8 @@
 /**
- * Mock data layer — replace with BigCommerce Storefront GraphQL API calls
- * when the store is connected. Use Catalyst's built-in fetch utilities and
- * structure queries with fragments for reusability.
+ * Mock/fallback data layer. Product shapes here (`Product`) are the contract
+ * `lib/woocommerce` maps real WooCommerce REST data into — this file's
+ * `products` array is also the fallback used when NEXT_PUBLIC_USE_MOCK_DATA
+ * is set or the WooCommerce API is unreachable.
  *
  * Cache strategy when live:
  *   - Product listings: ISR 60s

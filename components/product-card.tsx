@@ -1,6 +1,7 @@
 'use client'
 
 import Image from 'next/image'
+import Link from 'next/link'
 import { type Product, formatPrice } from '@/lib/mock-data'
 
 interface ProductCardProps {
@@ -26,7 +27,11 @@ export default function ProductCard({ product, onAddToCart }: ProductCardProps) 
       aria-label={`${product.name}, ${formatPrice(product.price)}`}
     >
       {/* Image area — flexible height */}
-      <div className="relative flex-1 overflow-hidden">
+      <Link
+        href={`/products/${product.slug}`}
+        className="relative flex-1 overflow-hidden"
+        aria-label={`View ${product.name}`}
+      >
         <Image
           src={product.image}
           alt={product.name}
@@ -41,7 +46,7 @@ export default function ProductCard({ product, onAddToCart }: ProductCardProps) 
           style={{ background: 'linear-gradient(to bottom, transparent 60%, rgba(27,27,24,0.6) 100%)' }}
           aria-hidden="true"
         />
-      </div>
+      </Link>
 
       {/* Footer row — responsive height */}
       <footer
@@ -53,7 +58,8 @@ export default function ProductCard({ product, onAddToCart }: ProductCardProps) 
         }}
       >
         {/* Left: name + swatches + price (80%) */}
-        <div
+        <Link
+          href={`/products/${product.slug}`}
           className="flex flex-col justify-center gap-1 overflow-hidden px-3 py-2"
           style={{ width: '80%' }}
         >
@@ -93,7 +99,7 @@ export default function ProductCard({ product, onAddToCart }: ProductCardProps) 
           >
             {formatPrice(product.price)}
           </p>
-        </div>
+        </Link>
 
         {/* Right: ADD button (20%) — min-width for touch target */}
         <button

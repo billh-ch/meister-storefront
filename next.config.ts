@@ -9,7 +9,7 @@ const nextConfig: NextConfig = {
       },
       {
         protocol: "https",
-        hostname: "cdn11.bigcommerce.com",
+        hostname: "*.ngrok-free.app",
       },
     ],
   },
