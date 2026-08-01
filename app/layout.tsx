@@ -1,32 +1,12 @@
 import type { Metadata } from 'next'
-import { Space_Mono } from 'next/font/google'
-import localFont from 'next/font/local'
+import { Space_Mono, Zalando_Sans_Expanded } from 'next/font/google'
 import './globals.css'
 
-/** Heading Pro Wide — local display heading font */
-const headingProWide = localFont({
-  src: [
-    {
-      path: '../fonts/Heading-Pro-Wide-Regular-trial.ttf',
-      weight: '400',
-      style: 'normal',
-    },
-    {
-      path: '../fonts/Heading-Pro-Wide-Bold-trial.ttf',
-      weight: '700',
-      style: 'normal',
-    },
-    {
-      path: '../fonts/Heading-Pro-Wide-ExtraBold-trial.ttf',
-      weight: '800',
-      style: 'normal',
-    },
-    {
-      path: '../fonts/Heading-Pro-Wide-Black-trial.ttf',
-      weight: '900',
-      style: 'normal',
-    },
-  ],
+/** Zalando Sans Expanded — display heading font */
+const zalandoSansExpanded = Zalando_Sans_Expanded({
+  weight: '700',
+  style: 'normal',
+  subsets: ['latin'],
   variable: '--font-dela-gothic',
   display: 'swap',
 })
@@ -60,7 +40,7 @@ export default function RootLayout({
     <html
       lang="el"
       dir="ltr"
-      className={`${headingProWide.variable} ${spaceMono.variable}`}
+      className={`${zalandoSansExpanded.variable} ${spaceMono.variable}`}
     >
       <body className="min-h-screen antialiased">{children}</body>
     </html>
