@@ -2,9 +2,13 @@ import type { Metadata } from 'next'
 import { Space_Mono, Zalando_Sans_Expanded } from 'next/font/google'
 import './globals.css'
 
-/** Zalando Sans Expanded — display heading font */
+/**
+ * Zalando Sans Expanded — display heading font.
+ * Loaded as a variable font (wght 200–900) because headings request both
+ * 700 and 800; a single static weight would force the browser to fake the
+ * heavier one with synthetic bold.
+ */
 const zalandoSansExpanded = Zalando_Sans_Expanded({
-  weight: '700',
   style: 'normal',
   subsets: ['latin'],
   variable: '--font-dela-gothic',
