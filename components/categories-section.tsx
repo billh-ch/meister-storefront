@@ -48,10 +48,13 @@ export default function CategoriesSection({
   const [openAccordion, setOpenAccordion] = useState<number | null>(null)
   const active = categoryDetails[activeIndex]
 
-  // Reset accordion when tab changes
-  useEffect(() => {
+  // Switching tabs collapses any open accordion. Done here rather than in an
+  // effect on [activeIndex]: an effect would set state during render commit
+  // and force a second pass for something already known at click time.
+  const selectTab = useCallback((index: number) => {
+    setActiveIndex(index)
     setOpenAccordion(null)
-  }, [activeIndex])
+  }, [])
 
   // -- Carousel state --
   const filtered = useMemo(
@@ -106,7 +109,7 @@ export default function CategoriesSection({
               key={tab.id}
               type="button"
               aria-pressed={i === activeIndex}
-              onClick={() => setActiveIndex(i)}
+              onClick={() => selectTab(i)}
               className="category-tab whitespace-nowrap px-2 py-2.5 text-sm sm:shrink-0 sm:px-8 sm:py-4 sm:text-base md:px-10 md:py-5 md:text-xl lg:text-2xl"
               data-active={i === activeIndex ? 'true' : 'false'}
             >
