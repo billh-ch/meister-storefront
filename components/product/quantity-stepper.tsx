@@ -26,7 +26,7 @@ export default function QuantityStepper({
     <div>
       <label
         htmlFor="product-quantity"
-        className="mb-2 block text-sm font-bold tracking-wide text-white uppercase"
+        className="mb-2 block text-xs font-bold tracking-wide text-white uppercase"
         style={{ fontFamily: MONO }}
       >
         Quantity
@@ -38,7 +38,7 @@ export default function QuantityStepper({
           onClick={() => onChange(clamp(value - 1))}
           disabled={value <= min}
           aria-label="Decrease quantity"
-          className="flex h-14 w-14 cursor-pointer items-center justify-center text-2xl text-white transition-colors hover:bg-[#2A2A25] disabled:cursor-not-allowed disabled:text-[#555555] disabled:hover:bg-transparent"
+          className="flex h-12 w-12 cursor-pointer items-center justify-center text-xl text-white transition-colors hover:bg-[#2A2A25] disabled:cursor-not-allowed disabled:text-[#555555] disabled:hover:bg-transparent"
         >
           −
         </button>
@@ -54,7 +54,7 @@ export default function QuantityStepper({
             const parsed = Number.parseInt(event.target.value, 10)
             onChange(Number.isNaN(parsed) ? min : clamp(parsed))
           }}
-          className="h-14 w-16 border-x border-[#555555] bg-transparent text-center text-lg font-bold text-white [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+          className="h-12 w-14 border-x border-[#555555] bg-transparent text-center text-base font-bold text-white [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
           style={{ fontFamily: MONO }}
         />
 

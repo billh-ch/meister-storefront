@@ -42,16 +42,18 @@ export default function ProductSpecsTable({ product }: ProductSpecsTableProps) {
   if (rows.length === 0) return null
 
   return (
-    <dl className="text-base" style={{ fontFamily: MONO }}>
+    <dl className="text-sm" style={{ fontFamily: MONO }}>
       {rows.map((row) => (
         <div
           key={row.label}
           className="flex flex-col gap-1 border-b border-[#333333] py-3 last:border-b-0 sm:flex-row sm:gap-4"
         >
-          <dt className="font-bold text-white sm:w-1/3 sm:flex-shrink-0">
+          {/* Fixed label column rather than a fraction: at full page width a
+              1/3 split leaves a gulf between label and value. */}
+          <dt className="font-bold text-white sm:w-56 sm:flex-shrink-0">
             {row.label}
           </dt>
-          <dd className="text-[#CCCCCC] sm:w-2/3">{row.value}</dd>
+          <dd className="min-w-0 text-[#CCCCCC]">{row.value}</dd>
         </div>
       ))}
     </dl>

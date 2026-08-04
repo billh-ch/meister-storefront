@@ -47,7 +47,7 @@ export default function VariantSelector({
   if (attributes.length === 0) return null
 
   return (
-    <div className="flex flex-col gap-5">
+    <div className="flex flex-col gap-4">
       {attributes.map((attribute, index) => {
         const isMissing = missing.includes(attribute.name)
         const chosen = selected[attribute.name]
@@ -68,7 +68,7 @@ export default function VariantSelector({
                   id={fieldId}
                   value={chosen ?? ''}
                   onChange={(event) => onSelect(attribute.name, event.target.value)}
-                  className="h-14 w-full cursor-pointer appearance-none pr-12 pl-4 text-base"
+                  className="h-12 w-full cursor-pointer appearance-none pr-11 pl-3 text-sm"
                   style={{
                     fontFamily: MONO,
                     backgroundColor: '#1B1B18',
@@ -132,7 +132,7 @@ export default function VariantSelector({
                     type="button"
                     onClick={() => onSelect(attribute.name, value)}
                     aria-pressed={isSelected}
-                    className="flex min-h-[48px] cursor-pointer items-center gap-2 px-4 py-2 text-base transition-colors"
+                    className="flex min-h-[44px] cursor-pointer items-center gap-2 px-3 py-1.5 text-sm transition-colors"
                     style={{
                       fontFamily: MONO,
                       border: isSelected
@@ -181,7 +181,7 @@ interface AxisLabelProps {
 function AxisLabel({ attribute, chosen, isMissing }: AxisLabelProps) {
   return (
     <span
-      className="flex flex-wrap items-baseline gap-2 text-sm font-bold tracking-wide text-white uppercase"
+      className="flex flex-wrap items-baseline gap-2 text-xs font-bold tracking-wide text-white uppercase"
       style={{ fontFamily: MONO }}
     >
       <span>{attribute.name}</span>

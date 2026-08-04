@@ -12,14 +12,14 @@ export default function ProductNotFound() {
 
       <div className="flex min-h-[60vh] flex-col items-center justify-center gap-6 px-6 py-20 text-center">
         <h1
-          className="text-3xl text-white sm:text-4xl md:text-5xl"
+          className="text-2xl text-white sm:text-3xl md:text-4xl"
           style={{ fontFamily: DISPLAY, fontWeight: 800 }}
         >
           PRODUCT NOT FOUND
         </h1>
 
         <p
-          className="max-w-lg text-base text-[#CCCCCC]"
+          className="max-w-lg text-sm text-[#CCCCCC]"
           style={{ fontFamily: MONO }}
         >
           This product may have been discontinued, or the link you followed

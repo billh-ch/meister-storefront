@@ -39,12 +39,12 @@ export default function AccordionItem({
           onClick={() => setIsOpen((open) => !open)}
           aria-expanded={isOpen}
           aria-controls={panelId}
-          className="flex w-full cursor-pointer items-center justify-between gap-4 py-5 text-left text-base font-bold"
+          className="flex w-full cursor-pointer items-center justify-between gap-4 py-4 text-left text-sm font-bold"
           style={{ fontFamily: MONO, color: isOpen ? '#FFD700' : '#FFFFFF' }}
         >
           <span>{title}</span>
           <span
-            className="accordion-chevron flex-shrink-0 text-xl text-[#FFD700]"
+            className="accordion-chevron flex-shrink-0 text-lg text-[#FFD700]"
             data-open={isOpen ? 'true' : 'false'}
             aria-hidden="true"
           >
@@ -61,7 +61,7 @@ export default function AccordionItem({
         data-open={isOpen ? 'true' : 'false'}
       >
         <div>
-          <div className="pb-6">{children}</div>
+          <div className="pb-5">{children}</div>
         </div>
       </div>
     </div>

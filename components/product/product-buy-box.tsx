@@ -190,9 +190,9 @@ export default function ProductBuyBox({ product }: ProductBuyBoxProps) {
             lg:self-start is required: grid items stretch by default, which
             would leave a sticky element no room to travel. top-24 clears
             the sticky navbar. */}
-        <div className="flex flex-col gap-6 lg:sticky lg:top-24 lg:self-start">
+        <div className="flex flex-col gap-5 lg:sticky lg:top-24 lg:self-start">
           <h1
-            className="text-2xl leading-tight text-white sm:text-3xl lg:text-4xl"
+            className="text-xl leading-tight text-white sm:text-2xl lg:text-3xl"
             style={{ fontFamily: DISPLAY, fontWeight: 800 }}
           >
             {product.name}
@@ -203,14 +203,14 @@ export default function ProductBuyBox({ product }: ProductBuyBoxProps) {
             <div className="flex flex-wrap items-baseline gap-3">
               {showFrom && (
                 <span
-                  className="text-sm text-[#999999]"
+                  className="text-xs text-[#999999]"
                   style={{ fontFamily: MONO }}
                 >
                   FROM
                 </span>
               )}
               <span
-                className="whitespace-nowrap text-3xl font-bold text-[#FFD700] sm:text-4xl"
+                className="whitespace-nowrap text-2xl font-bold text-[#FFD700] sm:text-3xl"
                 style={{ fontFamily: MONO }}
               >
                 {formatPrice(price)}
@@ -219,13 +219,13 @@ export default function ProductBuyBox({ product }: ProductBuyBoxProps) {
               {savingPercent > 0 && (
                 <>
                   <span
-                    className="whitespace-nowrap text-lg text-[#999999] line-through"
+                    className="whitespace-nowrap text-base text-[#999999] line-through"
                     style={{ fontFamily: MONO }}
                   >
                     {formatPrice(regularPrice)}
                   </span>
                   <span
-                    className="px-2 py-1 text-xs font-bold tracking-wide text-[#1B1B18] uppercase"
+                    className="px-2 py-0.5 text-[11px] font-bold tracking-wide text-[#1B1B18] uppercase"
                     style={{ fontFamily: MONO, backgroundColor: '#FFD700' }}
                   >
                     Save {savingPercent}%
@@ -233,18 +233,18 @@ export default function ProductBuyBox({ product }: ProductBuyBoxProps) {
                 </>
               )}
             </div>
-            <p className="mt-1 text-sm text-[#999999]" style={{ fontFamily: MONO }}>
+            <p className="mt-1 text-xs text-[#999999]" style={{ fontFamily: MONO }}>
               VAT included
             </p>
           </div>
 
           {/* Stock — words carry the meaning, the dot only reinforces it */}
           <p
-            className="flex items-center gap-2 text-sm font-bold tracking-wide"
+            className="flex items-center gap-2 text-xs font-bold tracking-wide"
             style={{ fontFamily: MONO, color: stock.color }}
           >
             <span
-              className="inline-block h-2.5 w-2.5 flex-shrink-0 rounded-full"
+              className="inline-block h-2 w-2 flex-shrink-0 rounded-full"
               style={{ backgroundColor: stock.color }}
               aria-hidden="true"
             />
@@ -273,7 +273,7 @@ export default function ProductBuyBox({ product }: ProductBuyBoxProps) {
               type="button"
               onClick={handleAddToCart}
               disabled={!isPurchasable}
-              className="btn-gold flex h-14 w-full cursor-pointer items-center justify-center text-base tracking-[0.1em] uppercase"
+              className="btn-gold flex h-12 w-full cursor-pointer items-center justify-center text-sm tracking-[0.1em] uppercase"
             >
               {isPurchasable ? 'Add to cart' : 'Out of stock'}
             </button>
@@ -281,7 +281,7 @@ export default function ProductBuyBox({ product }: ProductBuyBoxProps) {
             {/* One live region for both the failure and the success message */}
             <p
               aria-live="polite"
-              className="mt-3 min-h-[1.5rem] text-sm"
+              className="mt-2 min-h-[1.25rem] text-xs"
               style={{ fontFamily: MONO, color: isError ? '#FF6B6B' : '#4ADE80' }}
             >
               {confirmation}
@@ -306,13 +306,13 @@ export default function ProductBuyBox({ product }: ProductBuyBoxProps) {
       >
         <div className="min-w-0 flex-1">
           <p
-            className="truncate text-xs text-[#CCCCCC]"
+            className="truncate text-[11px] text-[#CCCCCC]"
             style={{ fontFamily: MONO }}
           >
             {product.name}
           </p>
           <p
-            className="whitespace-nowrap text-base font-bold text-[#FFD700]"
+            className="whitespace-nowrap text-sm font-bold text-[#FFD700]"
             style={{ fontFamily: MONO }}
           >
             {showFrom ? 'FROM ' : ''}
@@ -327,7 +327,7 @@ export default function ProductBuyBox({ product }: ProductBuyBoxProps) {
           // Hidden from the tab order while the bar is off-screen, so
           // keyboard users don't land on an invisible control.
           tabIndex={ctaVisible ? -1 : 0}
-          className="btn-gold flex h-12 flex-shrink-0 cursor-pointer items-center justify-center px-6 text-sm tracking-[0.1em] uppercase"
+          className="btn-gold flex h-11 flex-shrink-0 cursor-pointer items-center justify-center px-5 text-xs tracking-[0.1em] uppercase"
         >
           {isPurchasable ? 'Add' : 'Sold out'}
         </button>

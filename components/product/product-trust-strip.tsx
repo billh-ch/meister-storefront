@@ -19,13 +19,13 @@ export default function ProductTrustStrip() {
             <TrustIcon id={item.id} />
             <span className="min-w-0">
               <span
-                className="block text-sm font-bold tracking-wide text-white"
+                className="block text-xs font-bold tracking-wide text-white"
                 style={{ fontFamily: MONO }}
               >
                 {item.title}
               </span>
               <span
-                className="mt-0.5 block text-sm text-[#CCCCCC]"
+                className="mt-0.5 block text-xs text-[#CCCCCC]"
                 style={{ fontFamily: MONO }}
               >
                 {item.detail}
@@ -39,12 +39,12 @@ export default function ProductTrustStrip() {
             {item.href ? (
               <a
                 href={item.href}
-                className="flex min-h-[72px] items-center gap-3 p-4 transition-colors hover:bg-[#232320]"
+                className="flex min-h-[64px] items-center gap-3 p-3.5 transition-colors hover:bg-[#232320]"
               >
                 {content}
               </a>
             ) : (
-              <div className="flex min-h-[72px] items-center gap-3 p-4">{content}</div>
+              <div className="flex min-h-[64px] items-center gap-3 p-3.5">{content}</div>
             )}
           </li>
         )
@@ -82,8 +82,8 @@ const ICON_PATHS: Record<string, React.ReactNode> = {
 function TrustIcon({ id }: { id: string }) {
   return (
     <svg
-      width="24"
-      height="24"
+      width="20"
+      height="20"
       viewBox="0 0 24 24"
       fill="none"
       stroke="#FFD700"

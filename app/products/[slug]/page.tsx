@@ -135,8 +135,11 @@ export default async function ProductPage({ params }: ProductPageProps) {
         <div className="mx-auto max-w-[1400px] px-4 pb-12 sm:px-6 md:px-10">
           <ProductBuyBox product={product} />
 
-          {/* ── Details ── */}
-          <div className="mt-12 max-w-3xl lg:mt-16">
+          {/* ── Details ──
+              Full container width rather than a reading-width column: the
+              accordion rows are the resting state of this block and a
+              half-width strip under a full-width layout reads as unfinished. */}
+          <div className="mt-12 lg:mt-16">
             {product.descriptionHtml && (
               <AccordionItem title="DESCRIPTION" defaultOpen>
                 <div
