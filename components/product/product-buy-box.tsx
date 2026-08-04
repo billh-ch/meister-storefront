@@ -142,15 +142,19 @@ export default function ProductBuyBox({ product }: ProductBuyBoxProps) {
     return () => observer.disconnect()
   }, [])
 
-  /* Clear the confirmation when the shopper changes their mind about what
-     they're buying — leaving "Added to cart" up would be a lie. */
-  useEffect(() => {
-    setConfirmation('')
-  }, [selected, quantity])
-
+  /* Changing what you're buying clears the confirmation — leaving "Added to
+     cart" up would be a lie. Done in the event handlers rather than an
+     effect on [selected, quantity]: an effect would fire a second render
+     pass after every click for a value we already know at click time. */
   const handleSelect = useCallback((attributeName: string, value: string) => {
     setSelected((current) => ({ ...current, [attributeName]: value }))
     setMissing((current) => current.filter((name) => name !== attributeName))
+    setConfirmation('')
+  }, [])
+
+  const handleQuantityChange = useCallback((next: number) => {
+    setQuantity(next)
+    setConfirmation('')
   }, [])
 
   const handleAddToCart = useCallback(() => {
@@ -261,7 +265,7 @@ export default function ProductBuyBox({ product }: ProductBuyBoxProps) {
             missing={missing}
           />
 
-          <QuantityStepper value={quantity} onChange={setQuantity} />
+          <QuantityStepper value={quantity} onChange={handleQuantityChange} />
 
           <div>
             <button
