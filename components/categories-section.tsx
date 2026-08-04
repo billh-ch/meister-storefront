@@ -97,28 +97,18 @@ export default function CategoriesSection({
       aria-label="Category showcase"
     >
       {/* ── TABS ── */}
-      <div className="overflow-x-auto px-4 md:px-10">
+      <div className="px-4 md:px-10">
         <div
-          className="flex justify-start sm:justify-center"
-          style={{ borderBottom: '1px solid #444444' }}
+          className="grid grid-cols-2 gap-1.5 border-b border-[#444444] pb-1.5 sm:flex sm:justify-center sm:gap-0 sm:pb-0"
         >
           {categoryDetails.map((tab, i) => (
             <button
               key={tab.id}
               type="button"
+              aria-pressed={i === activeIndex}
               onClick={() => setActiveIndex(i)}
-              className="shrink-0 whitespace-nowrap px-5 py-3 text-sm sm:px-8 sm:py-4 sm:text-base md:px-10 md:py-5 md:text-xl lg:text-2xl"
-              style={{
-                fontFamily: 'var(--font-dela-gothic), sans-serif',
-                fontWeight: 700,
-                color: i === activeIndex ? '#FFFFFF' : '#666666',
-                backgroundColor: i === activeIndex ? '#2A2A25' : 'transparent',
-                borderTop: i === activeIndex ? '1px solid #444444' : '1px solid transparent',
-                borderLeft: i === activeIndex ? '1px solid #444444' : '1px solid transparent',
-                borderRight: i === activeIndex ? '1px solid #444444' : '1px solid transparent',
-                borderBottom: i === activeIndex ? '1px solid #2A2A25' : '1px solid transparent',
-                marginBottom: '-1px',
-              }}
+              className="category-tab whitespace-nowrap px-2 py-2.5 text-sm sm:shrink-0 sm:px-8 sm:py-4 sm:text-base md:px-10 md:py-5 md:text-xl lg:text-2xl"
+              data-active={i === activeIndex ? 'true' : 'false'}
             >
               {tab.name}
             </button>
@@ -266,7 +256,7 @@ export default function CategoriesSection({
                 {filtered.map((product) => (
                   <div
                     key={product.id}
-                    className="flex-shrink-0 px-1 sm:px-0"
+                    className="flex-shrink-0"
                     style={{ width: slideWidth }}
                   >
                     <ProductCard product={product} />

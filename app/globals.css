@@ -76,6 +76,42 @@ body {
 }
 
 /* ============================================================
+   Category showcase — tab selector
+
+   Mobile lays the tabs out as a 2x2 grid so all four categories are
+   visible at once with no horizontal scrolling; the active tab reads as
+   a filled box. From sm up they collapse into the original single row of
+   browser-style tabs that join the divider line beneath them.
+   ============================================================ */
+.category-tab {
+  font-family: var(--font-dela-gothic), sans-serif;
+  font-weight: 700;
+  color: #666666;
+  background-color: transparent;
+  border: 1px solid transparent;
+  transition: color 0.2s ease, background-color 0.2s ease;
+  cursor: pointer;
+}
+
+.category-tab[data-active="true"] {
+  color: #FFFFFF;
+  background-color: #2A2A25;
+  border-color: #444444;
+}
+
+@media (min-width: 640px) {
+  .category-tab {
+    /* Pull the row down 1px so the active tab's bottom edge covers the
+       container divider, producing the connected browser-tab look. */
+    margin-bottom: -1px;
+  }
+
+  .category-tab[data-active="true"] {
+    border-bottom-color: #2A2A25;
+  }
+}
+
+/* ============================================================
    Category showcase — accordion expand/collapse
    ============================================================ */
 .accordion-content {
