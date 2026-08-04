@@ -22,7 +22,12 @@
 /* Global base */
 html {
   scroll-behavior: smooth;
-  overflow-x: hidden;
+  /* `clip` rather than `hidden`: both suppress sideways scrolling, but
+     `hidden` computes overflow-y to `auto`, which turns the element into a
+     scroll container. That container never scrolls (the viewport does), so
+     the sticky navbar would have nothing to stick against. `clip` creates
+     no scroll container and leaves position: sticky working. */
+  overflow-x: clip;
 }
 
 body {
@@ -30,7 +35,7 @@ body {
   color: #ffffff;
   font-family: var(--font-space-mono), ui-monospace, monospace;
   -webkit-font-smoothing: antialiased;
-  overflow-x: hidden;
+  overflow-x: clip;
 }
 
 /* ============================================================
@@ -145,34 +150,22 @@ body {
    Gold button base utility
    ============================================================ */
 .btn-gold {
-  background-color: #FFD700;
+  background-color: var(--color-gold);
   color: #1B1B18;
   font-family: var(--font-space-mono), ui-monospace, monospace;
   font-weight: 700;
   letter-spacing: 0.05em;
-  transition: opacity 0.15s ease, transform 0.1s ease, background-color 0.15s ease;
+  transition: background-color 0.15s ease;
   cursor: pointer;
 }
 
-.btn-gold:hover {
-  opacity: 0.88;
-  transform: translateY(-1px);
+/* Hover brightens rather than lifting. No transform: these buttons sit
+   flush against borders (the product card footer seam, the newsletter and
+   footer input groups), where a 1px shift is visible as a broken edge. */
+.btn-gold:hover:not(:disabled) {
+  background-color: var(--color-gold-bright);
 }
 
 .btn-gold:active {
-  opacity: 1;
-  transform: translateY(0);
-}
-
-/* Variant: no lift on hover — brightens instead. Used by the product card
-   ADD button, which sits flush inside the card footer where a 1px shift
-   would visibly break the border seam. */
-.btn-gold-static:hover {
-  opacity: 1;
-  background-color: var(--color-gold-bright);
-  transform: none;
-}
-
-.btn-gold-static:active {
-  transform: none;
+  background-color: var(--color-gold);
 }

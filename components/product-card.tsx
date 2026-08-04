@@ -103,7 +103,7 @@ export default function ProductCard({ product, onAddToCart }: ProductCardProps) 
 
         {/* Right: ADD button (20%) — min-width for touch target */}
         <button
-          className="btn-gold btn-gold-static flex flex-shrink-0 cursor-pointer items-center justify-center text-sm font-bold tracking-wider uppercase sm:text-base"
+          className="btn-gold flex flex-shrink-0 cursor-pointer items-center justify-center text-sm font-bold tracking-wider uppercase sm:text-base"
           style={{
             width: '20%',
             minWidth: '44px',

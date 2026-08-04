@@ -32,7 +32,7 @@ export default function HeroSection() {
 
         <Link
           href="/shop"
-          className="btn-gold btn-gold-static inline-block px-6 py-2.5 text-sm tracking-[0.15em] uppercase"
+          className="btn-gold inline-block px-6 py-2.5 text-sm tracking-[0.15em] uppercase"
           aria-label="Shop Meister diving equipment"
         >
           SHOP NOW
