@@ -26,14 +26,24 @@ const DISPLAY = 'var(--font-dela-gothic), sans-serif'
 /**
  * Finds the variant matching the current selection.
  *
- * This is deliberately forgiving. Some variations in this store come back
- * from WooCommerce with `attributes: []` because their data was never
- * re-saved in WP admin — they can never match, so they are skipped and the
- * parent product's price, stock, and image stand instead. An empty string
- * on an axis is WooCommerce's "any value" wildcard and matches anything.
+ * Three WooCommerce quirks drive the shape of this:
  *
- * The upshot: selection always works, and the moment the WP data is cleaned
- * up these pages get more accurate with no code change.
+ * 1. **An absent axis means "any".** A variation priced per thickness only
+ *    lists `[{Πάχος: "9mm"}]` and omits Μέγεθος entirely — it applies to
+ *    every size. An empty-string option means the same thing. Both have to
+ *    count as a match or the price never updates on those products.
+ * 2. **A variation with no attributes at all is unusable**, not a universal
+ *    wildcard. Some in this store come back as `attributes: []` because
+ *    their data was never re-saved in WP admin. Treating those as matching
+ *    anything would quote an arbitrary variant's price as if the shopper
+ *    had chosen it, so they're skipped and the parent's values stand.
+ * 3. **Specific beats general.** Where several variants match, the one
+ *    constraining the most axes is the real answer.
+ *
+ * Partial selections resolve too, so the price moves as soon as the shopper
+ * has picked the axis that actually determines it. When the surviving
+ * candidates disagree on price the answer is genuinely unknown, so this
+ * returns null and the caller keeps showing the range.
  */
 function resolveVariant(
   variants: ProductVariant[],
@@ -41,17 +51,40 @@ function resolveVariant(
   selected: Record<string, string>,
 ): ProductVariant | null {
   if (variants.length === 0 || axisNames.length === 0) return null
-  if (axisNames.some((name) => !selected[name])) return null
 
-  return (
-    variants.find((variant) => {
-      if (Object.keys(variant.attributes).length === 0) return false
-      return axisNames.every((name) => {
-        const option = variant.attributes[name]
-        return option === '' || option === selected[name]
-      })
-    }) ?? null
-  )
+  const chosenAxes = axisNames.filter((name) => selected[name])
+  if (chosenAxes.length === 0) return null
+
+  const candidates = variants.filter((variant) => {
+    if (Object.keys(variant.attributes).length === 0) return false
+    return chosenAxes.every((name) => {
+      const option = variant.attributes[name]
+      return option === undefined || option === '' || option === selected[name]
+    })
+  })
+
+  if (candidates.length === 0) return null
+
+  const specificity = (variant: ProductVariant) =>
+    chosenAxes.filter((name) => Boolean(variant.attributes[name])).length
+
+  const best = Math.max(...candidates.map(specificity))
+  const tied = candidates.filter((variant) => specificity(variant) === best)
+
+  // Still ambiguous — don't guess a price the shopper hasn't pinned down.
+  if (tied.some((variant) => variant.price !== tied[0].price)) return null
+
+  return tied[0]
+}
+
+/** Cheapest and dearest across all variants, for the pre-selection range. */
+function priceRange(variants: ProductVariant[]): { min: number; max: number } | null {
+  const prices = variants.map((variant) => variant.price).filter((price) => price > 0)
+  if (prices.length === 0) return null
+
+  const min = Math.min(...prices)
+  const max = Math.max(...prices)
+  return max > min ? { min, max } : null
 }
 
 /* ----------------------------------------------------------------
@@ -119,6 +152,12 @@ export default function ProductBuyBox({ product }: ProductBuyBoxProps) {
   const stockStatus = activeVariant?.stockStatus ?? product.stockStatus
   // "From" only makes sense while the shopper hasn't narrowed to one variant.
   const showFrom = product.priceFrom && !activeVariant
+
+  // Before the shopper has narrowed things down, show what the product
+  // actually spans rather than a bare "from" — the whole point of the
+  // selector is knowing what it will cost.
+  const range = useMemo(() => priceRange(product.variants), [product.variants])
+  const showRange = !activeVariant && range !== null
 
   const stock = describeStock(stockStatus, activeVariant ? null : product.stockQuantity)
   const isPurchasable = stockStatus !== 'outofstock'
@@ -201,7 +240,7 @@ export default function ProductBuyBox({ product }: ProductBuyBoxProps) {
           {/* Price */}
           <div>
             <div className="flex flex-wrap items-baseline gap-3">
-              {showFrom && (
+              {showFrom && !showRange && (
                 <span
                   className="text-xs text-[#999999]"
                   style={{ fontFamily: MONO }}
@@ -213,7 +252,9 @@ export default function ProductBuyBox({ product }: ProductBuyBoxProps) {
                 className="whitespace-nowrap text-2xl font-bold text-[#FFD700] sm:text-3xl"
                 style={{ fontFamily: MONO }}
               >
-                {formatPrice(price)}
+                {showRange
+                  ? `${formatPrice(range.min)} – ${formatPrice(range.max)}`
+                  : formatPrice(price)}
               </span>
 
               {savingPercent > 0 && (
@@ -234,7 +275,7 @@ export default function ProductBuyBox({ product }: ProductBuyBoxProps) {
               )}
             </div>
             <p className="mt-1 text-xs text-[#999999]" style={{ fontFamily: MONO }}>
-              VAT included
+              {activeVariant ? 'Price for your selection · ' : ''}VAT included
             </p>
           </div>
 
@@ -315,8 +356,10 @@ export default function ProductBuyBox({ product }: ProductBuyBoxProps) {
             className="whitespace-nowrap text-sm font-bold text-[#FFD700]"
             style={{ fontFamily: MONO }}
           >
-            {showFrom ? 'FROM ' : ''}
-            {formatPrice(price)}
+            {/* The bar is width-constrained, so it shows the floor of the
+                range rather than both ends. */}
+            {showRange || showFrom ? 'FROM ' : ''}
+            {formatPrice(showRange ? range.min : price)}
           </p>
         </div>
 
