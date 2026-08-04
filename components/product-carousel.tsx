@@ -74,7 +74,7 @@ export default function ProductCarousel({ products }: ProductCarouselProps) {
         {/* VIEW ALL button — thick yellow border, dark bg, white text */}
         <a
           href="/shop"
-          className="flex items-center justify-center px-4 py-2 text-[10px] font-bold tracking-wider text-white uppercase transition-opacity hover:opacity-80 sm:px-8 sm:py-3 sm:text-xs"
+          className="flex items-center justify-center px-3 py-1.5 text-[10px] font-bold tracking-wider text-white uppercase transition-opacity hover:opacity-80 sm:px-5 sm:py-2 sm:text-xs"
           style={{
             border: '3px solid #FFD700',
             backgroundColor: '#1B1B18',

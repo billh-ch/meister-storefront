@@ -22,7 +22,7 @@ export default function HeroSection() {
       {/* Content */}
       <div className="relative z-10 flex flex-col items-center gap-4 text-center">
         <h1
-          className="text-5xl leading-[1.1] text-white md:text-7xl lg:text-8xl xl:text-9xl"
+          className="text-3xl leading-[1.15] text-white md:text-4xl lg:text-5xl xl:text-6xl"
           style={{ fontFamily: 'var(--font-dela-gothic), sans-serif', fontWeight: 800 }}
         >
           Go Deep.
@@ -32,7 +32,7 @@ export default function HeroSection() {
 
         <Link
           href="/shop"
-          className="btn-gold inline-block px-10 py-4 text-sm tracking-[0.15em] uppercase"
+          className="btn-gold inline-block px-6 py-2.5 text-sm tracking-[0.15em] uppercase"
           aria-label="Shop Meister diving equipment"
         >
           SHOP NOW

@@ -23,7 +23,7 @@ export default function ProductCard({ product, onAddToCart }: ProductCardProps) 
   return (
     <article
       className="hatching-bg relative flex h-full w-full flex-col overflow-hidden"
-      style={{ border: '1px solid #222222', minHeight: '575px' }}
+      style={{ border: '1px solid #FFFFFF', minHeight: '575px' }}
       aria-label={`${product.name}, ${formatPrice(product.price)}`}
     >
       {/* Image area — flexible height */}
@@ -52,8 +52,8 @@ export default function ProductCard({ product, onAddToCart }: ProductCardProps) 
       <footer
         className="flex items-stretch"
         style={{
-          borderTop: '1px solid #222222',
-          backgroundColor: '#FFFFFF',
+          borderTop: '1px solid #FFFFFF',
+          backgroundColor: '#1B1B18',
           minHeight: '72px',
         }}
       >
@@ -65,7 +65,7 @@ export default function ProductCard({ product, onAddToCart }: ProductCardProps) 
         >
           {/* Product name */}
           <h2
-            className="truncate text-xs font-bold text-[#1B1B18] sm:text-sm"
+            className="truncate text-xs font-bold text-white sm:text-sm"
             style={{ fontFamily: 'var(--font-space-mono), monospace' }}
           >
             {product.name}
@@ -85,7 +85,7 @@ export default function ProductCard({ product, onAddToCart }: ProductCardProps) 
               />
             ))}
             <span
-              className="truncate text-[10px] text-[#666666] sm:text-xs"
+              className="truncate text-[10px] text-[#A0A0A0] sm:text-xs"
               style={{ fontFamily: 'var(--font-space-mono), monospace' }}
             >
               {product.options}
@@ -94,7 +94,7 @@ export default function ProductCard({ product, onAddToCart }: ProductCardProps) 
 
           {/* Price */}
           <p
-            className="text-xs font-bold text-[#1B1B18] sm:text-sm"
+            className="text-xs font-bold text-white sm:text-sm"
             style={{ fontFamily: 'var(--font-space-mono), monospace' }}
           >
             {formatPrice(product.price)}
@@ -103,11 +103,11 @@ export default function ProductCard({ product, onAddToCart }: ProductCardProps) 
 
         {/* Right: ADD button (20%) — min-width for touch target */}
         <button
-          className="btn-gold flex flex-shrink-0 cursor-pointer items-center justify-center text-[10px] font-bold tracking-wider uppercase sm:text-xs"
+          className="btn-gold btn-gold-static flex flex-shrink-0 cursor-pointer items-center justify-center text-sm font-bold tracking-wider uppercase sm:text-base"
           style={{
             width: '20%',
             minWidth: '44px',
-            borderLeft: '1px solid #E0E0E0',
+            borderLeft: '1px solid #FFFFFF',
           }}
           onClick={handleAddToCart}
           aria-label={`Add ${product.name} to cart`}
