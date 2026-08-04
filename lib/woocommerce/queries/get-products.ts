@@ -3,6 +3,7 @@ import { wcFetch } from '../client'
 export interface WcImage {
   id: number
   src: string
+  alt?: string
 }
 
 export interface WcCategory {

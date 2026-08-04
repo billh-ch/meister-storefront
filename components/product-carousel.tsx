@@ -7,6 +7,12 @@ import { type Product } from '@/lib/mock-data'
 
 interface ProductCarouselProps {
   products: Product[]
+  /** Section heading. Defaults to the homepage's "MOST WANTED". */
+  title?: string
+  /** Target of the VIEW ALL button. Pass `null` to hide the button. */
+  viewAllHref?: string | null
+  /** Accessible name for the section landmark. */
+  ariaLabel?: string
 }
 
 function useSlideWidth() {
@@ -30,7 +36,12 @@ function useSlideWidth() {
   return slideWidth
 }
 
-export default function ProductCarousel({ products }: ProductCarouselProps) {
+export default function ProductCarousel({
+  products,
+  title = 'MOST WANTED',
+  viewAllHref = '/shop',
+  ariaLabel = 'Most wanted products',
+}: ProductCarouselProps) {
   const [emblaRef, emblaApi] = useEmblaCarousel({
     loop: false,
     align: 'start',
@@ -56,11 +67,15 @@ export default function ProductCarousel({ products }: ProductCarouselProps) {
 
   const slideWidth = useSlideWidth()
 
+  // An empty rail is worse than no rail — the PDP passes a filtered list
+  // that can legitimately come back empty for a lone product in a category.
+  if (products.length === 0) return null
+
   return (
     <section
       className="w-full py-16"
       style={{ backgroundColor: '#1B1B18' }}
-      aria-label="Most wanted products"
+      aria-label={ariaLabel}
     >
       {/* Section header */}
       <div className="mb-6 flex items-center justify-between px-4 sm:mb-8 sm:px-6 md:px-10">
@@ -68,21 +83,23 @@ export default function ProductCarousel({ products }: ProductCarouselProps) {
           className="text-2xl text-white sm:text-3xl md:text-5xl"
           style={{ fontFamily: 'var(--font-dela-gothic), sans-serif', fontWeight: 800 }}
         >
-          MOST WANTED
+          {title}
         </h2>
 
         {/* VIEW ALL button — thick yellow border, dark bg, white text */}
-        <a
-          href="/shop"
-          className="flex items-center justify-center px-3 py-1.5 text-[10px] font-bold tracking-wider text-white uppercase transition-opacity hover:opacity-80 sm:px-5 sm:py-2 sm:text-xs"
-          style={{
-            border: '3px solid #FFD700',
-            backgroundColor: '#1B1B18',
-            fontFamily: 'var(--font-space-mono), monospace',
-          }}
-        >
-          VIEW ALL
-        </a>
+        {viewAllHref && (
+          <a
+            href={viewAllHref}
+            className="flex items-center justify-center px-3 py-1.5 text-[10px] font-bold tracking-wider text-white uppercase transition-opacity hover:opacity-80 sm:px-5 sm:py-2 sm:text-xs"
+            style={{
+              border: '3px solid #FFD700',
+              backgroundColor: '#1B1B18',
+              fontFamily: 'var(--font-space-mono), monospace',
+            }}
+          >
+            VIEW ALL
+          </a>
+        )}
       </div>
 
       {/* Carousel with arrows inside */}

@@ -21,6 +21,150 @@ export interface Product {
   category: string
 }
 
+/* ----------------------------------------------------------------
+   Product detail types
+
+   `ProductDetail extends Product` rather than widening `Product` with
+   optional fields: the listing components (ProductCard, ProductCarousel,
+   CategoriesSection) stay untouched and a ProductDetail remains assignable
+   anywhere a Product is expected, while the PDP gets non-optional fields
+   with no defensive `?.` chains.
+   ---------------------------------------------------------------- */
+
+export type StockStatus = 'instock' | 'outofstock' | 'onbackorder'
+
+export interface ProductImage {
+  src: string
+  alt: string
+}
+
+export interface ProductAttribute {
+  name: string
+  values: string[]
+  /** True when WooCommerce marks this attribute as "used for variations". */
+  isVariationAxis: boolean
+}
+
+export interface ProductVariant {
+  id: string
+  price: number
+  regularPrice: number
+  onSale: boolean
+  stockStatus: StockStatus
+  image: string | null
+  /** e.g. `{ "Μέγεθος": "L" }`. Empty when the WP variation data is incomplete. */
+  attributes: Record<string, string>
+}
+
+export interface ProductDetail extends Product {
+  gallery: ProductImage[]
+  descriptionHtml: string
+  shortDescriptionHtml: string
+  sku: string
+  stockStatus: StockStatus
+  stockQuantity: number | null
+  regularPrice: number
+  salePrice: number | null
+  onSale: boolean
+  /** True for variable products, where `price` is the lowest of the variants. */
+  priceFrom: boolean
+  attributes: ProductAttribute[]
+  variants: ProductVariant[]
+  weight: string
+  dimensions: { length: string; width: string; height: string }
+}
+
+/**
+ * Widens a mock `Product` into a `ProductDetail` so every mock slug still
+ * has a working PDP when WooCommerce is unreachable. `options` on the mock
+ * products is a "S / M / L"-style string, which becomes a single display-only
+ * attribute — mock data has no variants to resolve against.
+ */
+export function toMockProductDetail(product: Product): ProductDetail {
+  const sizeValues = product.options
+    .split('/')
+    .map((value) => value.trim())
+    .filter(Boolean)
+
+  return {
+    ...product,
+    gallery: product.image ? [{ src: product.image, alt: product.name }] : [],
+    descriptionHtml: `<p>${product.name} — premium diving equipment, hand-picked by the Meister team. Live product details are unavailable right now, so this is placeholder copy.</p>`,
+    shortDescriptionHtml: '',
+    sku: product.id.toUpperCase(),
+    stockStatus: 'instock',
+    stockQuantity: null,
+    regularPrice: product.price,
+    salePrice: null,
+    onSale: false,
+    priceFrom: false,
+    attributes:
+      sizeValues.length > 0
+        ? [{ name: 'Options', values: sizeValues, isVariationAxis: false }]
+        : [],
+    variants: [],
+    weight: '',
+    dimensions: { length: '', width: '', height: '' },
+  }
+}
+
+/* ----------------------------------------------------------------
+   Static PDP copy — storefront design data, same as categoryDetails
+   ---------------------------------------------------------------- */
+
+export interface TrustItem {
+  readonly id: string
+  readonly title: string
+  readonly detail: string
+  /** Optional link, e.g. `tel:` for the support line. */
+  readonly href?: string
+}
+
+/** Free-shipping threshold in EUR. Placeholder — confirm with the shop. */
+export const FREE_SHIPPING_THRESHOLD = 80
+
+/** Shop support line. Placeholder — confirm with the shop. */
+export const SUPPORT_PHONE = '+30 210 000 0000'
+
+export const trustItems: readonly TrustItem[] = [
+  {
+    id: 'shipping',
+    title: 'FREE SHIPPING',
+    detail: `On orders over ${FREE_SHIPPING_THRESHOLD}€ within Greece`,
+  },
+  {
+    id: 'returns',
+    title: '14-DAY RETURNS',
+    detail: 'Changed your mind? Send it back, no questions',
+  },
+  {
+    id: 'secure',
+    title: 'SECURE CHECKOUT',
+    detail: 'Encrypted payment, your card details stay private',
+  },
+  {
+    id: 'help',
+    title: 'NEED HELP?',
+    detail: SUPPORT_PHONE,
+    href: `tel:${SUPPORT_PHONE.replace(/\s/g, '')}`,
+  },
+]
+
+export const shippingReturnsCopy = [
+  {
+    headline: 'Delivery',
+    body: `Orders placed before 14:00 ship the same working day. Delivery within Greece takes 1–3 working days. Shipping is free on orders over ${FREE_SHIPPING_THRESHOLD}€; below that a flat rate applies at checkout.`,
+  },
+  {
+    headline: 'Returns',
+    body: 'You have 14 days from delivery to return an unused item in its original packaging. Contact us first and we will send you the return instructions. Refunds are issued to the original payment method.',
+  },
+  {
+    headline: 'Not sure about sizing?',
+    body: `Call us on ${SUPPORT_PHONE}. We dive this gear ourselves and would rather spend five minutes on the phone than have you send something back.`,
+  },
+] as const
+
 export interface Testimonial {
   id: string
   name: string
@@ -44,7 +188,12 @@ export interface CategoryDetail {
   readonly accordionItems: readonly AccordionItem[]
 }
 
-/** Formats a price number to a EUR string, e.g. 249 → "€249.00" */
+/**
+ * Formats a price number to a Greek-locale EUR string, e.g. 249 → "249,00 €".
+ * Note the trailing symbol, the comma decimal separator, and the U+00A0
+ * non-breaking space before "€" — never string-split the result, and give
+ * every price element `whitespace-nowrap` so it can't break mid-value.
+ */
 export function formatPrice(price: number): string {
   return new Intl.NumberFormat('el-GR', {
     style: 'currency',

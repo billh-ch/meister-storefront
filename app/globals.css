@@ -38,6 +38,13 @@ body {
   overflow-x: clip;
 }
 
+/* Keyboard focus ring — gold, matching the brand accent. Applies to every
+   interactive element; :focus-visible means mouse clicks don't show it. */
+:focus-visible {
+  outline: 2px solid #FFD700;
+  outline-offset: 2px;
+}
+
 /* ============================================================
    Card hatching pattern — diagonal SVG tile, 64px, rgba(136,136,136,0.2)
    Source: extracted directly from Framer design source
@@ -168,4 +175,111 @@ body {
 
 .btn-gold:active {
   background-color: var(--color-gold);
+}
+
+.btn-gold:disabled {
+  background-color: #444444;
+  color: #999999;
+  cursor: not-allowed;
+}
+
+/* ============================================================
+   Product description prose
+
+   WordPress descriptions arrive as sanitised HTML with all class and style
+   attributes stripped (see lib/sanitize.ts), so every tag needs styling
+   here. @tailwindcss/typography isn't installed and isn't worth adding for
+   one block. Body copy is #CCCCCC rather than the #999999 used elsewhere —
+   long-form reading needs the extra contrast headroom.
+   ============================================================ */
+.product-prose {
+  font-family: var(--font-space-mono), ui-monospace, monospace;
+  color: #CCCCCC;
+  font-size: 1rem;
+  line-height: 1.75;
+}
+
+.product-prose > *:first-child { margin-top: 0; }
+.product-prose > *:last-child { margin-bottom: 0; }
+
+.product-prose p { margin: 0 0 1rem; }
+
+.product-prose h2,
+.product-prose h3,
+.product-prose h4 {
+  font-family: var(--font-dela-gothic), sans-serif;
+  font-weight: 700;
+  color: #FFFFFF;
+  margin: 1.75rem 0 0.75rem;
+  line-height: 1.3;
+}
+
+.product-prose h2 { font-size: 1.25rem; }
+.product-prose h3 { font-size: 1.125rem; }
+.product-prose h4 { font-size: 1rem; }
+
+.product-prose strong,
+.product-prose b { color: #FFFFFF; font-weight: 700; }
+
+.product-prose ul,
+.product-prose ol {
+  margin: 0 0 1rem;
+  padding-left: 1.5rem;
+}
+
+.product-prose ul { list-style: disc; }
+.product-prose ol { list-style: decimal; }
+.product-prose li { margin-bottom: 0.5rem; }
+.product-prose li::marker { color: #FFD700; }
+
+.product-prose a {
+  color: #FFD700;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.product-prose blockquote {
+  border-left: 3px solid #FFD700;
+  padding-left: 1rem;
+  margin: 0 0 1rem;
+  color: #FFFFFF;
+}
+
+/* Tables come out of WP product descriptions as spec sheets and are the one
+   element that can overflow a narrow column, so they scroll independently. */
+.product-prose table {
+  display: block;
+  overflow-x: auto;
+  width: 100%;
+  border-collapse: collapse;
+  margin: 0 0 1rem;
+  font-size: 0.875rem;
+}
+
+.product-prose th,
+.product-prose td {
+  border: 1px solid #444444;
+  padding: 0.5rem 0.75rem;
+  text-align: left;
+}
+
+.product-prose th { color: #FFFFFF; font-weight: 700; background-color: #232320; }
+
+/* ============================================================
+   Reduced motion — honour the OS setting. The marquee is decorative and
+   the accordion/crossfade transitions are pure affordance, so all three
+   are safe to drop entirely rather than merely shorten.
+   ============================================================ */
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+
+  .animate-marquee { animation: none; }
+
+  .category-image,
+  .accordion-content,
+  .accordion-chevron,
+  .btn-gold,
+  .category-tab {
+    transition: none;
+  }
 }
