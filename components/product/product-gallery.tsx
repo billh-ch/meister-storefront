@@ -10,13 +10,14 @@ interface ProductGalleryProps {
   productName: string
   /**
    * Variant image, when the shopper has picked a combination that has one.
-   * Shown in place of the gallery's current slide rather than injected into
-   * the strip, so the thumbnail indices never shift under the user.
+   * Shown in place of the current main image rather than injected into the
+   * grid, so the tile positions never shift under the user.
    */
   activeImage?: string | null
 }
 
 const SIZES = '(max-width: 1023px) 100vw, 50vw'
+const THUMB_SIZES = '(max-width: 640px) 25vw, 150px'
 const MONO = 'var(--font-space-mono), monospace'
 
 /** Bare frame shared by all three branches — matches the ProductCard motif. */
@@ -31,6 +32,18 @@ function GalleryFrame({ children }: { children: React.ReactNode }) {
   )
 }
 
+/**
+ * One large image with every other shot laid out as tiles beneath it.
+ *
+ * Chosen over a carousel because a carousel hides its own contents: a
+ * shopper has to know to swipe or hunt for arrows to discover there are
+ * twelve photos, and plenty never do. The tiles show the whole set at once.
+ *
+ * The main image is still an Embla viewport purely so swiping keeps working
+ * on touch — the arrows are gone, since the tiles make them redundant.
+ * Selection syncs both ways: tapping a tile scrolls the main image, and
+ * swiping the main image highlights the matching tile.
+ */
 export default function ProductGallery({
   images,
   productName,
@@ -53,8 +66,6 @@ export default function ProductGallery({
     (index: number) => emblaApi?.scrollTo(index),
     [emblaApi],
   )
-  const scrollPrev = useCallback(() => emblaApi?.scrollPrev(), [emblaApi])
-  const scrollNext = useCallback(() => emblaApi?.scrollNext(), [emblaApi])
 
   // --- Branch 1: no images at all ---
   if (images.length === 0) {
@@ -70,7 +81,7 @@ export default function ProductGallery({
     )
   }
 
-  // --- Branch 2: a single image needs no carousel, dots, or thumbnails ---
+  // --- Branch 2: a single image needs no viewport and no tiles ---
   if (images.length === 1) {
     return (
       <GalleryFrame>
@@ -86,126 +97,73 @@ export default function ProductGallery({
     )
   }
 
-  // --- Branch 3: full gallery ---
+  // --- Branch 3: main image + tile grid ---
   return (
     <div>
-      <div className="relative">
-        <GalleryFrame>
-          <div className="absolute inset-0 overflow-hidden" ref={emblaRef}>
-            <div className="flex h-full" style={{ touchAction: 'pan-y pinch-zoom' }}>
-              {images.map((image, index) => (
-                <div
-                  key={`${image.src}-${index}`}
-                  className="relative h-full w-full flex-shrink-0"
-                >
-                  <Image
-                    // The variant image replaces only the slide in view, so
-                    // thumbnail positions stay stable while browsing.
-                    src={index === selectedIndex && activeImage ? activeImage : image.src}
-                    alt={image.alt || `${productName} — image ${index + 1}`}
-                    fill
-                    sizes={SIZES}
-                    className="object-cover"
-                    preload={index === 0}
-                    loading={index === 0 ? undefined : 'lazy'}
-                  />
-                </div>
-              ))}
-            </div>
+      <GalleryFrame>
+        <div className="absolute inset-0 overflow-hidden" ref={emblaRef}>
+          <div className="flex h-full" style={{ touchAction: 'pan-y pinch-zoom' }}>
+            {images.map((image, index) => (
+              <div
+                key={`${image.src}-${index}`}
+                className="relative h-full w-full flex-shrink-0"
+              >
+                <Image
+                  // The variant image replaces only the shot in view, so the
+                  // tile positions stay stable while browsing.
+                  src={index === selectedIndex && activeImage ? activeImage : image.src}
+                  alt={image.alt || `${productName} — image ${index + 1}`}
+                  fill
+                  sizes={SIZES}
+                  className="object-cover"
+                  preload={index === 0}
+                  loading={index === 0 ? undefined : 'lazy'}
+                />
+              </div>
+            ))}
           </div>
-        </GalleryFrame>
+        </div>
+      </GalleryFrame>
 
-        {/* Arrows — always visible, never hover-dependent */}
-        <button
-          type="button"
-          onClick={scrollPrev}
-          disabled={selectedIndex === 0}
-          aria-label="Previous image"
-          className="absolute left-3 top-1/2 flex h-12 w-12 -translate-y-1/2 cursor-pointer items-center justify-center border border-[#444444] bg-[#1B1B18]/85 text-white backdrop-blur-sm transition-colors hover:border-[#FFD700] hover:text-[#FFD700] disabled:cursor-not-allowed disabled:opacity-30"
-        >
-          <Chevron direction="left" />
-        </button>
-        <button
-          type="button"
-          onClick={scrollNext}
-          disabled={selectedIndex === images.length - 1}
-          aria-label="Next image"
-          className="absolute right-3 top-1/2 flex h-12 w-12 -translate-y-1/2 cursor-pointer items-center justify-center border border-[#444444] bg-[#1B1B18]/85 text-white backdrop-blur-sm transition-colors hover:border-[#FFD700] hover:text-[#FFD700] disabled:cursor-not-allowed disabled:opacity-30"
-        >
-          <Chevron direction="right" />
-        </button>
-      </div>
-
-      {/* Position announcement for screen readers */}
+      {/* Position announcement for screen readers — the tiles carry this
+          visually, but nothing announces a swipe otherwise. */}
       <p className="sr-only" aria-live="polite">
         Image {selectedIndex + 1} of {images.length}
       </p>
 
-      {/* Dots — a second, larger-target way to jump between images */}
-      <div className="mt-3 flex justify-center gap-2">
-        {images.map((image, index) => (
-          <button
-            key={`dot-${image.src}-${index}`}
-            type="button"
-            onClick={() => scrollTo(index)}
-            aria-label={`Go to image ${index + 1}`}
-            aria-current={index === selectedIndex}
-            className="flex h-11 w-8 cursor-pointer items-center justify-center"
-          >
-            <span
-              className="block h-2.5 w-2.5 rounded-full transition-colors"
-              style={{
-                backgroundColor: index === selectedIndex ? '#FFD700' : '#555555',
-              }}
-            />
-          </button>
-        ))}
-      </div>
+      {/* Tile grid — every shot visible at once, no discovery required */}
+      <div className="mt-2 grid grid-cols-4 gap-2 sm:grid-cols-5">
+        {images.map((image, index) => {
+          const isSelected = index === selectedIndex
 
-      {/* Thumbnail strip */}
-      <div className="mt-1 flex gap-2 overflow-x-auto pb-1">
-        {images.map((image, index) => (
-          <button
-            key={`thumb-${image.src}-${index}`}
-            type="button"
-            onClick={() => scrollTo(index)}
-            aria-label={`Show image ${index + 1}`}
-            aria-current={index === selectedIndex}
-            className="relative h-16 w-16 flex-shrink-0 cursor-pointer overflow-hidden sm:h-20 sm:w-20"
-            style={{
-              border:
-                index === selectedIndex ? '2px solid #FFD700' : '1px solid #444444',
-            }}
-          >
-            <Image
-              src={image.src}
-              alt=""
-              fill
-              sizes="80px"
-              className="object-cover"
-              loading="lazy"
-            />
-          </button>
-        ))}
+          return (
+            <button
+              key={`tile-${image.src}-${index}`}
+              type="button"
+              onClick={() => scrollTo(index)}
+              aria-label={`Show image ${index + 1} of ${images.length}`}
+              aria-current={isSelected}
+              // The selected tile is already on show above, so it's the
+              // unselected ones that need to read as tappable.
+              className={`hatching-bg relative aspect-square w-full cursor-pointer overflow-hidden transition-opacity ${
+                isSelected ? 'opacity-100' : 'opacity-[0.6] hover:opacity-100'
+              }`}
+              style={{
+                border: isSelected ? '2px solid #FFD700' : '1px solid #444444',
+              }}
+            >
+              <Image
+                src={image.src}
+                alt=""
+                fill
+                sizes={THUMB_SIZES}
+                className="object-cover"
+                loading="lazy"
+              />
+            </button>
+          )
+        })}
       </div>
     </div>
-  )
-}
-
-function Chevron({ direction }: { direction: 'left' | 'right' }) {
-  return (
-    <svg
-      width="20"
-      height="20"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      aria-hidden="true"
-    >
-      <polyline points={direction === 'left' ? '15 18 9 12 15 6' : '9 18 15 12 9 6'} />
-    </svg>
   )
 }

@@ -38,7 +38,22 @@ function decodeSlug(slug: string): string {
   }
 }
 
+/**
+ * Prerendering is opt-in via PRERENDER_PRODUCTS=true.
+ *
+ * The store currently sits behind an ngrok free-tier tunnel that regularly
+ * takes ~9s per request. Prerendering 50 products means 50–100 such calls,
+ * and Next aborts any page taking over 60s — so the build fails outright on
+ * a slow day, taking deploys with it. Nothing is lost by skipping it:
+ * `dynamicParams` is on and `revalidate` is 30s, so each product renders on
+ * its first visit and is cached from then on. Only that first visitor waits.
+ *
+ * Set PRERENDER_PRODUCTS=true once the store is on real hosting rather than
+ * a tunnel, and product pages go back to being built ahead of time.
+ */
 export async function generateStaticParams(): Promise<{ slug: string }[]> {
+  if (process.env.PRERENDER_PRODUCTS !== 'true') return []
+
   // fetchProducts caps at per_page=50, so the remaining catalogue renders
   // on first request and is cached from then on.
   const products = await getProducts()
