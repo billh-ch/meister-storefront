@@ -17,8 +17,25 @@ interface ProductPageProps {
   params: Promise<{ slug: string }>
 }
 
-/** Product details: ISR 30s, matching the cache strategy in mock-data.ts. */
-export const revalidate = 30
+/**
+ * Rendered per request rather than ISR-cached.
+ *
+ * Every product in this catalogue has a Greek slug, so the route pathname
+ * contains non-Latin characters once decoded. Next tags every ISR-cached
+ * response with an implicit `_N_T_/{pathname}` entry (see
+ * `next/dist/server/lib/implicit-tags.js`) and ships those tags to the CDN
+ * in the `x-next-cache-tags` HTTP header — where non-ASCII is illegal. The
+ * result is ERR_INVALID_CHAR and a 500 on every Greek-named product, on
+ * Vercel only, since `next start` never sets that header.
+ *
+ * The data is still cached: the `revalidate` on each wcFetch keeps the
+ * WooCommerce responses in the Data Cache for 30s, so this re-renders HTML
+ * per request but does not re-hit the store per request.
+ *
+ * The durable fix is ASCII (transliterated) product slugs, which would also
+ * let the full route cache come back — worth doing before launch.
+ */
+export const dynamic = 'force-dynamic'
 
 /** Slugs beyond the prerendered set render on demand rather than 404ing. */
 export const dynamicParams = true
