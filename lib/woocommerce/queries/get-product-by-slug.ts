@@ -64,7 +64,14 @@ export async function fetchProductBySlug(
   const results = await wcFetch<WcProductDetail[]>(
     '/products',
     { slug, status: 'publish', per_page: '1' },
-    { revalidate: DETAIL_REVALIDATE, tags: ['products', `product:${slug}`] },
+    {
+      revalidate: DETAIL_REVALIDATE,
+      // Percent-encoded because Next ships cache tags to the CDN in the
+      // `x-next-cache-tags` HTTP header, and header values are ASCII-only.
+      // A raw Greek slug throws ERR_INVALID_CHAR and 500s the page — on
+      // Vercel only, since `next start` never sets that header locally.
+      tags: ['products', `product:${encodeURIComponent(slug)}`],
+    },
   )
 
   return results[0] ?? null
