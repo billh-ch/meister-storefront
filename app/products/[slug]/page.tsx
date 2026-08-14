@@ -29,6 +29,13 @@ export const dynamicParams = true
  * here and percent-encodes them itself when building the path. Handing the
  * encoded form straight through would double-encode it and prerender
  * `/products/%25ce%25bc…`, which no real request ever hits.
+ *
+ * The same decode is needed on the way *in*. Next does not decode the path
+ * segment before handing it to `params`, so a request for the encoded URL
+ * that ProductCard links to arrives here still encoded; passing that to the
+ * WooCommerce `?slug=` filter encodes the `%` signs a second time and
+ * matches nothing, 404ing every Greek-named product. Decoding is a no-op on
+ * an already-decoded slug, so both URL forms resolve to the same product.
  */
 function decodeSlug(slug: string): string {
   try {
@@ -65,7 +72,7 @@ export async function generateMetadata({
 }: ProductPageProps): Promise<Metadata> {
   const { slug } = await params
   // Deduped with the page's own call by request memoisation — not a second fetch.
-  const product = await getProductBySlug(slug)
+  const product = await getProductBySlug(decodeSlug(slug))
 
   if (!product) {
     return { title: 'Product not found — Meister' }
@@ -121,7 +128,7 @@ const RELATED_LIMIT = 8
 
 export default async function ProductPage({ params }: ProductPageProps) {
   const { slug } = await params
-  const product = await getProductBySlug(slug)
+  const product = await getProductBySlug(decodeSlug(slug))
 
   // Must run before anything that could open a Suspense boundary: once the
   // response starts streaming, Next can only inject `noindex` instead of
