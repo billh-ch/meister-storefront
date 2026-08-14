@@ -74,6 +74,51 @@ export interface ProductDetail extends Product {
   dimensions: { length: string; width: string; height: string }
 }
 
+/* ----------------------------------------------------------------
+   Mock gallery
+
+   A real WooCommerce product carries several photos, but a mock `Product`
+   carries exactly one — and ProductGallery only draws its tile grid at two
+   or more images. A one-image mock gallery therefore hides the entire
+   tile-selection UI from anyone browsing on the fallback data, which is
+   every visitor to the deployed site while the store is local-only.
+
+   So the mock re-frames its single Unsplash shot into several crops. They
+   are the same photograph, not different angles — this exists to exercise
+   the gallery layout, not to look like real product photography.
+   ---------------------------------------------------------------- */
+
+/** imgix params Unsplash honours; each yields a visibly different framing. */
+const MOCK_GALLERY_FRAMINGS: readonly { params: string; label: string }[] = [
+  { params: 'fit=crop&crop=entropy', label: 'main view' },
+  { params: 'fit=crop&crop=left', label: 'left detail' },
+  { params: 'fit=crop&crop=right', label: 'right detail' },
+  { params: 'fit=crop&crop=top', label: 'top detail' },
+  { params: 'flip=h', label: 'reverse view' },
+]
+
+const MOCK_GALLERY_SIZE = 'w=800&h=800&q=80'
+
+/**
+ * Non-Unsplash images (the local `/images/...` category art) come back as a
+ * single-entry gallery: the query params would be inert on them, so five
+ * identical tiles would be worse than one honest image.
+ */
+function buildMockGallery(image: string, productName: string): ProductImage[] {
+  if (!image) return []
+
+  if (!image.includes('images.unsplash.com')) {
+    return [{ src: image, alt: productName }]
+  }
+
+  const [baseUrl] = image.split('?')
+
+  return MOCK_GALLERY_FRAMINGS.map(({ params, label }) => ({
+    src: `${baseUrl}?${MOCK_GALLERY_SIZE}&${params}`,
+    alt: `${productName} — ${label}`,
+  }))
+}
+
 /**
  * Widens a mock `Product` into a `ProductDetail` so every mock slug still
  * has a working PDP when WooCommerce is unreachable. `options` on the mock
@@ -88,7 +133,7 @@ export function toMockProductDetail(product: Product): ProductDetail {
 
   return {
     ...product,
-    gallery: product.image ? [{ src: product.image, alt: product.name }] : [],
+    gallery: buildMockGallery(product.image, product.name),
     descriptionHtml: `<p>${product.name} — premium diving equipment, hand-picked by the Meister team. Live product details are unavailable right now, so this is placeholder copy.</p>`,
     shortDescriptionHtml: '',
     sku: product.id.toUpperCase(),
