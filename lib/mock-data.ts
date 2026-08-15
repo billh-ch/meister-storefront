@@ -16,9 +16,14 @@ export interface Product {
   name: string
   price: number
   options: string
+  /** Empty when the product has no photo in WooCommerce — 9 currently don't. */
   image: string
   swatches: string[]
   category: string
+  stockStatus: StockStatus
+  onSale: boolean
+  /** True only when variants genuinely differ in price, so `price` is a floor. */
+  priceFrom: boolean
 }
 
 /* ----------------------------------------------------------------
@@ -61,13 +66,9 @@ export interface ProductDetail extends Product {
   descriptionHtml: string
   shortDescriptionHtml: string
   sku: string
-  stockStatus: StockStatus
   stockQuantity: number | null
   regularPrice: number
   salePrice: number | null
-  onSale: boolean
-  /** True for variable products, where `price` is the lowest of the variants. */
-  priceFrom: boolean
   attributes: ProductAttribute[]
   variants: ProductVariant[]
   weight: string
@@ -137,12 +138,12 @@ export function toMockProductDetail(product: Product): ProductDetail {
     descriptionHtml: `<p>${product.name} — premium diving equipment, hand-picked by the Meister team. Live product details are unavailable right now, so this is placeholder copy.</p>`,
     shortDescriptionHtml: '',
     sku: product.id.toUpperCase(),
-    stockStatus: 'instock',
     stockQuantity: null,
+    // `product` already carries stockStatus, onSale and priceFrom via the
+    // spread above — re-stating them here would silently discard the seeded
+    // out-of-stock, backorder and sale states.
     regularPrice: product.price,
     salePrice: null,
-    onSale: false,
-    priceFrom: false,
     attributes:
       sizeValues.length > 0
         ? [{ name: 'Options', values: sizeValues, isVariationAxis: false }]
@@ -247,7 +248,21 @@ export function formatPrice(price: number): string {
   }).format(price)
 }
 
-export const products: Product[] = [
+/**
+ * Everything a mock product declares by hand. The three merchandising flags
+ * are optional here and defaulted below, so a seed only mentions one when it
+ * deliberately differs — which keeps the list readable and means adding a
+ * fourth flag later doesn't mean touching all sixteen entries.
+ */
+type MockProductSeed = Omit<Product, 'stockStatus' | 'onSale' | 'priceFrom'> &
+  Partial<Pick<Product, 'stockStatus' | 'onSale' | 'priceFrom'>>
+
+/**
+ * A handful of seeds carry non-default states on purpose. The deployed stable
+ * link runs on mock data, so without them the out-of-stock, backorder, sale
+ * and "From" treatments would be invisible to anyone reviewing the site.
+ */
+const productSeeds: MockProductSeed[] = [
   // --- FINS ---
   {
     id: 'p1',
@@ -258,6 +273,7 @@ export const products: Product[] = [
     image: 'https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=600&q=80',
     swatches: ['#969696', '#E8510C', '#FF0000'],
     category: 'fins',
+    priceFrom: true,
   },
   {
     id: 'p7',
@@ -278,6 +294,7 @@ export const products: Product[] = [
     image: 'https://images.unsplash.com/photo-1504753793650-d4a2b783c15e?w=600&q=80',
     swatches: ['#1B1B18', '#E8510C'],
     category: 'fins',
+    stockStatus: 'outofstock',
   },
   {
     id: 'p9',
@@ -288,6 +305,8 @@ export const products: Product[] = [
     image: 'https://images.unsplash.com/photo-1583119022894-919a68a3d0e3?w=600&q=80',
     swatches: ['#1B1B18', '#969696', '#FF0000'],
     category: 'fins',
+    onSale: true,
+    priceFrom: true,
   },
   // --- SUITS ---
   {
@@ -309,6 +328,8 @@ export const products: Product[] = [
     image: 'https://images.unsplash.com/photo-1601024445121-e5b82f020549?w=600&q=80',
     swatches: ['#1B1B18', '#4A5568'],
     category: 'suits',
+    stockStatus: 'onbackorder',
+    priceFrom: true,
   },
   {
     id: 'p11',
@@ -398,7 +419,9 @@ export const products: Product[] = [
     name: 'Meister Dive Cap',
     price: 29,
     options: 'One Size',
-    image: 'https://images.unsplash.com/photo-1588850561407-ed78c334e67a?w=600&q=80',
+    // Deliberately empty — stands in for the 9 live products WooCommerce has
+    // no photo for, so the placeholder tile is visible in mock mode too.
+    image: '',
     swatches: ['#1B1B18', '#969696', '#E8510C'],
     category: 'merch',
   },
@@ -413,6 +436,14 @@ export const products: Product[] = [
     category: 'merch',
   },
 ]
+
+/** Seeds spread last so an explicit flag always wins over its default. */
+export const products: Product[] = productSeeds.map((seed) => ({
+  stockStatus: 'instock',
+  onSale: false,
+  priceFrom: false,
+  ...seed,
+}))
 
 export const categoryDetails: readonly CategoryDetail[] = [
   {

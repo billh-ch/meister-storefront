@@ -2,7 +2,6 @@ import type {
   ProductAttribute,
   ProductDetail,
   ProductVariant,
-  StockStatus,
 } from '@/lib/mock-data'
 import { sanitizeProductHtml } from '@/lib/sanitize'
 import type {
@@ -10,19 +9,15 @@ import type {
   WcVariation,
 } from '../queries/get-product-by-slug'
 import { mapCategorySlug } from './category-map'
+import { hasPriceRange } from './has-price-range'
 import { resolveImageUrl } from './resolve-image-url'
+import { toStockStatus } from './stock-status'
 
 /**
  * Kept separate from `map-product.ts` on purpose: the listing mapper runs
  * ~50x per homepage render and must stay cheap, while this one runs HTML
  * sanitisation and must never end up on that path.
  */
-
-const STOCK_STATUSES: readonly string[] = ['instock', 'outofstock', 'onbackorder']
-
-function toStockStatus(raw: string): StockStatus {
-  return STOCK_STATUSES.includes(raw) ? (raw as StockStatus) : 'instock'
-}
 
 function toNumber(raw: string): number {
   const parsed = Number.parseFloat(raw)
@@ -92,6 +87,28 @@ function deriveRegularPrice(
   return regular > price ? regular : price
 }
 
+/**
+ * "From €X" belongs on a product whose variants genuinely cost different
+ * amounts, not on every variable product — most of this catalogue is variable
+ * while quoting one price across every size, and prefixing those would promise
+ * a cheaper option that doesn't exist.
+ *
+ * The variants are already loaded here, so their prices answer it exactly.
+ * `price_html` is the fallback for a variable product whose variations failed
+ * to load, and matches what the listing mapper does with the same field.
+ */
+function derivePriceFrom(
+  wc: WcProductDetail,
+  variations: WcVariation[],
+): boolean {
+  if (variations.length > 0) {
+    const prices = variations.map((variation) => toNumber(variation.price))
+    return Math.min(...prices) !== Math.max(...prices)
+  }
+
+  return hasPriceRange(wc.price_html)
+}
+
 export function mapProductDetail(
   wc: WcProductDetail,
   variations: WcVariation[] = [],
@@ -126,7 +143,7 @@ export function mapProductDetail(
     // Trust WooCommerce's computed flag rather than comparing prices —
     // scheduled sales make a price comparison wrong at the edges.
     onSale: wc.on_sale,
-    priceFrom: wc.type === 'variable',
+    priceFrom: derivePriceFrom(wc, variations),
     attributes: mapAttributes(wc),
     variants: variations.map(mapVariant),
     weight: wc.weight ?? '',

@@ -2,7 +2,7 @@
 
 import Image from 'next/image'
 import Link from 'next/link'
-import { type Product, formatPrice } from '@/lib/mock-data'
+import { type Product, type StockStatus, formatPrice } from '@/lib/mock-data'
 
 interface ProductCardProps {
   product: Product
@@ -15,10 +15,59 @@ interface ProductCardProps {
  * - Footer adapts text size on smaller screens
  * - Touch-friendly ADD button
  */
+const MONO = 'var(--font-space-mono), monospace'
+
+/**
+ * Shown instead of `next/image` when WooCommerce has no photo for a product.
+ * Matches the gallery's own empty state (`product/product-gallery.tsx`) so the
+ * two read as one treatment, and names the product so the tile still says what
+ * it is rather than looking like a failed image load.
+ */
+function ImagePlaceholder({ productName }: { productName: string }) {
+  return (
+    <div className="hatching-bg absolute inset-0 flex flex-col items-center justify-center gap-2 px-4 text-center">
+      <span className="text-xs tracking-widest text-[#999999]" style={{ fontFamily: MONO }}>
+        NO IMAGE AVAILABLE
+      </span>
+      <span className="text-[10px] text-[#666666]" style={{ fontFamily: MONO }}>
+        {productName}
+      </span>
+    </div>
+  )
+}
+
+/** Badge copy per stock status. `instock` gets none. */
+const STOCK_BADGES: Record<StockStatus, string | null> = {
+  instock: null,
+  outofstock: 'OUT OF STOCK',
+  onbackorder: 'BACKORDER',
+}
+
+function Badge({ label, tone }: { label: string; tone: 'gold' | 'muted' }) {
+  return (
+    <span
+      className="px-2 py-1 text-[10px] font-bold tracking-widest uppercase"
+      style={{
+        fontFamily: MONO,
+        backgroundColor: tone === 'gold' ? 'var(--color-gold)' : 'var(--color-dark)',
+        color: tone === 'gold' ? 'var(--color-dark)' : 'var(--color-foreground)',
+        border: tone === 'gold' ? 'none' : '1px solid var(--color-foreground)',
+      }}
+    >
+      {label}
+    </span>
+  )
+}
+
 export default function ProductCard({ product, onAddToCart }: ProductCardProps) {
   const handleAddToCart = () => {
     onAddToCart?.(product.id)
   }
+
+  const stockBadge = STOCK_BADGES[product.stockStatus]
+  // Backorder stays purchasable — that is what the WooCommerce setting means,
+  // and refusing the order would turn 13 sellable products into dead cards.
+  const isSoldOut = product.stockStatus === 'outofstock'
 
   return (
     <article
@@ -32,20 +81,32 @@ export default function ProductCard({ product, onAddToCart }: ProductCardProps) 
         className="relative flex-1 overflow-hidden"
         aria-label={`View ${product.name}`}
       >
-        <Image
-          src={product.image}
-          alt={product.name}
-          fill
-          sizes="(max-width: 640px) 85vw, (max-width: 1024px) 50vw, 33vw"
-          className="object-cover"
-          priority={false}
-        />
+        {product.image ? (
+          <Image
+            src={product.image}
+            alt={product.name}
+            fill
+            sizes="(max-width: 640px) 85vw, (max-width: 1024px) 50vw, 33vw"
+            className="object-cover"
+            priority={false}
+          />
+        ) : (
+          <ImagePlaceholder productName={product.name} />
+        )}
         {/* Subtle overlay to keep text legible */}
         <div
           className="pointer-events-none absolute inset-0"
           style={{ background: 'linear-gradient(to bottom, transparent 60%, rgba(27,27,24,0.6) 100%)' }}
           aria-hidden="true"
         />
+
+        {/* Badges — SALE leads, since it's the one a shopper acts on */}
+        {(product.onSale || stockBadge) && (
+          <div className="pointer-events-none absolute top-3 left-3 flex flex-col items-start gap-1.5">
+            {product.onSale && <Badge label="SALE" tone="gold" />}
+            {stockBadge && <Badge label={stockBadge} tone="muted" />}
+          </div>
+        )}
       </Link>
 
       {/* Footer row — responsive height */}
@@ -97,12 +158,14 @@ export default function ProductCard({ product, onAddToCart }: ProductCardProps) 
             className="text-xs font-bold text-white sm:text-sm"
             style={{ fontFamily: 'var(--font-space-mono), monospace' }}
           >
-            {formatPrice(product.price)}
+            {product.priceFrom ? `From ${formatPrice(product.price)}` : formatPrice(product.price)}
           </p>
         </Link>
 
         {/* Right: ADD button (20%) — min-width for touch target */}
         <button
+          // `.btn-gold:disabled` in globals.css already greys it out and sets
+          // the not-allowed cursor, so there's nothing to override here.
           className="btn-gold flex flex-shrink-0 cursor-pointer items-center justify-center text-sm font-bold tracking-wider uppercase sm:text-base"
           style={{
             width: '20%',
@@ -110,9 +173,14 @@ export default function ProductCard({ product, onAddToCart }: ProductCardProps) 
             borderLeft: '1px solid #FFFFFF',
           }}
           onClick={handleAddToCart}
-          aria-label={`Add ${product.name} to cart`}
+          disabled={isSoldOut}
+          aria-label={
+            isSoldOut
+              ? `${product.name} is out of stock`
+              : `Add ${product.name} to cart`
+          }
         >
-          ADD
+          {isSoldOut ? '—' : 'ADD'}
         </button>
       </footer>
     </article>

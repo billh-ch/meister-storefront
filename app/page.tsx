@@ -14,6 +14,14 @@ import { categoryDetails } from '@/lib/mock-data'
  * Category UI content (taglines, marquee, accordions): lives in mock-data.ts — it's
  * storefront design data, not backend data.
  */
+/**
+ * The "MOST WANTED" rail renders every product it is handed. Now that the
+ * catalogue fetch is no longer capped at 50, that would be ~90 slides in one
+ * carousel — so the rail takes a slice while CategoriesSection keeps the full
+ * array, since its four tabs need to filter across everything.
+ */
+const MOST_WANTED_LIMIT = 12
+
 export default async function HomePage() {
   const products = await getProducts()
 
@@ -21,7 +29,7 @@ export default async function HomePage() {
     <main>
       <Navbar />
       <HeroSection />
-      <ProductCarousel products={products} />
+      <ProductCarousel products={products.slice(0, MOST_WANTED_LIMIT)} />
       <CategoriesSection categoryDetails={categoryDetails} products={products} />
       <TestimonialsSection />
       <Footer />
