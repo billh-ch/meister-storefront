@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { categoryDetails } from '@/lib/mock-data'
+import { findCategory } from '@/lib/categories'
 
 interface ProductBreadcrumbsProps {
   categorySlug: string
@@ -12,7 +12,10 @@ export default function ProductBreadcrumbs({
   categorySlug,
   productName,
 }: ProductBreadcrumbsProps) {
-  const category = categoryDetails.find((detail) => detail.slug === categorySlug)
+  // All five real categories, not just the four homepage showcase tabs —
+  // categoryDetails has no `guns` entry, so a guns product's breadcrumb
+  // used to silently drop its middle crumb.
+  const category = findCategory(categorySlug)
 
   return (
     <nav aria-label="Breadcrumb" className="px-4 py-4 sm:px-6 md:px-10">

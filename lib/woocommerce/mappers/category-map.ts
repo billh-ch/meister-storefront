@@ -1,10 +1,14 @@
 /**
- * Maps this store's real WooCommerce category IDs to the four homepage
- * category slugs (fins/suits/accessories/merch) CategoriesSection filters on.
- * WooCommerce's own category slugs are Greek names that don't match these,
- * and the store also carries spearfishing gear (spearguns, slings, shafts)
- * with no dedicated homepage tab — grouped into "accessories" per an
- * explicit decision rather than left unmapped.
+ * Maps this store's real WooCommerce category IDs to the five storefront
+ * category slugs (fins/suits/guns/accessories/merch). WooCommerce's own
+ * category slugs are Greek names that don't match these.
+ *
+ * `guns` is a real category page but deliberately not one of the homepage's
+ * curated showcase tabs (`lib/mock-data.ts:categoryDetails`) — Meister
+ * resells this gear rather than manufacturing it, and that section
+ * represents Meister's own lines. See `lib/categories.ts` for the full
+ * five-slug registry the rest of the app (nav, breadcrumbs, category pages)
+ * uses instead.
  */
 const CATEGORY_ID_TO_SLUG: Record<number, string> = {
   // fins
@@ -21,7 +25,12 @@ const CATEGORY_ID_TO_SLUG: Record<number, string> = {
   170: 'suits', // Λείο Φόδρα
   95: 'suits', // Φόδρα Φόδρα
 
-  // accessories (includes spearfishing gear with no dedicated tab)
+  // guns — spearfishing gear, resold rather than Meister-manufactured
+  27: 'guns', // Λαστιχοβόλα (spearguns/slings)
+  26: 'guns', // Ψαροτούφεκα (speargun)
+  36: 'guns', // Όπλων
+
+  // accessories
   91: 'accessories', // Μάσκες
   18: 'accessories', // Γάντια
   31: 'accessories', // Καλτσάκια
@@ -33,9 +42,6 @@ const CATEGORY_ID_TO_SLUG: Record<number, string> = {
   214: 'accessories', // Καταδυτικά Ρολόγια
   23: 'accessories', // Εξοπλισμός
   37: 'accessories', // Εξοπλισμού
-  27: 'accessories', // Λαστιχοβόλα (spearguns/slings)
-  26: 'accessories', // Ψαροτούφεκα (speargun)
-  36: 'accessories', // Όπλων
   177: 'accessories', // Διάφορα (misc)
 
   // merch
