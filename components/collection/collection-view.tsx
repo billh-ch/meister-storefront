@@ -65,7 +65,12 @@ export default function CollectionView({
             </p>
           </div>
         ) : (
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 lg:grid-cols-4">
+          // No gap between cards deliberately — ProductCard's own 1px white
+          // border on each tile does the separating, so adjacent cards read
+          // as one continuous grid rather than floating tiles. The page
+          // margin comes from the parent's px-4/sm:px-6/md:px-10, not from
+          // here.
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4">
             {items.map((product) => (
               <ProductCard key={product.id} product={product} />
             ))}
