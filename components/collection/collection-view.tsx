@@ -38,7 +38,7 @@ export default function CollectionView({
     <div className="pb-16">
       <SimpleBreadcrumbs items={breadcrumbs} />
 
-      <div className="mx-auto max-w-[1400px] px-4 sm:px-6 md:px-10">
+      <div className="mx-auto max-w-[1400px] px-2 sm:px-3 md:px-4">
         <div className="mb-6 flex flex-wrap items-end justify-between gap-4 sm:mb-8">
           <div>
             <h1
@@ -68,7 +68,7 @@ export default function CollectionView({
           // No gap between cards deliberately — ProductCard's own 1px white
           // border on each tile does the separating, so adjacent cards read
           // as one continuous grid rather than floating tiles. The page
-          // margin comes from the parent's px-4/sm:px-6/md:px-10, not from
+          // margin comes from the parent's px-2/sm:px-3/md:px-4, not from
           // here.
           <div className="grid grid-cols-2 lg:grid-cols-3">
             {items.map((product) => (

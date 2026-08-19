@@ -230,9 +230,9 @@ export default function CategoriesSection({
 
       {/* ── CATEGORY PRODUCTS ── */}
       {filtered.length > 0 && (
-        <div className="mx-auto mt-8 max-w-[1400px] px-4 sm:px-6 md:mt-12 md:px-10">
+        <div className="mt-8 md:mt-12">
           {/* Header */}
-          <div className="mb-4 flex items-center justify-between sm:mb-6">
+          <div className="mb-4 flex items-center justify-between px-4 sm:mb-6 sm:px-6 md:px-10">
             <h3
               className="text-lg text-white sm:text-xl md:text-2xl"
               style={{ fontFamily: 'var(--font-dela-gothic), sans-serif', fontWeight: 700 }}
