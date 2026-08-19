@@ -77,67 +77,71 @@ export default function ProductCarousel({
       style={{ backgroundColor: '#1B1B18' }}
       aria-label={ariaLabel}
     >
-      {/* Section header */}
-      <div className="mb-6 flex items-center justify-between px-4 sm:mb-8 sm:px-6 md:px-10">
-        <h2
-          className="text-2xl text-white sm:text-3xl md:text-5xl"
-          style={{ fontFamily: 'var(--font-dela-gothic), sans-serif', fontWeight: 800 }}
-        >
-          {title}
-        </h2>
-
-        {/* VIEW ALL button — thick yellow border, dark bg, white text */}
-        {viewAllHref && (
-          <a
-            href={viewAllHref}
-            className="flex items-center justify-center px-3 py-1.5 text-[10px] font-bold tracking-wider text-white uppercase transition-opacity hover:opacity-80 sm:px-5 sm:py-2 sm:text-xs"
-            style={{
-              border: '3px solid #FFD700',
-              backgroundColor: '#1B1B18',
-              fontFamily: 'var(--font-space-mono), monospace',
-            }}
+      {/* Capped at the site's usual 1400px content width — matches navbar,
+          collection grid, PDP — so slides don't balloon on wide screens. */}
+      <div className="mx-auto max-w-[1400px] px-4 sm:px-6 md:px-10">
+        {/* Section header */}
+        <div className="mb-6 flex items-center justify-between sm:mb-8">
+          <h2
+            className="text-2xl text-white sm:text-3xl md:text-5xl"
+            style={{ fontFamily: 'var(--font-dela-gothic), sans-serif', fontWeight: 800 }}
           >
-            VIEW ALL
-          </a>
-        )}
-      </div>
+            {title}
+          </h2>
 
-      {/* Carousel with arrows inside */}
-      <div className="relative">
-        {/* Embla viewport */}
-        <div className="overflow-hidden" ref={emblaRef}>
-          <div className="flex" style={{ touchAction: 'pan-y pinch-zoom' }}>
-            {products.map((product) => (
-              <div
-                key={product.id}
-                className="flex-shrink-0"
-                style={{ width: slideWidth }}
-              >
-                <ProductCard product={product} />
-              </div>
-            ))}
-          </div>
+          {/* VIEW ALL button — thick yellow border, dark bg, white text */}
+          {viewAllHref && (
+            <a
+              href={viewAllHref}
+              className="flex items-center justify-center px-3 py-1.5 text-[10px] font-bold tracking-wider text-white uppercase transition-opacity hover:opacity-80 sm:px-5 sm:py-2 sm:text-xs"
+              style={{
+                border: '3px solid #FFD700',
+                backgroundColor: '#1B1B18',
+                fontFamily: 'var(--font-space-mono), monospace',
+              }}
+            >
+              VIEW ALL
+            </a>
+          )}
         </div>
 
-        {/* Left arrow — inside the slider */}
-        <button
-          onClick={scrollPrev}
-          className="absolute left-2 top-1/2 z-10 flex h-10 w-10 -translate-y-1/2 cursor-pointer items-center justify-center border border-[#444444] bg-[#1B1B18]/80 text-white backdrop-blur-sm transition-colors hover:border-[#FFD700] hover:text-[#FFD700] disabled:opacity-30 sm:left-3 sm:h-11 sm:w-11"
-          aria-label="Show previous products"
-          disabled={!canScrollPrev}
-        >
-          <ChevronLeft />
-        </button>
+        {/* Carousel with arrows inside */}
+        <div className="relative">
+          {/* Embla viewport */}
+          <div className="overflow-hidden" ref={emblaRef}>
+            <div className="flex" style={{ touchAction: 'pan-y pinch-zoom' }}>
+              {products.map((product) => (
+                <div
+                  key={product.id}
+                  className="flex-shrink-0"
+                  style={{ width: slideWidth }}
+                >
+                  <ProductCard product={product} />
+                </div>
+              ))}
+            </div>
+          </div>
 
-        {/* Right arrow — inside the slider */}
-        <button
-          onClick={scrollNext}
-          className="absolute right-2 top-1/2 z-10 flex h-10 w-10 -translate-y-1/2 cursor-pointer items-center justify-center border border-[#444444] bg-[#1B1B18]/80 text-white backdrop-blur-sm transition-colors hover:border-[#FFD700] hover:text-[#FFD700] disabled:opacity-30 sm:right-3 sm:h-11 sm:w-11"
-          aria-label="Show next products"
-          disabled={!canScrollNext}
-        >
-          <ChevronRight />
-        </button>
+          {/* Left arrow — inside the slider */}
+          <button
+            onClick={scrollPrev}
+            className="absolute left-2 top-1/2 z-10 flex h-10 w-10 -translate-y-1/2 cursor-pointer items-center justify-center border border-[#444444] bg-[#1B1B18]/80 text-white backdrop-blur-sm transition-colors hover:border-[#FFD700] hover:text-[#FFD700] disabled:opacity-30 sm:left-3 sm:h-11 sm:w-11"
+            aria-label="Show previous products"
+            disabled={!canScrollPrev}
+          >
+            <ChevronLeft />
+          </button>
+
+          {/* Right arrow — inside the slider */}
+          <button
+            onClick={scrollNext}
+            className="absolute right-2 top-1/2 z-10 flex h-10 w-10 -translate-y-1/2 cursor-pointer items-center justify-center border border-[#444444] bg-[#1B1B18]/80 text-white backdrop-blur-sm transition-colors hover:border-[#FFD700] hover:text-[#FFD700] disabled:opacity-30 sm:right-3 sm:h-11 sm:w-11"
+            aria-label="Show next products"
+            disabled={!canScrollNext}
+          >
+            <ChevronRight />
+          </button>
+        </div>
       </div>
     </section>
   )

@@ -70,7 +70,7 @@ export default function CollectionView({
           // as one continuous grid rather than floating tiles. The page
           // margin comes from the parent's px-4/sm:px-6/md:px-10, not from
           // here.
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4">
+          <div className="grid grid-cols-2 lg:grid-cols-3">
             {items.map((product) => (
               <ProductCard key={product.id} product={product} />
             ))}
