@@ -11,7 +11,7 @@ interface ProductCardProps {
 
 /**
  * Product card — responsive version:
- * - Image area is a 4:5 aspect ratio, so height follows whatever width the
+ * - Image area is an 8:7 aspect ratio, so height follows whatever width the
  *   parent grid/carousel slide gives it instead of a fixed pixel height
  * - Footer adapts text size on smaller screens
  * - Touch-friendly ADD button
@@ -76,11 +76,13 @@ export default function ProductCard({ product, onAddToCart }: ProductCardProps) 
       style={{ border: '1px solid #FFFFFF' }}
       aria-label={`${product.name}, ${formatPrice(product.price)}`}
     >
-      {/* Image area — height follows whatever width the grid/carousel gives
-          the card, instead of a fixed pixel height tuned for one context. */}
+      {/* Image area — 8:7 reproduces the card's original proportions on a
+          desktop carousel slide (576px wide → ~504px image + 72px footer =
+          the 575px this card used to be hardcoded to), while still scaling
+          with width instead of being pinned to one context's pixel height. */}
       <Link
         href={`/products/${product.slug}`}
-        className="relative aspect-[4/5] overflow-hidden"
+        className="relative aspect-[8/7] overflow-hidden"
         aria-label={`View ${product.name}`}
       >
         {product.image ? (
