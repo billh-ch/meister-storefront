@@ -2,6 +2,7 @@
 
 import useEmblaCarousel from 'embla-carousel-react'
 import { useCallback, useEffect, useState } from 'react'
+import Link from 'next/link'
 import ProductCard from './product-card'
 import { type Product } from '@/lib/mock-data'
 
@@ -88,7 +89,7 @@ export default function ProductCarousel({
 
         {/* VIEW ALL button — thick yellow border, dark bg, white text */}
         {viewAllHref && (
-          <a
+          <Link
             href={viewAllHref}
             className="flex items-center justify-center px-3 py-1.5 text-[10px] font-bold tracking-wider text-white uppercase transition-opacity hover:opacity-80 sm:px-5 sm:py-2 sm:text-xs"
             style={{
@@ -98,7 +99,7 @@ export default function ProductCarousel({
             }}
           >
             VIEW ALL
-          </a>
+          </Link>
         )}
       </div>
 

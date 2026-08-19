@@ -47,8 +47,9 @@ const MAX_PAGES = 10
  *
  * The previous single request capped at 50 and dropped the rest silently —
  * with 90 published products, 40 never reached the UI and nothing in the
- * return value said so. Pages after the first are fetched sequentially
- * because the total isn't known until the first response comes back.
+ * return value said so. Page 1 has to go first since the total isn't known
+ * until it comes back, but pages after that are independent requests and
+ * are fetched concurrently rather than one at a time.
  */
 export async function fetchProducts(): Promise<WcProduct[]> {
   const first = await fetchPage(1)
@@ -56,13 +57,11 @@ export async function fetchProducts(): Promise<WcProduct[]> {
 
   if (totalPages <= 1) return first.data
 
-  const rest: WcProduct[][] = []
-  for (let page = 2; page <= totalPages; page += 1) {
-    const next = await fetchPage(page)
-    rest.push(next.data)
-  }
+  const rest = await Promise.all(
+    Array.from({ length: totalPages - 1 }, (_, i) => fetchPage(i + 2)),
+  )
 
-  return [...first.data, ...rest.flat()]
+  return [...first.data, ...rest.flatMap((page) => page.data)]
 }
 
 function fetchPage(page: number) {

@@ -217,7 +217,13 @@ export default async function ProductPage({ params }: ProductPageProps) {
 
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(buildJsonLd(product)) }}
+        // `<` must be escaped: JSON.stringify doesn't escape it, so an
+        // unescaped `</script>` inside a product name/SKU (both sourced
+        // from WooCommerce, outside this app's control) would close this
+        // tag early and let the rest of the string execute as script.
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(buildJsonLd(product)).replace(/</g, '\\u003c'),
+        }}
       />
     </main>
   )

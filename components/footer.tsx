@@ -1,14 +1,5 @@
-'use client'
-
-import { useState } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
-
-type SubmitState = 'idle' | 'loading' | 'success' | 'error'
-
-function isValidEmail(email: string): boolean {
-  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())
-}
 
 const BORING_STUFF = [
   { label: 'Privacy Policy', href: '/privacy' },
@@ -28,35 +19,6 @@ const SOCIAL_LINKS = [
 const MARQUEE_TEXT = 'PREMIUM EQUIPMENT FOR PREMIUM DIVES'
 
 export default function Footer() {
-  const [email, setEmail] = useState('')
-  const [submitState, setSubmitState] = useState<SubmitState>('idle')
-  const [validationError, setValidationError] = useState<string | null>(null)
-
-  const handleSubmit = async (e: React.SyntheticEvent<HTMLFormElement>) => {
-    e.preventDefault()
-    setValidationError(null)
-
-    if (!email.trim()) {
-      setValidationError('Please enter your email address.')
-      return
-    }
-
-    if (!isValidEmail(email)) {
-      setValidationError('Please enter a valid email address.')
-      return
-    }
-
-    setSubmitState('loading')
-
-    try {
-      await new Promise<void>((resolve) => setTimeout(resolve, 800))
-      setSubmitState('success')
-      setEmail('')
-    } catch {
-      setSubmitState('error')
-    }
-  }
-
   const marqueeContent = Array.from({ length: 8 }, (_, i) => (
     <span
       key={i}
@@ -133,64 +95,37 @@ export default function Footer() {
               SIGN UP TO OUR NEWSLETTER TO RECEIVE LATEST UPDATES
             </p>
 
-            {submitState === 'success' ? (
-              <span
-                className="text-xs text-[#FFD700]"
-                role="status"
-                style={{ fontFamily: 'var(--font-space-mono), monospace' }}
+            <div className="flex flex-1 items-center gap-2">
+              <label htmlFor="footer-email" className="sr-only">
+                Email address
+              </label>
+              <input
+                id="footer-email"
+                type="email"
+                placeholder="your@email.com"
+                className="w-full min-w-0 cursor-not-allowed bg-transparent px-3 py-2 text-xs text-white placeholder-[#666666] outline-none md:text-sm"
+                style={{
+                  border: '1px solid #444444',
+                  fontFamily: 'var(--font-space-mono), monospace',
+                }}
+                disabled
+              />
+              <button
+                type="button"
+                className="btn-gold shrink-0 px-5 py-2 text-xs tracking-[0.1em] uppercase disabled:opacity-50 md:text-sm"
+                disabled
+                aria-label="Newsletter signup coming soon"
               >
-                You&apos;re in! Welcome to Meister.
-              </span>
-            ) : (
-              <form
-                onSubmit={handleSubmit}
-                className="flex flex-1 items-center gap-2"
-                noValidate
-              >
-                <label htmlFor="footer-email" className="sr-only">
-                  Email address
-                </label>
-                <input
-                  id="footer-email"
-                  type="email"
-                  value={email}
-                  onChange={(e) => {
-                    setEmail(e.target.value)
-                    if (validationError) setValidationError(null)
-                    if (submitState === 'error') setSubmitState('idle')
-                  }}
-                  placeholder="your@email.com"
-                  className="w-full min-w-0 bg-transparent px-3 py-2 text-xs text-white placeholder-[#666666] outline-none md:text-sm"
-                  style={{
-                    border: '1px solid #444444',
-                    fontFamily: 'var(--font-space-mono), monospace',
-                  }}
-                  aria-describedby={
-                    validationError ? 'footer-email-error' : undefined
-                  }
-                  aria-invalid={!!validationError}
-                  disabled={submitState === 'loading'}
-                />
-                <button
-                  type="submit"
-                  className="btn-gold shrink-0 px-5 py-2 text-xs tracking-[0.1em] uppercase disabled:opacity-50 md:text-sm"
-                  disabled={submitState === 'loading'}
-                >
-                  {submitState === 'loading' ? 'SENDING...' : 'SUBMIT'}
-                </button>
-              </form>
-            )}
+                COMING SOON
+              </button>
+            </div>
 
-            {validationError && (
-              <p
-                id="footer-email-error"
-                className="text-xs text-red-400"
-                role="alert"
-                style={{ fontFamily: 'var(--font-space-mono), monospace' }}
-              >
-                {validationError}
-              </p>
-            )}
+            <span
+              className="hidden shrink-0 text-xs text-[#666666] lg:block"
+              style={{ fontFamily: 'var(--font-space-mono), monospace' }}
+            >
+              Not live yet
+            </span>
           </div>
         </div>
 

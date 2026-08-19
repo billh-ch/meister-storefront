@@ -2,6 +2,7 @@
 
 import Image from 'next/image'
 import Link from 'next/link'
+import { useEffect, useRef, useState } from 'react'
 import { type Product, type StockStatus, formatPrice } from '@/lib/mock-data'
 
 interface ProductCardProps {
@@ -61,8 +62,21 @@ function Badge({ label, tone }: { label: string; tone: 'gold' | 'muted' }) {
 }
 
 export default function ProductCard({ product, onAddToCart }: ProductCardProps) {
+  // No real cart exists yet — this is a timed, honest-about-being-fake
+  // confirmation (same idea as the PDP buy box's own confirmation message),
+  // not a persistent claim, and it clears itself rather than lying forever.
+  const [justAdded, setJustAdded] = useState(false)
+  const timeoutRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
+
+  useEffect(() => {
+    return () => clearTimeout(timeoutRef.current)
+  }, [])
+
   const handleAddToCart = () => {
     onAddToCart?.(product.id)
+    setJustAdded(true)
+    clearTimeout(timeoutRef.current)
+    timeoutRef.current = setTimeout(() => setJustAdded(false), 1500)
   }
 
   const stockBadge = STOCK_BADGES[product.stockStatus]
@@ -181,10 +195,12 @@ export default function ProductCard({ product, onAddToCart }: ProductCardProps) 
           aria-label={
             isSoldOut
               ? `${product.name} is out of stock`
-              : `Add ${product.name} to cart`
+              : justAdded
+                ? `${product.name} added to cart`
+                : `Add ${product.name} to cart`
           }
         >
-          {isSoldOut ? '—' : 'ADD'}
+          {isSoldOut ? '—' : justAdded ? 'ADDED' : 'ADD'}
         </button>
       </footer>
     </article>
