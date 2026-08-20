@@ -6,16 +6,19 @@ interface PaginationControlsProps {
   totalPages: number
   /** Carried into every page link so sort survives paging. */
   sort: string
+  /** Carried into every page link so a search query survives paging. */
+  query?: string
 }
 
 const MONO = 'var(--font-space-mono), monospace'
 
-function pageHref(basePath: string, page: number, sort: string): string {
+function pageHref(basePath: string, page: number, sort: string, query?: string): string {
   const params = new URLSearchParams()
   if (page > 1) params.set('page', String(page))
   if (sort !== 'featured') params.set('sort', sort)
-  const query = params.toString()
-  return query ? `${basePath}?${query}` : basePath
+  if (query) params.set('q', query)
+  const search = params.toString()
+  return search ? `${basePath}?${search}` : basePath
 }
 
 /**
@@ -27,6 +30,7 @@ export default function PaginationControls({
   currentPage,
   totalPages,
   sort,
+  query,
 }: PaginationControlsProps) {
   if (totalPages <= 1) return null
 
@@ -42,6 +46,7 @@ export default function PaginationControls({
         basePath={basePath}
         page={currentPage - 1}
         sort={sort}
+        query={query}
         disabled={currentPage <= 1}
         label="Previous page"
       >
@@ -51,7 +56,7 @@ export default function PaginationControls({
       {pages.map((page) => (
         <Link
           key={page}
-          href={pageHref(basePath, page, sort)}
+          href={pageHref(basePath, page, sort, query)}
           aria-current={page === currentPage ? 'page' : undefined}
           className="flex h-9 w-9 items-center justify-center text-sm transition-colors hover:border-[#FFD700] hover:text-[#FFD700]"
           style={{
@@ -67,6 +72,7 @@ export default function PaginationControls({
         basePath={basePath}
         page={currentPage + 1}
         sort={sort}
+        query={query}
         disabled={currentPage >= totalPages}
         label="Next page"
       >
@@ -80,6 +86,7 @@ function PageLink({
   basePath,
   page,
   sort,
+  query,
   disabled,
   label,
   children,
@@ -87,6 +94,7 @@ function PageLink({
   basePath: string
   page: number
   sort: string
+  query?: string
   disabled: boolean
   label: string
   children: React.ReactNode
@@ -105,7 +113,7 @@ function PageLink({
 
   return (
     <Link
-      href={pageHref(basePath, page, sort)}
+      href={pageHref(basePath, page, sort, query)}
       aria-label={label}
       className="flex h-9 w-9 items-center justify-center text-sm transition-colors hover:border-[#FFD700] hover:text-[#FFD700]"
       style={{ border: '1px solid #444444', color: '#FFFFFF' }}

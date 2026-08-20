@@ -15,6 +15,10 @@ interface CollectionViewProps {
   basePath: string
   collection: Collection
   sort: SortOption
+  /** Shown in the empty state instead of the category/shop default. */
+  emptyMessage?: string
+  /** Carried into pagination links so a search query survives paging. */
+  searchQuery?: string
 }
 
 const MONO = 'var(--font-space-mono), monospace'
@@ -25,12 +29,16 @@ const MONO = 'var(--font-space-mono), monospace'
  * trail says, so this owns everything else: heading, sort, grid, empty
  * state, pagination.
  */
+const DEFAULT_EMPTY_MESSAGE = 'NO PRODUCTS IN THIS CATEGORY YET'
+
 export default function CollectionView({
   title,
   breadcrumbs,
   basePath,
   collection,
   sort,
+  emptyMessage = DEFAULT_EMPTY_MESSAGE,
+  searchQuery,
 }: CollectionViewProps) {
   const { items, currentPage, totalPages, totalItems } = collection
 
@@ -61,7 +69,7 @@ export default function CollectionView({
             style={{ border: '1px solid #444444' }}
           >
             <p className="text-sm text-[#999999]" style={{ fontFamily: MONO }}>
-              NO PRODUCTS IN THIS CATEGORY YET
+              {emptyMessage}
             </p>
           </div>
         ) : (
@@ -82,6 +90,7 @@ export default function CollectionView({
           currentPage={currentPage}
           totalPages={totalPages}
           sort={sort}
+          query={searchQuery}
         />
       </div>
     </div>

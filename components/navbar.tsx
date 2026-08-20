@@ -2,7 +2,7 @@
 
 import Image from 'next/image'
 import Link from 'next/link'
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 
 const NAV_LINKS = [
   { label: 'FINS', href: '/fins' },
@@ -12,9 +12,15 @@ const NAV_LINKS = [
   { label: 'MERCH', href: '/merch' },
 ] as const
 
-/** Sticky navigation bar with logo, nav links, and cart/account icons. */
+/** Sticky navigation bar with logo, nav links, search, and cart/account icons. */
 export default function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false)
+  const [searchOpen, setSearchOpen] = useState(false)
+  const searchInputRef = useRef<HTMLInputElement>(null)
+
+  useEffect(() => {
+    if (searchOpen) searchInputRef.current?.focus()
+  }, [searchOpen])
 
   return (
     <header
@@ -57,6 +63,18 @@ export default function Navbar() {
 
         {/* Right actions */}
         <div className="flex items-center gap-4">
+          {/* Search toggle */}
+          <button
+            type="button"
+            className="text-white transition-colors hover:text-[#FFD700]"
+            onClick={() => setSearchOpen((prev) => !prev)}
+            aria-expanded={searchOpen}
+            aria-controls="search-bar"
+            aria-label={searchOpen ? 'Close search' : 'Search products'}
+          >
+            {searchOpen ? <CloseIcon /> : <SearchIcon />}
+          </button>
+
           {/* Cart icon */}
           <Link
             href="/cart"
@@ -88,6 +106,43 @@ export default function Navbar() {
         </div>
       </nav>
 
+      {/* Search bar — plain GET form, works with zero client JS beyond
+          toggling visibility; the browser navigates straight to
+          /search?q=... on submit, same "URL is the source of truth"
+          pattern as sort/pagination on the collection pages. */}
+      {searchOpen && (
+        <div
+          id="search-bar"
+          className="border-t border-[#222222] px-6 py-4"
+          style={{ backgroundColor: '#111111' }}
+        >
+          <form action="/search" method="GET" className="mx-auto flex max-w-[1400px] items-center gap-3">
+            <label htmlFor="navbar-search-input" className="sr-only">
+              Search products
+            </label>
+            <input
+              ref={searchInputRef}
+              id="navbar-search-input"
+              type="text"
+              name="q"
+              placeholder="Search products…"
+              className="w-full bg-transparent px-3 py-2 text-sm text-white placeholder-[#666666] outline-none"
+              style={{
+                border: '1px solid #444444',
+                fontFamily: 'var(--font-space-mono), monospace',
+              }}
+            />
+            <button
+              type="submit"
+              className="btn-gold shrink-0 px-5 py-2 text-xs tracking-[0.1em] uppercase"
+              style={{ fontFamily: 'var(--font-space-mono), monospace' }}
+            >
+              GO
+            </button>
+          </form>
+        </div>
+      )}
+
       {/* Mobile dropdown */}
       {menuOpen && (
         <div
@@ -112,6 +167,15 @@ export default function Navbar() {
         </div>
       )}
     </header>
+  )
+}
+
+function SearchIcon() {
+  return (
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <circle cx="11" cy="11" r="7" />
+      <line x1="21" x2="16.65" y1="21" y2="16.65" />
+    </svg>
   )
 }
 
