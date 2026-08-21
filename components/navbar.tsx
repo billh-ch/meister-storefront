@@ -3,6 +3,11 @@
 import Image from 'next/image'
 import Link from 'next/link'
 import { useEffect, useRef, useState } from 'react'
+import { formatPrice } from '@/lib/mock-data'
+import type { SearchSuggestion } from '@/app/api/search-suggestions/route'
+
+const SUGGESTION_DEBOUNCE_MS = 250
+const SUGGESTION_MIN_LENGTH = 2
 
 const NAV_LINKS = [
   { label: 'FINS', href: '/fins' },
@@ -16,11 +21,60 @@ const NAV_LINKS = [
 export default function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false)
   const [searchOpen, setSearchOpen] = useState(false)
+  const [query, setQuery] = useState('')
+  const [suggestions, setSuggestions] = useState<SearchSuggestion[]>([])
   const searchInputRef = useRef<HTMLInputElement>(null)
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
+  const abortRef = useRef<AbortController | undefined>(undefined)
 
   useEffect(() => {
     if (searchOpen) searchInputRef.current?.focus()
   }, [searchOpen])
+
+  // Clear any pending debounce/fetch on unmount so a slow response can't
+  // try to set state on an unmounted component.
+  useEffect(() => {
+    return () => {
+      clearTimeout(debounceRef.current)
+      abortRef.current?.abort()
+    }
+  }, [])
+
+  const closeSearch = () => {
+    setSearchOpen(false)
+    setQuery('')
+    setSuggestions([])
+    clearTimeout(debounceRef.current)
+    abortRef.current?.abort()
+  }
+
+  const handleQueryChange = (value: string) => {
+    setQuery(value)
+    clearTimeout(debounceRef.current)
+
+    const trimmed = value.trim()
+    if (trimmed.length < SUGGESTION_MIN_LENGTH) {
+      setSuggestions([])
+      return
+    }
+
+    debounceRef.current = setTimeout(() => {
+      abortRef.current?.abort()
+      const controller = new AbortController()
+      abortRef.current = controller
+
+      fetch(`/api/search-suggestions?q=${encodeURIComponent(trimmed)}`, {
+        signal: controller.signal,
+      })
+        .then((res) => res.json())
+        .then((data: { results: SearchSuggestion[] }) => setSuggestions(data.results))
+        .catch(() => {
+          // A stale/aborted request is expected whenever the user keeps
+          // typing — this is a lightweight preview, not worth surfacing
+          // an error state for.
+        })
+    }, SUGGESTION_DEBOUNCE_MS)
+  }
 
   return (
     <header
@@ -67,7 +121,7 @@ export default function Navbar() {
           <button
             type="button"
             className="text-white transition-colors hover:text-[#FFD700]"
-            onClick={() => setSearchOpen((prev) => !prev)}
+            onClick={() => (searchOpen ? closeSearch() : setSearchOpen(true))}
             aria-expanded={searchOpen}
             aria-controls="search-bar"
             aria-label={searchOpen ? 'Close search' : 'Search products'}
@@ -116,30 +170,72 @@ export default function Navbar() {
           className="border-t border-[#222222] px-6 py-4"
           style={{ backgroundColor: '#111111' }}
         >
-          <form action="/search" method="GET" className="mx-auto flex max-w-[1400px] items-center gap-3">
-            <label htmlFor="navbar-search-input" className="sr-only">
-              Search products
-            </label>
-            <input
-              ref={searchInputRef}
-              id="navbar-search-input"
-              type="text"
-              name="q"
-              placeholder="Search products…"
-              className="w-full bg-transparent px-3 py-2 text-sm text-white placeholder-[#666666] outline-none"
-              style={{
-                border: '1px solid #444444',
-                fontFamily: 'var(--font-space-mono), monospace',
-              }}
-            />
-            <button
-              type="submit"
-              className="btn-gold shrink-0 px-5 py-2 text-xs tracking-[0.1em] uppercase"
-              style={{ fontFamily: 'var(--font-space-mono), monospace' }}
-            >
-              GO
-            </button>
-          </form>
+          <div className="relative mx-auto max-w-[1400px]">
+            <form action="/search" method="GET" className="flex items-center gap-3">
+              <label htmlFor="navbar-search-input" className="sr-only">
+                Search products
+              </label>
+              <input
+                ref={searchInputRef}
+                id="navbar-search-input"
+                type="text"
+                name="q"
+                value={query}
+                onChange={(e) => handleQueryChange(e.target.value)}
+                autoComplete="off"
+                placeholder="Search products…"
+                className="w-full bg-transparent px-3 py-2 text-sm text-white placeholder-[#666666] outline-none"
+                style={{
+                  border: '1px solid #444444',
+                  fontFamily: 'var(--font-space-mono), monospace',
+                }}
+              />
+              <button
+                type="submit"
+                className="btn-gold shrink-0 px-5 py-2 text-xs tracking-[0.1em] uppercase"
+                style={{ fontFamily: 'var(--font-space-mono), monospace' }}
+              >
+                GO
+              </button>
+            </form>
+
+            {/* Live preview — up to 2 best matches while typing. Enter/GO
+                still does a full /search regardless of this; it's a
+                pure add-on, not a replacement. */}
+            {suggestions.length > 0 && (
+              <div
+                className="absolute top-full right-0 left-0 z-10 mt-2"
+                style={{ backgroundColor: '#1B1B18', border: '1px solid #444444' }}
+              >
+                {suggestions.map((product) => (
+                  <Link
+                    key={product.id}
+                    href={`/products/${product.slug}`}
+                    onClick={closeSearch}
+                    className="flex items-center gap-3 px-3 py-2 transition-colors hover:bg-[#222222]"
+                  >
+                    <div className="relative h-10 w-10 flex-shrink-0 overflow-hidden bg-[#222222]">
+                      {product.image && (
+                        <Image src={product.image} alt="" fill className="object-cover" sizes="40px" />
+                      )}
+                    </div>
+                    <span
+                      className="truncate text-sm text-white"
+                      style={{ fontFamily: 'var(--font-space-mono), monospace' }}
+                    >
+                      {product.name}
+                    </span>
+                    <span
+                      className="ml-auto shrink-0 text-sm text-[#999999]"
+                      style={{ fontFamily: 'var(--font-space-mono), monospace' }}
+                    >
+                      {product.priceFrom ? `From ${formatPrice(product.price)}` : formatPrice(product.price)}
+                    </span>
+                  </Link>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
       )}
 
