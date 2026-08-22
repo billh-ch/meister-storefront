@@ -3,6 +3,7 @@
 import { useState, useTransition, type FormEvent } from 'react'
 import { useRouter } from 'next/navigation'
 import { registerAction } from '@/lib/auth/actions'
+import { getSafeRedirectUrl } from '@/lib/auth/safe-redirect'
 
 const MONO = 'var(--font-space-mono), monospace'
 
@@ -24,7 +25,7 @@ export default function SignUpForm({ redirectUrl }: { redirectUrl: string }) {
         lastName: String(formData.get('lastName') ?? ''),
       })
       if (result.ok) {
-        router.push(redirectUrl)
+        router.push(getSafeRedirectUrl(redirectUrl))
         router.refresh()
       } else {
         setError(result.error)

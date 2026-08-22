@@ -3,6 +3,7 @@
 import { useState, useTransition, type FormEvent } from 'react'
 import { useRouter } from 'next/navigation'
 import { loginAction } from '@/lib/auth/actions'
+import { getSafeRedirectUrl } from '@/lib/auth/safe-redirect'
 
 const MONO = 'var(--font-space-mono), monospace'
 
@@ -21,7 +22,7 @@ export default function SignInForm({ redirectUrl }: { redirectUrl: string }) {
     startTransition(async () => {
       const result = await loginAction({ email, password })
       if (result.ok) {
-        router.push(redirectUrl)
+        router.push(getSafeRedirectUrl(redirectUrl))
         router.refresh()
       } else {
         setError(result.error)
