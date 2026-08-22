@@ -12,6 +12,7 @@ export interface WcOrder {
   status: string
   date_created: string
   total: string
+  transaction_id: string
   line_items: WcOrderLineItem[]
 }
 

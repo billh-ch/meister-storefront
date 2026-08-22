@@ -15,5 +15,10 @@ export interface Order {
   status: string
   dateCreated: string
   total: number
+  /** The Stripe PaymentIntent id, once an order has been paid through
+   *  checkout — used to look an order up right after payment (see
+   *  `app/api/orders/by-payment-intent/route.ts`). Empty for any order not
+   *  created through this app's Stripe checkout. */
+  transactionId: string
   lineItems: OrderLineItem[]
 }

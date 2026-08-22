@@ -175,6 +175,9 @@ export interface TrustItem {
 /** Free-shipping threshold in EUR. Placeholder — confirm with the shop. */
 export const FREE_SHIPPING_THRESHOLD = 80
 
+/** Flat shipping rate in EUR below the free-shipping threshold. Placeholder — confirm with the shop. */
+export const FLAT_SHIPPING_RATE = 5
+
 /** Shop support line. Placeholder — confirm with the shop. */
 export const SUPPORT_PHONE = '+30 210 000 0000'
 

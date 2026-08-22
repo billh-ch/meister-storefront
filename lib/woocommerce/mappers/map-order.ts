@@ -13,6 +13,7 @@ export function mapOrder(wc: WcOrder): Order {
     status: wc.status,
     dateCreated: wc.date_created,
     total: toNumber(wc.total),
+    transactionId: wc.transaction_id ?? '',
     lineItems: wc.line_items.map((item) => ({
       name: item.name,
       quantity: item.quantity,
