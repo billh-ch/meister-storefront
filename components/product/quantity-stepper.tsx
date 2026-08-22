@@ -5,6 +5,9 @@ interface QuantityStepperProps {
   onChange: (value: number) => void
   min?: number
   max?: number
+  /** Distinguishes multiple steppers on one page (e.g. one per cart line) —
+   *  defaults to the PDP's original id so that single-instance usage is unchanged. */
+  id?: string
 }
 
 const MONO = 'var(--font-space-mono), monospace'
@@ -19,13 +22,14 @@ export default function QuantityStepper({
   onChange,
   min = 1,
   max = 99,
+  id = 'product-quantity',
 }: QuantityStepperProps) {
   const clamp = (next: number) => Math.min(max, Math.max(min, next))
 
   return (
     <div>
       <label
-        htmlFor="product-quantity"
+        htmlFor={id}
         className="mb-2 block text-xs font-bold tracking-wide text-white uppercase"
         style={{ fontFamily: MONO }}
       >
@@ -44,7 +48,7 @@ export default function QuantityStepper({
         </button>
 
         <input
-          id="product-quantity"
+          id={id}
           type="number"
           inputMode="numeric"
           value={value}

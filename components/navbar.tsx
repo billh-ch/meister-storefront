@@ -5,9 +5,11 @@ import Link from 'next/link'
 import { useEffect, useRef, useState } from 'react'
 import { formatPrice } from '@/lib/mock-data'
 import type { SearchSuggestion } from '@/app/api/search-suggestions/route'
+import { CART_UPDATED_EVENT } from '@/lib/cart/client-events'
 
 const SUGGESTION_DEBOUNCE_MS = 250
 const SUGGESTION_MIN_LENGTH = 2
+const CART_COUNT_STORAGE_KEY = 'mm_cart_count'
 
 const NAV_LINKS = [
   { label: 'FINS', href: '/fins' },
@@ -23,6 +25,14 @@ export default function Navbar() {
   const [searchOpen, setSearchOpen] = useState(false)
   const [query, setQuery] = useState('')
   const [suggestions, setSuggestions] = useState<SearchSuggestion[]>([])
+  // Lazy initializer, not an effect: this is a one-time synchronous read of
+  // a value React doesn't own, not a subscription to an external system —
+  // guarded for SSR, where `window`/`sessionStorage` don't exist.
+  const [cartCount, setCartCount] = useState(() => {
+    if (typeof window === 'undefined') return 0
+    const seed = window.sessionStorage.getItem(CART_COUNT_STORAGE_KEY)
+    return seed ? Number.parseInt(seed, 10) || 0 : 0
+  })
   const searchInputRef = useRef<HTMLInputElement>(null)
   const debounceRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
   const abortRef = useRef<AbortController | undefined>(undefined)
@@ -30,6 +40,26 @@ export default function Navbar() {
   useEffect(() => {
     if (searchOpen) searchInputRef.current?.focus()
   }, [searchOpen])
+
+  // The cart cookie is httpOnly, so the badge always needs a round-trip —
+  // this seeds from sessionStorage first (no flash-to-zero on every
+  // navigation, since there's no shared layout and Navbar remounts on
+  // every page) and corrects it once the real fetch lands.
+  useEffect(() => {
+    const fetchCount = () => {
+      fetch('/api/cart/count')
+        .then((res) => res.json())
+        .then((data: { count: number }) => {
+          setCartCount(data.count)
+          sessionStorage.setItem(CART_COUNT_STORAGE_KEY, String(data.count))
+        })
+        .catch(() => {})
+    }
+
+    fetchCount()
+    window.addEventListener(CART_UPDATED_EVENT, fetchCount)
+    return () => window.removeEventListener(CART_UPDATED_EVENT, fetchCount)
+  }, [])
 
   // Clear any pending debounce/fetch on unmount so a slow response can't
   // try to set state on an unmounted component.
@@ -132,10 +162,24 @@ export default function Navbar() {
           {/* Cart icon */}
           <Link
             href="/cart"
-            aria-label="Shopping cart"
-            className="text-white transition-colors hover:text-[#FFD700]"
+            aria-label={cartCount > 0 ? `Shopping cart, ${cartCount} items` : 'Shopping cart'}
+            className="relative text-white transition-colors hover:text-[#FFD700]"
           >
             <CartIcon />
+            {cartCount > 0 && (
+              <span
+                className="absolute -top-2 -right-2 flex h-4 min-w-4 items-center justify-center px-1 text-[10px] font-bold"
+                style={{
+                  backgroundColor: '#FFD700',
+                  color: '#1B1B18',
+                  fontFamily: 'var(--font-space-mono), monospace',
+                  borderRadius: '200px',
+                }}
+                aria-hidden="true"
+              >
+                {cartCount > 99 ? '99+' : cartCount}
+              </span>
+            )}
           </Link>
 
           {/* Account icon */}

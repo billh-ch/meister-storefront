@@ -2,12 +2,13 @@
 
 import Image from 'next/image'
 import Link from 'next/link'
-import { useEffect, useRef, useState } from 'react'
+import { useState, useTransition } from 'react'
 import { type Product, type StockStatus, formatPrice } from '@/lib/mock-data'
+import { addToCartAction } from '@/lib/cart/actions'
+import { notifyCartUpdated } from '@/lib/cart/client-events'
 
 interface ProductCardProps {
   product: Product
-  onAddToCart?: (productId: string) => void
 }
 
 /**
@@ -61,22 +62,24 @@ function Badge({ label, tone }: { label: string; tone: 'gold' | 'muted' }) {
   )
 }
 
-export default function ProductCard({ product, onAddToCart }: ProductCardProps) {
-  // No real cart exists yet — this is a timed, honest-about-being-fake
-  // confirmation (same idea as the PDP buy box's own confirmation message),
-  // not a persistent claim, and it clears itself rather than lying forever.
+export default function ProductCard({ product }: ProductCardProps) {
+  const [isPending, startTransition] = useTransition()
   const [justAdded, setJustAdded] = useState(false)
-  const timeoutRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
-
-  useEffect(() => {
-    return () => clearTimeout(timeoutRef.current)
-  }, [])
+  const [error, setError] = useState('')
 
   const handleAddToCart = () => {
-    onAddToCart?.(product.id)
-    setJustAdded(true)
-    clearTimeout(timeoutRef.current)
-    timeoutRef.current = setTimeout(() => setJustAdded(false), 1500)
+    setError('')
+    startTransition(async () => {
+      const result = await addToCartAction({ productId: product.id, quantity: 1 })
+      if (result.ok) {
+        setJustAdded(true)
+        notifyCartUpdated()
+        setTimeout(() => setJustAdded(false), 1500)
+      } else {
+        setError(result.error)
+        setTimeout(() => setError(''), 2000)
+      }
+    })
   }
 
   const stockBadge = STOCK_BADGES[product.stockStatus]
@@ -180,28 +183,48 @@ export default function ProductCard({ product, onAddToCart }: ProductCardProps) 
           </p>
         </Link>
 
-        {/* Right: ADD button (20%) — min-width for touch target */}
-        <button
-          // `.btn-gold:disabled` in globals.css already greys it out and sets
-          // the not-allowed cursor, so there's nothing to override here.
-          className="btn-gold flex flex-shrink-0 cursor-pointer items-center justify-center text-sm font-bold tracking-wider uppercase sm:text-base"
-          style={{
-            width: '20%',
-            minWidth: '44px',
-            borderLeft: '1px solid #FFFFFF',
-          }}
-          onClick={handleAddToCart}
-          disabled={isSoldOut}
-          aria-label={
-            isSoldOut
-              ? `${product.name} is out of stock`
-              : justAdded
-                ? `${product.name} added to cart`
-                : `Add ${product.name} to cart`
-          }
-        >
-          {isSoldOut ? '—' : justAdded ? 'ADDED' : 'ADD'}
-        </button>
+        {/* Right: ADD button (20%) — min-width for touch target.
+            Variable products (real size/attribute choices) have no room for
+            a picker here — the PDP already owns that selector, so the card
+            just routes there instead of pretending to add anything. */}
+        {product.type === 'variable' ? (
+          <Link
+            href={`/products/${product.slug}`}
+            className="btn-gold flex flex-shrink-0 items-center justify-center px-1 text-center text-[11px] leading-tight font-bold tracking-wider uppercase sm:text-sm"
+            style={{
+              width: '20%',
+              minWidth: '44px',
+              borderLeft: '1px solid #FFFFFF',
+            }}
+            aria-label={`Choose options for ${product.name}`}
+          >
+            SELECT OPTIONS
+          </Link>
+        ) : (
+          <button
+            // `.btn-gold:disabled` in globals.css already greys it out and sets
+            // the not-allowed cursor, so there's nothing to override here.
+            className="btn-gold flex flex-shrink-0 cursor-pointer items-center justify-center text-sm font-bold tracking-wider uppercase sm:text-base"
+            style={{
+              width: '20%',
+              minWidth: '44px',
+              borderLeft: '1px solid #FFFFFF',
+            }}
+            onClick={handleAddToCart}
+            disabled={isSoldOut || isPending}
+            aria-label={
+              isSoldOut
+                ? `${product.name} is out of stock`
+                : error
+                  ? error
+                  : justAdded
+                    ? `${product.name} added to cart`
+                    : `Add ${product.name} to cart`
+            }
+          >
+            {isSoldOut ? '—' : error ? '!' : justAdded ? 'ADDED' : 'ADD'}
+          </button>
+        )}
       </footer>
     </article>
   )

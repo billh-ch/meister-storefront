@@ -131,6 +131,7 @@ export function mapProductDetail(
     image: gallery[0]?.src ?? '',
     swatches: [],
     category: mapCategorySlug(wc.categories.map((category) => category.id)),
+    type: wc.type === 'variable' ? 'variable' : 'simple',
 
     gallery,
     descriptionHtml: sanitizeProductHtml(wc.description),

@@ -24,6 +24,12 @@ export interface Product {
   onSale: boolean
   /** True only when variants genuinely differ in price, so `price` is a floor. */
   priceFrom: boolean
+  /**
+   * WooCommerce's own product type. `'variable'` means real size/attribute
+   * variants exist and must be chosen on the PDP before it's purchasable —
+   * grid/carousel cards route those to the PDP instead of adding directly.
+   */
+  type: 'simple' | 'variable'
 }
 
 /* ----------------------------------------------------------------
@@ -254,8 +260,8 @@ export function formatPrice(price: number): string {
  * deliberately differs — which keeps the list readable and means adding a
  * fourth flag later doesn't mean touching all sixteen entries.
  */
-type MockProductSeed = Omit<Product, 'stockStatus' | 'onSale' | 'priceFrom'> &
-  Partial<Pick<Product, 'stockStatus' | 'onSale' | 'priceFrom'>>
+type MockProductSeed = Omit<Product, 'stockStatus' | 'onSale' | 'priceFrom' | 'type'> &
+  Partial<Pick<Product, 'stockStatus' | 'onSale' | 'priceFrom' | 'type'>>
 
 /**
  * A handful of seeds carry non-default states on purpose. The deployed stable
@@ -442,6 +448,7 @@ export const products: Product[] = productSeeds.map((seed) => ({
   stockStatus: 'instock',
   onSale: false,
   priceFrom: false,
+  type: 'simple',
   ...seed,
 }))
 

@@ -24,5 +24,9 @@ export function mapProduct(product: WcProduct): Product {
     // make a comparison wrong at the edges.
     onSale: product.on_sale,
     priceFrom: hasPriceRange(product.price_html),
+    // Only 'variable' unlocks real per-attribute selection on the PDP;
+    // WooCommerce's other types (grouped/external) aren't modeled anywhere
+    // else in this codebase, so they fall back to 'simple' — same as today.
+    type: product.type === 'variable' ? 'variable' : 'simple',
   }
 }

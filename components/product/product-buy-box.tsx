@@ -1,12 +1,14 @@
 'use client'
 
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState, useTransition } from 'react'
 import {
   formatPrice,
   type ProductDetail,
   type ProductVariant,
   type StockStatus,
 } from '@/lib/mock-data'
+import { addToCartAction } from '@/lib/cart/actions'
+import { notifyCartUpdated } from '@/lib/cart/client-events'
 import ProductGallery from './product-gallery'
 import ProductTrustStrip from './product-trust-strip'
 import VariantSelector from './variant-selector'
@@ -137,6 +139,7 @@ export default function ProductBuyBox({ product }: ProductBuyBoxProps) {
   const [quantity, setQuantity] = useState(1)
   const [missing, setMissing] = useState<string[]>([])
   const [confirmation, setConfirmation] = useState('')
+  const [isConfirmationError, setIsConfirmationError] = useState(false)
   const [ctaVisible, setCtaVisible] = useState(true)
 
   const ctaRef = useRef<HTMLButtonElement | null>(null)
@@ -189,12 +192,16 @@ export default function ProductBuyBox({ product }: ProductBuyBoxProps) {
     setSelected((current) => ({ ...current, [attributeName]: value }))
     setMissing((current) => current.filter((name) => name !== attributeName))
     setConfirmation('')
+    setIsConfirmationError(false)
   }, [])
 
   const handleQuantityChange = useCallback((next: number) => {
     setQuantity(next)
     setConfirmation('')
+    setIsConfirmationError(false)
   }, [])
+
+  const [isPending, startTransition] = useTransition()
 
   const handleAddToCart = useCallback(() => {
     const unchosen = axisNames.filter((name) => !selected[name])
@@ -204,14 +211,29 @@ export default function ProductBuyBox({ product }: ProductBuyBoxProps) {
     if (unchosen.length > 0) {
       setMissing(unchosen)
       setConfirmation(`Please choose ${unchosen.join(' and ')} first`)
+      setIsConfirmationError(true)
       return
     }
 
     setMissing([])
-    setConfirmation(`Added to cart — ${quantity} × ${product.name}`)
-  }, [axisNames, selected, quantity, product.name])
+    startTransition(async () => {
+      const result = await addToCartAction({
+        productId: product.id,
+        variationId: activeVariant?.id,
+        quantity,
+      })
+      if (result.ok) {
+        setConfirmation(`Added to cart — ${quantity} × ${product.name}`)
+        setIsConfirmationError(false)
+        notifyCartUpdated()
+      } else {
+        setConfirmation(result.error)
+        setIsConfirmationError(true)
+      }
+    })
+  }, [axisNames, selected, quantity, product.id, product.name, activeVariant])
 
-  const isError = confirmation.startsWith('Please choose')
+  const isError = isConfirmationError
 
   return (
     <>
@@ -313,10 +335,10 @@ export default function ProductBuyBox({ product }: ProductBuyBoxProps) {
               ref={ctaRef}
               type="button"
               onClick={handleAddToCart}
-              disabled={!isPurchasable}
+              disabled={!isPurchasable || isPending}
               className="btn-gold flex h-12 w-full cursor-pointer items-center justify-center text-sm tracking-[0.1em] uppercase"
             >
-              {isPurchasable ? 'Add to cart' : 'Out of stock'}
+              {isPurchasable ? (isPending ? 'Adding…' : 'Add to cart') : 'Out of stock'}
             </button>
 
             {/* One live region for both the failure and the success message */}
@@ -366,13 +388,13 @@ export default function ProductBuyBox({ product }: ProductBuyBoxProps) {
         <button
           type="button"
           onClick={handleAddToCart}
-          disabled={!isPurchasable}
+          disabled={!isPurchasable || isPending}
           // Hidden from the tab order while the bar is off-screen, so
           // keyboard users don't land on an invisible control.
           tabIndex={ctaVisible ? -1 : 0}
           className="btn-gold flex h-11 flex-shrink-0 cursor-pointer items-center justify-center px-5 text-xs tracking-[0.1em] uppercase"
         >
-          {isPurchasable ? 'Add' : 'Sold out'}
+          {isPurchasable ? (isPending ? '…' : 'Add') : 'Sold out'}
         </button>
       </div>
     </>
