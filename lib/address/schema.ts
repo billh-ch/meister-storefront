@@ -1,8 +1,10 @@
 import { z } from 'zod'
 
 /** First/last name kept separate, not one field, so this maps directly onto
- *  WooCommerce's `first_name`/`last_name` order fields with no guesswork split. */
-export const checkoutAddressSchema = z.object({
+ *  WooCommerce's `first_name`/`last_name` fields with no guesswork split.
+ *  Shared by checkout and the account "saved address" form — both collect
+ *  and validate the same shape. */
+export const addressSchema = z.object({
   firstName: z.string().min(1),
   lastName: z.string().min(1),
   address1: z.string().min(1),
@@ -13,4 +15,4 @@ export const checkoutAddressSchema = z.object({
   phone: z.string().min(1),
 })
 
-export type CheckoutAddressInput = z.infer<typeof checkoutAddressSchema>
+export type AddressInput = z.infer<typeof addressSchema>

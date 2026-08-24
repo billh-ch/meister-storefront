@@ -7,6 +7,9 @@ import CheckoutForm from '@/components/checkout/checkout-form'
 import { getCart } from '@/lib/cart/cookie'
 import { resolveCartItems } from '@/lib/cart/resolve'
 import { FLAT_SHIPPING_RATE, FREE_SHIPPING_THRESHOLD, formatPrice } from '@/lib/mock-data'
+import { getSession } from '@/lib/auth/session'
+import { getWcCustomerById } from '@/lib/woocommerce'
+import { toAddressInput } from '@/lib/address/map-address'
 
 const MONO = 'var(--font-space-mono), monospace'
 const DISPLAY = 'var(--font-dela-gothic), sans-serif'
@@ -17,8 +20,16 @@ export const metadata: Metadata = {
 
 /** Protected by `proxy.ts` — reaching this render guarantees a signed-in session. */
 export default async function CheckoutPage() {
-  const cart = await getCart()
+  const [cart, session] = await Promise.all([getCart(), getSession()])
   const resolved = await resolveCartItems(cart)
+
+  // Best-effort — a WooCommerce read failure here must never block checkout,
+  // only skip the prefill.
+  const customer = session.wcCustomerId
+    ? await getWcCustomerById(session.wcCustomerId).catch(() => null)
+    : null
+  const initialAddress =
+    customer?.shipping && customer.shipping.address_1 ? toAddressInput(customer.shipping) : undefined
 
   const isEmpty = resolved.lines.length === 0
   const hasChanged = resolved.unavailableCount > 0 || resolved.lines.some((line) => !line.purchasable)
@@ -67,7 +78,7 @@ export default async function CheckoutPage() {
         ) : (
           <div className="flex flex-col gap-6 lg:flex-row lg:items-start">
             <div className="flex-1">
-              <CheckoutForm />
+              <CheckoutForm initialAddress={initialAddress} />
             </div>
 
             <div className="w-full lg:w-80 lg:flex-shrink-0" style={{ border: '1px solid #444444' }}>

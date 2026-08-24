@@ -5,6 +5,7 @@ import { fetchProducts } from './queries/get-products'
 import { fetchProductBySlug, fetchVariations } from './queries/get-product-by-slug'
 import { fetchProductById } from './queries/get-product-by-id'
 import { fetchOrdersByCustomer } from './queries/get-orders-by-customer'
+import { fetchWcCustomerById, type WcCustomerWithAddress } from './queries/get-customer-by-id'
 import { mapProduct } from './mappers/map-product'
 import { mapProductDetail } from './mappers/map-product-detail'
 import { mapOrder } from './mappers/map-order'
@@ -88,4 +89,11 @@ export async function getOrdersByCustomer(customerId: number): Promise<Order[]> 
 
   const orders = await fetchOrdersByCustomer(customerId)
   return orders.map(mapOrder)
+}
+
+/** No mock fallback — same reasoning as getOrdersByCustomer/getProductById:
+ *  never fabricate a signed-in customer's own saved address. */
+export async function getWcCustomerById(id: number): Promise<WcCustomerWithAddress | null> {
+  if (useMock) return null
+  return fetchWcCustomerById(id)
 }

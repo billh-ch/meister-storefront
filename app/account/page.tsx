@@ -3,9 +3,11 @@ import Navbar from '@/components/navbar'
 import Footer from '@/components/footer'
 import SimpleBreadcrumbs from '@/components/collection/simple-breadcrumbs'
 import LogoutButton from '@/components/auth/logout-button'
+import AddressForm from '@/components/account/address-form'
 import { getSession } from '@/lib/auth/session'
-import { getOrdersByCustomer } from '@/lib/woocommerce'
+import { getOrdersByCustomer, getWcCustomerById } from '@/lib/woocommerce'
 import { formatPrice } from '@/lib/mock-data'
+import { toAddressInput } from '@/lib/address/map-address'
 
 const MONO = 'var(--font-space-mono), monospace'
 const DISPLAY = 'var(--font-dela-gothic), sans-serif'
@@ -14,14 +16,19 @@ export const metadata: Metadata = {
   title: 'Your Account — Meister',
 }
 
-/** Protected by `middleware.ts` — reaching this render at all guarantees a
+/** Protected by `proxy.ts` — reaching this render at all guarantees a
  *  session, but the type system doesn't know that, hence the fallback. */
 export default async function AccountPage() {
   const session = await getSession()
   const wcCustomerId = session.wcCustomerId
   if (!wcCustomerId) return null
 
-  const orders = await getOrdersByCustomer(wcCustomerId)
+  const [orders, customer] = await Promise.all([
+    getOrdersByCustomer(wcCustomerId),
+    getWcCustomerById(wcCustomerId),
+  ])
+  const initialAddress =
+    customer?.shipping && customer.shipping.address_1 ? toAddressInput(customer.shipping) : undefined
 
   return (
     <main style={{ backgroundColor: '#1B1B18' }}>
@@ -34,10 +41,27 @@ export default async function AccountPage() {
             className="text-2xl text-white sm:text-3xl md:text-4xl"
             style={{ fontFamily: DISPLAY, fontWeight: 800 }}
           >
-            YOUR ORDERS
+            YOUR ACCOUNT
           </h1>
           <LogoutButton />
         </div>
+
+        <div className="mb-10 max-w-xl">
+          <h2
+            className="mb-4 text-lg text-white sm:text-xl"
+            style={{ fontFamily: DISPLAY, fontWeight: 800 }}
+          >
+            YOUR ADDRESS
+          </h2>
+          <AddressForm initialAddress={initialAddress} />
+        </div>
+
+        <h2
+          className="mb-4 text-lg text-white sm:text-xl"
+          style={{ fontFamily: DISPLAY, fontWeight: 800 }}
+        >
+          YOUR ORDERS
+        </h2>
 
         {orders.length === 0 ? (
           <div

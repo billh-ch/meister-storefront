@@ -6,7 +6,9 @@ import { resolveCartItems } from '@/lib/cart/resolve'
 import { getStripe } from '@/lib/stripe'
 import { getBaseUrl } from '@/lib/url'
 import { FLAT_SHIPPING_RATE, FREE_SHIPPING_THRESHOLD } from '@/lib/mock-data'
-import { checkoutAddressSchema, type CheckoutAddressInput } from './schema'
+import { addressSchema, type AddressInput } from '@/lib/address/schema'
+import { toWcAddress } from '@/lib/address/map-address'
+import { updateWcCustomerAddress } from '@/lib/woocommerce/queries/update-customer-address'
 
 export type CreateCheckoutSessionResult = { url: string } | { error: string }
 
@@ -26,7 +28,7 @@ export type CreateCheckoutSessionResult = { url: string } | { error: string }
  * dictate what gets charged in either system.
  */
 export async function createCheckoutSessionAction(
-  input: CheckoutAddressInput,
+  input: AddressInput,
 ): Promise<CreateCheckoutSessionResult> {
   const session = await getSession()
   const wcCustomerId = session.wcCustomerId
@@ -34,7 +36,7 @@ export async function createCheckoutSessionAction(
     return { error: 'Please sign in to continue.' }
   }
 
-  const parsed = checkoutAddressSchema.safeParse(input)
+  const parsed = addressSchema.safeParse(input)
   if (!parsed.success) {
     return { error: 'Please fill in every required field.' }
   }
@@ -48,6 +50,12 @@ export async function createCheckoutSessionAction(
   if (resolved.unavailableCount > 0 || resolved.lines.some((line) => !line.purchasable)) {
     return { error: 'Your cart has changed — please review it before checking out.' }
   }
+
+  // Best-effort — remembers the address for next time, but must never block
+  // or fail checkout if the write itself fails.
+  updateWcCustomerAddress(wcCustomerId, toWcAddress(parsed.data)).catch((error) => {
+    console.error('[account] Failed to save address at checkout:', error)
+  })
 
   const shipping = resolved.subtotal >= FREE_SHIPPING_THRESHOLD ? 0 : FLAT_SHIPPING_RATE
 
