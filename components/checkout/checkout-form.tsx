@@ -2,7 +2,6 @@
 
 import { useState, useTransition, type FormEvent } from 'react'
 import { createCheckoutSessionAction } from '@/lib/checkout/actions'
-import PaymentForm from './payment-form'
 
 const MONO = 'var(--font-space-mono), monospace'
 
@@ -13,7 +12,7 @@ const LABEL_CLASS = 'text-xs font-bold tracking-wide text-white uppercase'
 export default function CheckoutForm() {
   const [isPending, startTransition] = useTransition()
   const [error, setError] = useState('')
-  const [clientSecret, setClientSecret] = useState<string | null>(null)
+  const [isRedirecting, setIsRedirecting] = useState(false)
 
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
@@ -35,13 +34,12 @@ export default function CheckoutForm() {
       if ('error' in result) {
         setError(result.error)
       } else {
-        setClientSecret(result.clientSecret)
+        // Full browser navigation, not next/navigation — the destination
+        // is checkout.stripe.com, a different origin entirely.
+        setIsRedirecting(true)
+        window.location.href = result.url
       }
     })
-  }
-
-  if (clientSecret) {
-    return <PaymentForm clientSecret={clientSecret} />
   }
 
   return (
@@ -123,10 +121,10 @@ export default function CheckoutForm() {
 
       <button
         type="submit"
-        disabled={isPending}
+        disabled={isPending || isRedirecting}
         className="btn-gold flex h-12 w-full items-center justify-center text-xs tracking-[0.1em] uppercase"
       >
-        {isPending ? 'Preparing payment…' : 'Continue to payment'}
+        {isRedirecting ? 'Redirecting to Stripe…' : isPending ? 'Preparing payment…' : 'Continue to payment'}
       </button>
     </form>
   )

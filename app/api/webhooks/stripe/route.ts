@@ -27,10 +27,11 @@ function addressFromMetadata(metadata: Stripe.Metadata): WcAddress {
 }
 
 /**
- * Webhook-authoritative order creation: the client-side payment confirmation
- * (`components/checkout/payment-form.tsx`) never creates the order itself —
- * only a verified, paid Checkout Session event here does. This is the only
- * place a real WooCommerce order gets created from a paid checkout.
+ * Webhook-authoritative order creation: nothing client-side ever creates
+ * the order itself — the customer pays on Stripe's own hosted Checkout
+ * page, and only a verified, paid Checkout Session event here does. This
+ * is the only place a real WooCommerce order gets created from a paid
+ * checkout.
  *
  * Listens for both `checkout.session.completed` (the normal case) and
  * `checkout.session.async_payment_succeeded` (delayed payment methods that

@@ -9,8 +9,6 @@
     "lint": "eslint"
   },
   "dependencies": {
-    "@stripe/react-stripe-js": "^6.8.2",
-    "@stripe/stripe-js": "^9.14.0",
     "@upstash/redis": "^1.38.2",
     "embla-carousel-react": "^8.6.0",
     "iron-session": "^8.0.4",

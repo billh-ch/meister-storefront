@@ -8,7 +8,7 @@ import { getBaseUrl } from '@/lib/url'
 import { FLAT_SHIPPING_RATE, FREE_SHIPPING_THRESHOLD } from '@/lib/mock-data'
 import { checkoutAddressSchema, type CheckoutAddressInput } from './schema'
 
-export type CreateCheckoutSessionResult = { clientSecret: string } | { error: string }
+export type CreateCheckoutSessionResult = { url: string } | { error: string }
 
 /**
  * Re-checks everything server-side rather than trusting the client — the
@@ -16,10 +16,11 @@ export type CreateCheckoutSessionResult = { clientSecret: string } | { error: st
  * Action can be invoked independent of the page (see `proxy.ts`'s own note
  * on this), and the client can't be trusted for the cart contents or total.
  *
- * Uses Stripe Checkout Sessions (`ui_mode: "elements"`) rather than a bare
- * PaymentIntent — Stripe's own current guidance for this shape of
- * integration. Line items are priced from `resolveCartItems`' live
- * WooCommerce data, never from anything the client posts; WooCommerce
+ * Uses Stripe's hosted Checkout page (the default `ui_mode`, "Checkout
+ * Sessions" with no custom payment UI on our side) — the customer is
+ * redirected to `checkoutSession.url` to pay on Stripe's own page, then
+ * back to `success_url`. Line items are priced from `resolveCartItems`'
+ * live WooCommerce data, never from anything the client posts; WooCommerce
  * re-prices the order itself again at webhook time from the same product
  * ids, so a tampered metadata value can reference a bad id but never
  * dictate what gets charged in either system.
@@ -86,10 +87,10 @@ export async function createCheckoutSessionAction(
     const baseUrl = getBaseUrl()
 
     const checkoutSession = await stripe.checkout.sessions.create({
-      ui_mode: 'elements',
       mode: 'payment',
       line_items: lineItems,
-      return_url: `${baseUrl}/checkout/confirmation?session_id={CHECKOUT_SESSION_ID}`,
+      success_url: `${baseUrl}/checkout/confirmation?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${baseUrl}/checkout`,
       metadata: {
         wcCustomerId: String(wcCustomerId),
         cartLines: JSON.stringify(cartLines),
@@ -104,11 +105,11 @@ export async function createCheckoutSessionAction(
       },
     })
 
-    if (!checkoutSession.client_secret) {
+    if (!checkoutSession.url) {
       return { error: 'Could not start checkout. Please try again.' }
     }
 
-    return { clientSecret: checkoutSession.client_secret }
+    return { url: checkoutSession.url }
   } catch {
     return { error: 'Could not reach the payment processor. Please try again.' }
   }
