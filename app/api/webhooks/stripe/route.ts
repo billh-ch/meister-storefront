@@ -29,8 +29,14 @@ function addressFromMetadata(metadata: Stripe.Metadata): WcAddress {
 /**
  * Webhook-authoritative order creation: the client-side payment confirmation
  * (`components/checkout/payment-form.tsx`) never creates the order itself —
- * only a verified `payment_intent.succeeded` event here does. This is the
- * only place a real WooCommerce order gets created from a paid checkout.
+ * only a verified, paid Checkout Session event here does. This is the only
+ * place a real WooCommerce order gets created from a paid checkout.
+ *
+ * Listens for both `checkout.session.completed` (the normal case) and
+ * `checkout.session.async_payment_succeeded` (delayed payment methods that
+ * complete after the session itself closes) — Stripe's own guidance for
+ * Checkout Sessions fulfillment, gated on `payment_status` rather than
+ * trusting the event type alone.
  */
 export async function POST(request: Request) {
   const signature = request.headers.get('stripe-signature')
@@ -50,13 +56,27 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Invalid signature' }, { status: 400 })
   }
 
-  if (event.type !== 'payment_intent.succeeded') {
+  if (event.type !== 'checkout.session.completed' && event.type !== 'checkout.session.async_payment_succeeded') {
     return NextResponse.json({ received: true })
   }
 
-  const paymentIntent = event.data.object as Stripe.PaymentIntent
+  const checkoutSession = event.data.object as Stripe.Checkout.Session
+  if (checkoutSession.payment_status === 'unpaid') {
+    return NextResponse.json({ received: true, note: 'unpaid' })
+  }
+
+  const paymentIntentId =
+    typeof checkoutSession.payment_intent === 'string'
+      ? checkoutSession.payment_intent
+      : checkoutSession.payment_intent?.id
+
+  if (!paymentIntentId) {
+    console.error('[stripe webhook] paid session has no payment_intent:', checkoutSession.id)
+    return NextResponse.json({ error: 'missing payment intent' }, { status: 400 })
+  }
+
   const redis = getRedis()
-  const lockKey = `stripe:pi:${paymentIntent.id}`
+  const lockKey = `stripe:pi:${paymentIntentId}`
 
   // Idempotency guard — Stripe's webhook delivery is at-least-once, so the
   // same event can arrive more than once. This is the only thing Redis is
@@ -68,12 +88,13 @@ export async function POST(request: Request) {
   }
 
   try {
-    const wcCustomerId = Number(paymentIntent.metadata.wcCustomerId)
-    const lines = JSON.parse(paymentIntent.metadata.cartLines ?? '[]') as CartLineMeta[]
-    const address = addressFromMetadata(paymentIntent.metadata)
+    const metadata = checkoutSession.metadata ?? {}
+    const wcCustomerId = Number(metadata.wcCustomerId)
+    const lines = JSON.parse(metadata.cartLines ?? '[]') as CartLineMeta[]
+    const address = addressFromMetadata(metadata)
 
     if (!wcCustomerId || lines.length === 0) {
-      throw new Error('PaymentIntent metadata is missing required checkout data')
+      throw new Error('Checkout Session metadata is missing required checkout data')
     }
 
     const order = await createOrder({
@@ -85,7 +106,7 @@ export async function POST(request: Request) {
       })),
       billing: address,
       shipping: address,
-      transactionId: paymentIntent.id,
+      transactionId: paymentIntentId,
     })
 
     // Marked 'done' only after real success — a failed attempt below

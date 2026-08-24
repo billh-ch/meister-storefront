@@ -13,27 +13,39 @@ export const metadata: Metadata = {
 }
 
 interface ConfirmationPageProps {
-  searchParams: Promise<{ payment_intent?: string }>
+  searchParams: Promise<{ session_id?: string }>
 }
 
 /**
  * Never creates the order itself — that's the Stripe webhook's job
  * (`app/api/webhooks/stripe/route.ts`), the only place a client-reported
- * "success" is trusted. This page re-checks the PaymentIntent's real status
- * server-side rather than trusting the `redirect_status` query param Stripe
- * appends, then waits for the webhook-created order to show up.
+ * "success" is trusted. This page re-checks the Checkout Session's real
+ * `payment_status` server-side rather than trusting anything client-side,
+ * then waits for the webhook-created order to show up — matched by the
+ * underlying PaymentIntent id, same as before the Checkout Sessions
+ * migration (only how that id is obtained changed).
  */
 export default async function ConfirmationPage({ searchParams }: ConfirmationPageProps) {
-  const { payment_intent: paymentIntentId } = await searchParams
+  const { session_id: sessionId } = await searchParams
 
   let status: 'succeeded' | 'processing' | 'failed' | 'unknown' = 'unknown'
+  let paymentIntentId: string | undefined
 
-  if (paymentIntentId) {
+  if (sessionId) {
     try {
-      const paymentIntent = await getStripe().paymentIntents.retrieve(paymentIntentId)
-      if (paymentIntent.status === 'succeeded') status = 'succeeded'
-      else if (paymentIntent.status === 'processing') status = 'processing'
-      else if (paymentIntent.status === 'requires_payment_method' || paymentIntent.status === 'canceled') {
+      const checkoutSession = await getStripe().checkout.sessions.retrieve(sessionId, {
+        expand: ['payment_intent'],
+      })
+      paymentIntentId =
+        typeof checkoutSession.payment_intent === 'string'
+          ? checkoutSession.payment_intent
+          : checkoutSession.payment_intent?.id
+
+      if (checkoutSession.payment_status === 'paid' || checkoutSession.payment_status === 'no_payment_required') {
+        status = 'succeeded'
+      } else if (checkoutSession.status === 'open') {
+        status = 'processing'
+      } else if (checkoutSession.status === 'expired') {
         status = 'failed'
       }
     } catch {

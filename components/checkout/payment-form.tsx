@@ -1,40 +1,46 @@
 'use client'
 
 import { useState, type FormEvent } from 'react'
-import {
-  Elements,
-  PaymentElement,
-  useElements,
-  useStripe,
-} from '@stripe/react-stripe-js'
+import { CheckoutElementsProvider, PaymentElement, useCheckoutElements } from '@stripe/react-stripe-js/checkout'
 import { getStripeClient } from '@/lib/stripe-client'
 
 const MONO = 'var(--font-space-mono), monospace'
 
 function PaymentElementForm() {
-  const stripe = useStripe()
-  const elements = useElements()
+  const checkoutState = useCheckoutElements()
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState('')
 
+  if (checkoutState.type === 'loading') {
+    return (
+      <p className="text-sm text-[#999999]" style={{ fontFamily: MONO }}>
+        Loading payment form…
+      </p>
+    )
+  }
+
+  if (checkoutState.type === 'error') {
+    return (
+      <p className="text-xs" style={{ fontFamily: MONO, color: '#FF6B6B' }}>
+        {checkoutState.error.message}
+      </p>
+    )
+  }
+
+  const { checkout } = checkoutState
+
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
-    if (!stripe || !elements) return
 
     setIsSubmitting(true)
     setError('')
 
-    const { error: confirmError } = await stripe.confirmPayment({
-      elements,
-      confirmParams: {
-        return_url: `${window.location.origin}/checkout/confirmation`,
-      },
-    })
+    const result = await checkout.confirm()
 
     // A successful confirmation redirects the browser away from this page
     // itself — reaching this line at all means it didn't.
-    if (confirmError) {
-      setError(confirmError.message ?? 'Payment failed. Please try again.')
+    if (result.type === 'error') {
+      setError(result.error.message ?? 'Payment failed. Please try again.')
       setIsSubmitting(false)
     }
   }
@@ -51,7 +57,7 @@ function PaymentElementForm() {
 
       <button
         type="submit"
-        disabled={!stripe || isSubmitting}
+        disabled={isSubmitting}
         className="btn-gold flex h-12 w-full items-center justify-center text-xs tracking-[0.1em] uppercase"
       >
         {isSubmitting ? 'Processing…' : 'Place order'}
@@ -62,24 +68,26 @@ function PaymentElementForm() {
 
 export default function PaymentForm({ clientSecret }: { clientSecret: string }) {
   return (
-    <Elements
+    <CheckoutElementsProvider
       stripe={getStripeClient()}
       options={{
         clientSecret,
-        appearance: {
-          theme: 'night',
-          variables: {
-            colorPrimary: '#FFD700',
-            colorBackground: '#1B1B18',
-            colorText: '#FFFFFF',
-            colorDanger: '#FF6B6B',
-            fontFamily: 'var(--font-space-mono), monospace',
-            borderRadius: '0px',
+        elementsOptions: {
+          appearance: {
+            theme: 'night',
+            variables: {
+              colorPrimary: '#FFD700',
+              colorBackground: '#1B1B18',
+              colorText: '#FFFFFF',
+              colorDanger: '#FF6B6B',
+              fontFamily: 'var(--font-space-mono), monospace',
+              borderRadius: '0px',
+            },
           },
         },
       }}
     >
       <PaymentElementForm />
-    </Elements>
+    </CheckoutElementsProvider>
   )
 }

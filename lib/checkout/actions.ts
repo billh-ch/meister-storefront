@@ -4,20 +4,29 @@ import { getSession } from '@/lib/auth/session'
 import { getCart } from '@/lib/cart/cookie'
 import { resolveCartItems } from '@/lib/cart/resolve'
 import { getStripe } from '@/lib/stripe'
+import { getBaseUrl } from '@/lib/url'
 import { FLAT_SHIPPING_RATE, FREE_SHIPPING_THRESHOLD } from '@/lib/mock-data'
 import { checkoutAddressSchema, type CheckoutAddressInput } from './schema'
 
-export type CreatePaymentIntentResult = { clientSecret: string } | { error: string }
+export type CreateCheckoutSessionResult = { clientSecret: string } | { error: string }
 
 /**
  * Re-checks everything server-side rather than trusting the client — the
  * page render already gates on sign-in/cart-availability, but a Server
  * Action can be invoked independent of the page (see `proxy.ts`'s own note
  * on this), and the client can't be trusted for the cart contents or total.
+ *
+ * Uses Stripe Checkout Sessions (`ui_mode: "elements"`) rather than a bare
+ * PaymentIntent — Stripe's own current guidance for this shape of
+ * integration. Line items are priced from `resolveCartItems`' live
+ * WooCommerce data, never from anything the client posts; WooCommerce
+ * re-prices the order itself again at webhook time from the same product
+ * ids, so a tampered metadata value can reference a bad id but never
+ * dictate what gets charged in either system.
  */
-export async function createPaymentIntentAction(
+export async function createCheckoutSessionAction(
   input: CheckoutAddressInput,
-): Promise<CreatePaymentIntentResult> {
+): Promise<CreateCheckoutSessionResult> {
   const session = await getSession()
   const wcCustomerId = session.wcCustomerId
   if (!wcCustomerId) {
@@ -40,7 +49,6 @@ export async function createPaymentIntentAction(
   }
 
   const shipping = resolved.subtotal >= FREE_SHIPPING_THRESHOLD ? 0 : FLAT_SHIPPING_RATE
-  const totalCents = Math.round((resolved.subtotal + shipping) * 100)
 
   // Metadata carries only *identity* — product/variation ids, quantities,
   // and the shipping address — never a price. WooCommerce prices every
@@ -53,12 +61,35 @@ export async function createPaymentIntentAction(
     q: line.quantity,
   }))
 
+  const lineItems = resolved.lines.map((line) => ({
+    price_data: {
+      currency: 'eur',
+      product_data: { name: line.name },
+      unit_amount: Math.round(line.unitPrice * 100),
+    },
+    quantity: line.quantity,
+  }))
+
+  if (shipping > 0) {
+    lineItems.push({
+      price_data: {
+        currency: 'eur',
+        product_data: { name: 'Shipping' },
+        unit_amount: Math.round(shipping * 100),
+      },
+      quantity: 1,
+    })
+  }
+
   try {
     const stripe = getStripe()
-    const paymentIntent = await stripe.paymentIntents.create({
-      amount: totalCents,
-      currency: 'eur',
-      automatic_payment_methods: { enabled: true },
+    const baseUrl = await getBaseUrl()
+
+    const checkoutSession = await stripe.checkout.sessions.create({
+      ui_mode: 'elements',
+      mode: 'payment',
+      line_items: lineItems,
+      return_url: `${baseUrl}/checkout/confirmation?session_id={CHECKOUT_SESSION_ID}`,
       metadata: {
         wcCustomerId: String(wcCustomerId),
         cartLines: JSON.stringify(cartLines),
@@ -73,11 +104,11 @@ export async function createPaymentIntentAction(
       },
     })
 
-    if (!paymentIntent.client_secret) {
+    if (!checkoutSession.client_secret) {
       return { error: 'Could not start checkout. Please try again.' }
     }
 
-    return { clientSecret: paymentIntent.client_secret }
+    return { clientSecret: checkoutSession.client_secret }
   } catch {
     return { error: 'Could not reach the payment processor. Please try again.' }
   }

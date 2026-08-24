@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useTransition, type FormEvent } from 'react'
-import { createPaymentIntentAction } from '@/lib/checkout/actions'
+import { createCheckoutSessionAction } from '@/lib/checkout/actions'
 import PaymentForm from './payment-form'
 
 const MONO = 'var(--font-space-mono), monospace'
@@ -21,7 +21,7 @@ export default function CheckoutForm() {
     const formData = new FormData(event.currentTarget)
 
     startTransition(async () => {
-      const result = await createPaymentIntentAction({
+      const result = await createCheckoutSessionAction({
         firstName: String(formData.get('firstName') ?? ''),
         lastName: String(formData.get('lastName') ?? ''),
         address1: String(formData.get('address1') ?? ''),
