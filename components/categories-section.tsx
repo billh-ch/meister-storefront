@@ -9,27 +9,7 @@ import {
   type CategoryDetail,
   type Product,
 } from '@/lib/mock-data'
-
-/* ----------------------------------------------------------------
-   useSlideWidth — responsive carousel slide sizing
-   ---------------------------------------------------------------- */
-
-function useSlideWidth() {
-  const [slideWidth, setSlideWidth] = useState('33.333%')
-
-  useEffect(() => {
-    function update() {
-      if (window.innerWidth < 640) setSlideWidth('85%')
-      else if (window.innerWidth < 1024) setSlideWidth('50%')
-      else setSlideWidth('33.333%')
-    }
-    update()
-    window.addEventListener('resize', update)
-    return () => window.removeEventListener('resize', update)
-  }, [])
-
-  return slideWidth
-}
+import { useSlideWidth } from '@/lib/hooks/use-slide-width'
 
 /* ================================================================
    CategoriesSection — single flat component, no z-index
@@ -141,7 +121,7 @@ export default function CategoriesSection({
                 fill
                 sizes="(max-width: 1024px) 100vw, 50vw"
                 className="object-cover"
-                priority={i === 0}
+                preload={i === 0}
                 loading={i === 0 ? undefined : 'lazy'}
               />
             </div>

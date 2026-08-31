@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import { redirect } from 'next/navigation'
 import Navbar from '@/components/navbar'
 import Footer from '@/components/footer'
 import SimpleBreadcrumbs from '@/components/collection/simple-breadcrumbs'
@@ -16,12 +17,16 @@ export const metadata: Metadata = {
   title: 'Your Account — Meister',
 }
 
-/** Protected by `proxy.ts` — reaching this render at all guarantees a
- *  session, but the type system doesn't know that, hence the fallback. */
+/**
+ * `proxy.ts` already gates this route, but that's the *only* mechanism —
+ * this app's Next.js version has had proxy/middleware-bypass CVEs (see
+ * `pnpm audit`), so this page checks the session itself too rather than
+ * trusting a single layer.
+ */
 export default async function AccountPage() {
   const session = await getSession()
   const wcCustomerId = session.wcCustomerId
-  if (!wcCustomerId) return null
+  if (!wcCustomerId) redirect('/sign-in?redirect_url=/account')
 
   const [orders, customer] = await Promise.all([
     getOrdersByCustomer(wcCustomerId),

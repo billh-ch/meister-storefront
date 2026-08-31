@@ -1,9 +1,19 @@
 'use server'
 
+import { z } from 'zod'
 import { revalidatePath } from 'next/cache'
 import { getProductById } from '@/lib/woocommerce'
 import { getCart, setCart } from './cookie'
 import { cartItemSchema, type CartItem } from './schema'
+
+// Same id constraints as `cartItemSchema`, but `quantity` allows `<= 0` — that's
+// how a line gets removed (see `removeFromCartAction`) — which `cartItemSchema`
+// itself deliberately forbids (a *stored* line is never zero/negative).
+const updateQuantityInputSchema = z.object({
+  productId: cartItemSchema.shape.productId,
+  variationId: cartItemSchema.shape.variationId,
+  quantity: z.number().int().max(99),
+})
 
 export type CartActionResult = { ok: true } | { ok: false; error: string }
 
@@ -72,14 +82,17 @@ export async function updateQuantityAction(input: {
   variationId?: string
   quantity: number
 }): Promise<CartActionResult> {
+  const parsed = updateQuantityInputSchema.safeParse(input)
+  if (!parsed.success) return { ok: false, error: 'Invalid request.' }
+
   const cart = await getCart()
-  const key = lineKey(input)
+  const key = lineKey(parsed.data)
 
   const nextCart =
-    input.quantity <= 0
+    parsed.data.quantity <= 0
       ? cart.filter((item) => lineKey(item) !== key)
       : cart.map((item) =>
-          lineKey(item) === key ? { ...item, quantity: Math.min(99, input.quantity) } : item,
+          lineKey(item) === key ? { ...item, quantity: Math.min(99, parsed.data.quantity) } : item,
         )
 
   await setCart(nextCart)

@@ -76,6 +76,7 @@ export default function Footer() {
               alt="Meister"
               width={120}
               height={35}
+              style={{ width: 'auto', height: 'auto' }}
             />
           </div>
 
@@ -121,7 +122,7 @@ export default function Footer() {
             </div>
 
             <span
-              className="hidden shrink-0 text-xs text-[#666666] lg:block"
+              className="hidden shrink-0 text-xs text-[#666666] sm:block"
               style={{ fontFamily: 'var(--font-space-mono), monospace' }}
             >
               Not live yet

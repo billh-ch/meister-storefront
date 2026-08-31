@@ -43,7 +43,23 @@ const OPTIONS: sanitizeHtml.IOptions = {
   },
 }
 
+/**
+ * Some products' WordPress content was authored with a page-builder plugin
+ * (WPBakery/WooDmart) whose `[vc_row ...]`/`[woodmart_title ...]` shortcode
+ * syntax is plain text, not HTML — `sanitize-html` has no concept of it and
+ * passes it straight through, so it would otherwise render as garbled
+ * bracket-syntax text on the product page. Stripping bracket-tag patterns
+ * before sanitizing removes that; it can't reconstruct the builder's actual
+ * layout (that requires the plugin itself), but it beats showing raw markup
+ * to a shopper.
+ */
+const SHORTCODE_PATTERN = /\[\/?[a-zA-Z][\w-]*(?:\s+[\w-]+="[^"]*")*\s*\/?\]/g
+
+function stripShortcodes(html: string): string {
+  return html.replace(SHORTCODE_PATTERN, '')
+}
+
 export function sanitizeProductHtml(html: string): string {
   if (!html) return ''
-  return sanitizeHtml(html, OPTIONS).trim()
+  return sanitizeHtml(stripShortcodes(html), OPTIONS).trim()
 }

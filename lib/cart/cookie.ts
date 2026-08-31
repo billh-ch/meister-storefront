@@ -27,8 +27,20 @@ export async function getCart(): Promise<CartItem[]> {
 }
 
 /** Only callable from a Server Action or Route Handler — Server Components
- *  can read cookies but never write them. */
+ *  can read cookies but never write them.
+ *
+ *  Validates before writing (not just on read): every caller is expected to
+ *  hand this already-valid items, but `getCart`'s `cartSchema.safeParse`
+ *  fails the *entire* array on a single malformed item, so a caller that
+ *  regresses this — and skips its own validation — would otherwise silently
+ *  wipe the shopper's whole cart on the very next read. Throwing here turns
+ *  that into a loud, immediate error instead. */
 export async function setCart(cart: CartItem[]): Promise<void> {
+  const parsed = cartSchema.safeParse(cart)
+  if (!parsed.success) {
+    throw new Error('Attempted to write an invalid cart.')
+  }
+
   const store = await cookies()
   const encoded = Buffer.from(JSON.stringify(cart), 'utf-8').toString('base64url')
 

@@ -2,7 +2,7 @@
 
 import Image from 'next/image'
 import Link from 'next/link'
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { formatPrice } from '@/lib/mock-data'
 import type { SearchSuggestion } from '@/app/api/search-suggestions/route'
 import { CART_UPDATED_EVENT } from '@/lib/cart/client-events'
@@ -25,14 +25,14 @@ export default function Navbar() {
   const [searchOpen, setSearchOpen] = useState(false)
   const [query, setQuery] = useState('')
   const [suggestions, setSuggestions] = useState<SearchSuggestion[]>([])
-  // Lazy initializer, not an effect: this is a one-time synchronous read of
-  // a value React doesn't own, not a subscription to an external system —
-  // guarded for SSR, where `window`/`sessionStorage` don't exist.
-  const [cartCount, setCartCount] = useState(() => {
-    if (typeof window === 'undefined') return 0
-    const seed = window.sessionStorage.getItem(CART_COUNT_STORAGE_KEY)
-    return seed ? Number.parseInt(seed, 10) || 0 : 0
-  })
+  // Always starts at 0, matching the server render exactly — a lazy
+  // initializer that read `sessionStorage` here ran on the client's first
+  // render too (not just SSR), so a stale nonzero seed disagreed with the
+  // server's always-0 render and caused a real hydration mismatch (React
+  // discarding and rebuilding this whole tree on every navigation). Seeding
+  // from `sessionStorage` happens instead in the `useLayoutEffect` below,
+  // which only runs after hydration completes.
+  const [cartCount, setCartCount] = useState(0)
   const searchInputRef = useRef<HTMLInputElement>(null)
   const debounceRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
   const abortRef = useRef<AbortController | undefined>(undefined)
@@ -41,10 +41,22 @@ export default function Navbar() {
     if (searchOpen) searchInputRef.current?.focus()
   }, [searchOpen])
 
+  // Runs synchronously after commit, before the browser paints — updates
+  // `cartCount` from a prior page's sessionStorage seed without an extra
+  // visible flash-to-zero frame, and without the hydration mismatch a lazy
+  // `useState` initializer caused (see above): the state React hydrates
+  // with is always 0, this only changes it afterward.
+  useLayoutEffect(() => {
+    const seed = window.sessionStorage.getItem(CART_COUNT_STORAGE_KEY)
+    // Deliberate one-time sync from an external store (sessionStorage) right
+    // after mount, before paint — there's no event to subscribe to instead.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    if (seed) setCartCount(Number.parseInt(seed, 10) || 0)
+  }, [])
+
   // The cart cookie is httpOnly, so the badge always needs a round-trip —
-  // this seeds from sessionStorage first (no flash-to-zero on every
-  // navigation, since there's no shared layout and Navbar remounts on
-  // every page) and corrects it once the real fetch lands.
+  // this corrects the sessionStorage-seeded count above once the real
+  // fetch lands.
   useEffect(() => {
     const fetchCount = () => {
       fetch('/api/cart/count')
@@ -126,7 +138,8 @@ export default function Navbar() {
             alt="Meister"
             width={140}
             height={40}
-            priority
+            style={{ width: 'auto', height: 'auto' }}
+            preload
           />
         </Link>
 

@@ -4,6 +4,7 @@ import { useEffect, useRef, useState, useTransition, type FormEvent } from 'reac
 import { updateAddressAction } from '@/lib/account/actions'
 import AddressFields from '@/components/address-fields'
 import type { AddressInput } from '@/lib/address/schema'
+import { addressFromFormData } from '@/lib/address/form-data'
 
 const MONO = 'var(--font-space-mono), monospace'
 
@@ -21,16 +22,7 @@ export default function AddressForm({ initialAddress }: { initialAddress?: Addre
     const formData = new FormData(event.currentTarget)
 
     startTransition(async () => {
-      const result = await updateAddressAction({
-        firstName: String(formData.get('firstName') ?? ''),
-        lastName: String(formData.get('lastName') ?? ''),
-        address1: String(formData.get('address1') ?? ''),
-        address2: String(formData.get('address2') ?? '') || undefined,
-        city: String(formData.get('city') ?? ''),
-        postcode: String(formData.get('postcode') ?? ''),
-        country: String(formData.get('country') ?? 'GR'),
-        phone: String(formData.get('phone') ?? ''),
-      })
+      const result = await updateAddressAction(addressFromFormData(formData))
 
       if (result.ok) {
         setJustSaved(true)

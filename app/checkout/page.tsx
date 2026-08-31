@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
+import { redirect } from 'next/navigation'
 import Navbar from '@/components/navbar'
 import Footer from '@/components/footer'
 import SimpleBreadcrumbs from '@/components/collection/simple-breadcrumbs'
@@ -18,9 +19,18 @@ export const metadata: Metadata = {
   title: 'Checkout — Meister',
 }
 
-/** Protected by `proxy.ts` — reaching this render guarantees a signed-in session. */
+/**
+ * `proxy.ts` already gates this route, but that's the *only* mechanism —
+ * this app's Next.js version has had proxy/middleware-bypass CVEs (see
+ * `pnpm audit`), so this page checks the session itself too, matching
+ * `app/account/page.tsx`'s own defense-in-depth guard rather than trusting
+ * a single layer.
+ */
 export default async function CheckoutPage() {
   const [cart, session] = await Promise.all([getCart(), getSession()])
+  if (!session.wcCustomerId) {
+    redirect('/sign-in?redirect_url=/checkout')
+  }
   const resolved = await resolveCartItems(cart)
 
   // Best-effort — a WooCommerce read failure here must never block checkout,

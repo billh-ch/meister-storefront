@@ -4,6 +4,7 @@ import { useState, useTransition, type FormEvent } from 'react'
 import { createCheckoutSessionAction } from '@/lib/checkout/actions'
 import AddressFields from '@/components/address-fields'
 import type { AddressInput } from '@/lib/address/schema'
+import { addressFromFormData } from '@/lib/address/form-data'
 
 const MONO = 'var(--font-space-mono), monospace'
 
@@ -22,16 +23,7 @@ export default function CheckoutForm({ initialAddress }: CheckoutFormProps) {
     const formData = new FormData(event.currentTarget)
 
     startTransition(async () => {
-      const result = await createCheckoutSessionAction({
-        firstName: String(formData.get('firstName') ?? ''),
-        lastName: String(formData.get('lastName') ?? ''),
-        address1: String(formData.get('address1') ?? ''),
-        address2: String(formData.get('address2') ?? '') || undefined,
-        city: String(formData.get('city') ?? ''),
-        postcode: String(formData.get('postcode') ?? ''),
-        country: String(formData.get('country') ?? 'GR'),
-        phone: String(formData.get('phone') ?? ''),
-      })
+      const result = await createCheckoutSessionAction(addressFromFormData(formData))
 
       if ('error' in result) {
         setError(result.error)

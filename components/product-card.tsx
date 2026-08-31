@@ -109,7 +109,7 @@ export default function ProductCard({ product }: ProductCardProps) {
             fill
             sizes="(max-width: 640px) 85vw, (max-width: 1024px) 50vw, 33vw"
             className="object-cover"
-            priority={false}
+            preload={false}
           />
         ) : (
           <ImagePlaceholder productName={product.name} />

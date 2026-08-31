@@ -49,6 +49,7 @@ export default function QuantityStepper({
 
         <input
           id={id}
+          name={id}
           type="number"
           inputMode="numeric"
           value={value}
