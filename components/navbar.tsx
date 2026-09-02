@@ -138,7 +138,6 @@ export default function Navbar() {
             alt="Meister"
             width={140}
             height={40}
-            style={{ width: 'auto', height: 'auto' }}
             preload
           />
         </Link>

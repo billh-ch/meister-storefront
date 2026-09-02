@@ -74,9 +74,8 @@ export default function Footer() {
             <Image
               src="/meister-logo.svg"
               alt="Meister"
-              width={120}
-              height={35}
-              style={{ width: 'auto', height: 'auto' }}
+              width={170}
+              height={40}
             />
           </div>
 

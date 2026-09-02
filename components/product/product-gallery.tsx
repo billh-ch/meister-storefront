@@ -2,17 +2,13 @@
 
 import Image from 'next/image'
 import useEmblaCarousel from 'embla-carousel-react'
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import type { ProductImage } from '@/lib/mock-data'
 
 interface ProductGalleryProps {
   images: ProductImage[]
   productName: string
-  /**
-   * Variant image, when the shopper has picked a combination that has one.
-   * Shown in place of the current main image rather than injected into the
-   * grid, so the tile positions never shift under the user.
-   */
+  /** Variant image, when the shopper has picked a combination that has one. */
   activeImage?: string | null
 }
 
@@ -43,6 +39,12 @@ function GalleryFrame({ children }: { children: React.ReactNode }) {
  * on touch — the arrows are gone, since the tiles make them redundant.
  * Selection syncs both ways: tapping a tile scrolls the main image, and
  * swiping the main image highlights the matching tile.
+ *
+ * The variant image (`activeImage`) gets its own tile in the list rather
+ * than being overlaid onto whichever tile happens to be in view — an
+ * overlay meant the highlighted tile's own thumbnail never matched what was
+ * actually enlarged above it, and made the plain default photo unreachable
+ * for as long as an image-bearing variant stayed selected.
  */
 export default function ProductGallery({
   images,
@@ -51,6 +53,15 @@ export default function ProductGallery({
 }: ProductGalleryProps) {
   const [emblaRef, emblaApi] = useEmblaCarousel({ loop: false, align: 'start' })
   const [selectedIndex, setSelectedIndex] = useState(0)
+
+  // Reuses an existing tile's slot if the variant image already happens to
+  // be one of the product's own gallery photos; otherwise adds it as a new
+  // tile up front, alongside — not instead of — every original photo.
+  const displayImages = useMemo(() => {
+    if (!activeImage) return images
+    if (images.some((image) => image.src === activeImage)) return images
+    return [{ src: activeImage, alt: `${productName} — selected option` }, ...images]
+  }, [images, activeImage, productName])
 
   useEffect(() => {
     if (!emblaApi) return
@@ -62,13 +73,22 @@ export default function ProductGallery({
     }
   }, [emblaApi])
 
+  // Jump straight to the variant's own image whenever one becomes active,
+  // so picking a variant always shows its photo without the shopper having
+  // to notice and manually swipe/tap to find it.
+  useEffect(() => {
+    if (!activeImage || !emblaApi) return
+    const targetIndex = displayImages.findIndex((image) => image.src === activeImage)
+    if (targetIndex !== -1) emblaApi.scrollTo(targetIndex, true)
+  }, [activeImage, displayImages, emblaApi])
+
   const scrollTo = useCallback(
     (index: number) => emblaApi?.scrollTo(index),
     [emblaApi],
   )
 
   // --- Branch 1: no images at all ---
-  if (images.length === 0) {
+  if (displayImages.length === 0) {
     return (
       <GalleryFrame>
         <div
@@ -82,12 +102,12 @@ export default function ProductGallery({
   }
 
   // --- Branch 2: a single image needs no viewport and no tiles ---
-  if (images.length === 1) {
+  if (displayImages.length === 1) {
     return (
       <GalleryFrame>
         <Image
-          src={activeImage ?? images[0].src}
-          alt={images[0].alt || productName}
+          src={displayImages[0].src}
+          alt={displayImages[0].alt || productName}
           fill
           sizes={SIZES}
           className="object-cover"
@@ -103,15 +123,13 @@ export default function ProductGallery({
       <GalleryFrame>
         <div className="absolute inset-0 overflow-hidden" ref={emblaRef}>
           <div className="flex h-full" style={{ touchAction: 'pan-y pinch-zoom' }}>
-            {images.map((image, index) => (
+            {displayImages.map((image, index) => (
               <div
                 key={`${image.src}-${index}`}
                 className="relative h-full w-full flex-shrink-0"
               >
                 <Image
-                  // The variant image replaces only the shot in view, so the
-                  // tile positions stay stable while browsing.
-                  src={index === selectedIndex && activeImage ? activeImage : image.src}
+                  src={image.src}
                   alt={image.alt || `${productName} — image ${index + 1}`}
                   fill
                   sizes={SIZES}
@@ -128,12 +146,12 @@ export default function ProductGallery({
       {/* Position announcement for screen readers — the tiles carry this
           visually, but nothing announces a swipe otherwise. */}
       <p className="sr-only" aria-live="polite">
-        Image {selectedIndex + 1} of {images.length}
+        Image {selectedIndex + 1} of {displayImages.length}
       </p>
 
       {/* Tile grid — every shot visible at once, no discovery required */}
       <div className="mt-2 grid grid-cols-4 gap-2 sm:grid-cols-5">
-        {images.map((image, index) => {
+        {displayImages.map((image, index) => {
           const isSelected = index === selectedIndex
 
           return (
@@ -141,7 +159,7 @@ export default function ProductGallery({
               key={`tile-${image.src}-${index}`}
               type="button"
               onClick={() => scrollTo(index)}
-              aria-label={`Show image ${index + 1} of ${images.length}`}
+              aria-label={`Show image ${index + 1} of ${displayImages.length}`}
               aria-current={isSelected}
               // The selected tile is already on show above, so it's the
               // unselected ones that need to read as tappable.
