@@ -22,7 +22,7 @@ export default function HeroSection() {
       {/* Content */}
       <div className="relative z-10 flex flex-col items-center gap-4 text-center">
         <h1
-          className="text-4xl leading-[1.12] text-white md:text-6xl lg:text-7xl xl:text-8xl"
+          className="text-3xl leading-[1.12] text-white md:text-5xl lg:text-6xl xl:text-7xl"
           style={{ fontFamily: 'var(--font-dela-gothic), sans-serif', fontWeight: 800 }}
         >
           Everything You Need
