@@ -25,9 +25,9 @@ export default function HeroSection() {
           className="text-4xl leading-[1.12] text-white md:text-6xl lg:text-7xl xl:text-8xl"
           style={{ fontFamily: 'var(--font-dela-gothic), sans-serif', fontWeight: 800 }}
         >
-          Go Deep.
+          Everything You Need
           <br />
-          Go Meister.
+          to Go Deeper.
         </h1>
 
         <Link
@@ -35,7 +35,7 @@ export default function HeroSection() {
           className="btn-gold inline-block px-6 py-2.5 text-sm tracking-[0.15em] uppercase"
           aria-label="Shop Meister diving equipment"
         >
-          SHOP NOW
+          EXPLORE THE RANGE
         </Link>
       </div>
 
