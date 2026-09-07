@@ -1,5 +1,6 @@
 import type { Product } from '@/lib/mock-data'
 import type { WcProduct } from '../queries/get-products'
+import { mapBrand } from './map-brand'
 import { mapCategorySlug } from './category-map'
 import { hasPriceRange } from './has-price-range'
 import { resolveImageUrl } from './resolve-image-url'
@@ -19,6 +20,8 @@ export function mapProduct(product: WcProduct): Product {
     image: resolveImageUrl(product.images[0]?.src ?? ''),
     swatches: [],
     category: mapCategorySlug(product.categories.map(c => c.id)),
+    // Cheap `find` over the attribute list — safe on this ~50x listing path.
+    brand: mapBrand(product.attributes),
     stockStatus: toStockStatus(product.stock_status),
     // WooCommerce's computed flag, not a price comparison — scheduled sales
     // make a comparison wrong at the edges.

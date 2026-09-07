@@ -9,6 +9,7 @@ import {
   type CategoryDetail,
   type Product,
 } from '@/lib/mock-data'
+import { isMeisterMade } from '@/lib/brand'
 import { useSlideWidth } from '@/lib/hooks/use-slide-width'
 
 /* ================================================================
@@ -37,8 +38,10 @@ export default function CategoriesSection({
   }, [])
 
   // -- Carousel state --
+  // Meister-only: `accessories` in particular also carries third-party gear
+  // (Mares, C4, Pathos …) in WooCommerce, and this rail is a Meister showcase.
   const filtered = useMemo(
-    () => products.filter((p) => p.category === active.slug),
+    () => products.filter((p) => p.category === active.slug && isMeisterMade(p)),
     [products, active.slug],
   )
 
@@ -212,13 +215,25 @@ export default function CategoriesSection({
       {filtered.length > 0 && (
         <div className="mt-8 md:mt-12">
           {/* Header */}
-          <div className="mb-4 flex items-center justify-between px-4 sm:mb-6 sm:px-6 md:px-10">
-            <h3
-              className="text-lg text-white sm:text-xl md:text-2xl"
-              style={{ fontFamily: 'var(--font-dela-gothic), sans-serif', fontWeight: 700 }}
-            >
-              FROM THIS CATEGORY
-            </h3>
+          <div className="mb-4 flex flex-wrap items-center justify-between gap-y-2 px-4 sm:mb-6 sm:px-6 md:px-10">
+            <div className="flex items-center gap-2 sm:gap-3">
+              <h3
+                className="text-lg text-white sm:text-xl md:text-2xl"
+                style={{ fontFamily: 'var(--font-dela-gothic), sans-serif', fontWeight: 700 }}
+              >
+                FROM THIS CATEGORY
+              </h3>
+              <span
+                className="px-2 py-1 text-[10px] font-bold tracking-widest uppercase"
+                style={{
+                  fontFamily: 'var(--font-space-mono), monospace',
+                  backgroundColor: 'var(--color-gold)',
+                  color: 'var(--color-dark)',
+                }}
+              >
+                MEISTER MADE
+              </span>
+            </div>
             <Link
               href={`/${active.slug}`}
               className="flex items-center justify-center px-3 py-1.5 text-xs font-bold tracking-wider text-white uppercase transition-opacity hover:opacity-80 sm:px-5 sm:py-2"

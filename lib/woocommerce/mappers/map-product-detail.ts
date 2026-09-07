@@ -8,6 +8,7 @@ import type {
   WcProductDetail,
   WcVariation,
 } from '../queries/get-product-by-slug'
+import { mapBrand } from './map-brand'
 import { mapCategorySlug } from './category-map'
 import { hasPriceRange } from './has-price-range'
 import { resolveImageUrl } from './resolve-image-url'
@@ -131,6 +132,7 @@ export function mapProductDetail(
     image: gallery[0]?.src ?? '',
     swatches: [],
     category: mapCategorySlug(wc.categories.map((category) => category.id)),
+    brand: mapBrand(wc.attributes),
     type: wc.type === 'variable' ? 'variable' : 'simple',
 
     gallery,

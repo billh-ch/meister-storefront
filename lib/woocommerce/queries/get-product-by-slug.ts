@@ -1,13 +1,9 @@
 import { wcFetch } from '../client'
-import type { WcImage, WcProduct } from './get-products'
+import type { WcImage, WcProduct, WcProductAttribute } from './get-products'
 
-export interface WcAttribute {
-  id: number
-  name: string
-  /** WooCommerce's "used for variations" flag. */
-  variation: boolean
-  visible: boolean
-  options: string[]
+/** Detail-endpoint attributes are the listing shape plus a `position`. */
+export interface WcAttribute extends WcProductAttribute {
+  position?: number
 }
 
 export interface WcDimensions {

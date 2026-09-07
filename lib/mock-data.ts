@@ -20,6 +20,12 @@ export interface Product {
   image: string
   swatches: string[]
   category: string
+  /**
+   * Manufacturer, from WooCommerce's `Εταιρία` (`pa_εταιρία`) product
+   * attribute. `null` when the store leaves it unset. Used to keep the
+   * homepage category rail to Meister's own gear.
+   */
+  brand: string | null
   stockStatus: StockStatus
   onSale: boolean
   /** True only when variants genuinely differ in price, so `price` is a floor. */
@@ -263,8 +269,11 @@ export function formatPrice(price: number): string {
  * deliberately differs — which keeps the list readable and means adding a
  * fourth flag later doesn't mean touching all sixteen entries.
  */
-type MockProductSeed = Omit<Product, 'stockStatus' | 'onSale' | 'priceFrom' | 'type'> &
-  Partial<Pick<Product, 'stockStatus' | 'onSale' | 'priceFrom' | 'type'>>
+type MockProductSeed = Omit<
+  Product,
+  'brand' | 'stockStatus' | 'onSale' | 'priceFrom' | 'type'
+> &
+  Partial<Pick<Product, 'brand' | 'stockStatus' | 'onSale' | 'priceFrom' | 'type'>>
 
 /**
  * A handful of seeds carry non-default states on purpose. The deployed stable
@@ -370,6 +379,9 @@ const productSeeds: MockProductSeed[] = [
     image: 'https://images.unsplash.com/photo-1559827260-dc66d52bef19?w=600&q=80',
     swatches: ['#969696', '#1B1B18'],
     category: 'accessories',
+    // Third-party gear — stands in for the non-Meister brands the real store
+    // stocks, so the "Meister made" rail filter is visible in mock mode too.
+    brand: 'Pathos',
   },
   {
     id: 'p3',
@@ -448,6 +460,7 @@ const productSeeds: MockProductSeed[] = [
 
 /** Seeds spread last so an explicit flag always wins over its default. */
 export const products: Product[] = productSeeds.map((seed) => ({
+  brand: 'Meister',
   stockStatus: 'instock',
   onSale: false,
   priceFrom: false,

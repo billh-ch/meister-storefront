@@ -12,6 +12,17 @@ export interface WcCategory {
   slug: string
 }
 
+export interface WcProductAttribute {
+  id: number
+  name: string
+  /** e.g. `pa_εταιρία` for the store's brand attribute. Absent on custom (non-taxonomy) attributes. */
+  slug?: string
+  /** WooCommerce's "used for variations" flag. */
+  variation: boolean
+  visible: boolean
+  options: string[]
+}
+
 export interface WcProduct {
   id: number
   name: string
@@ -29,6 +40,8 @@ export interface WcProduct {
   price_html: string
   images: WcImage[]
   categories: WcCategory[]
+  /** Includes the brand attribute (`Εταιρία` / `pa_εταιρία`); see `map-brand.ts`. */
+  attributes: WcProductAttribute[]
   type: string
   status: string
 }
