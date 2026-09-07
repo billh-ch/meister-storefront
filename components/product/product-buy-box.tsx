@@ -164,6 +164,10 @@ export default function ProductBuyBox({ product }: ProductBuyBoxProps) {
 
   const stock = describeStock(stockStatus, activeVariant ? null : product.stockQuantity)
   const isPurchasable = stockStatus !== 'outofstock'
+  // A variable product isn't ready to add until every variation axis is chosen.
+  // Same condition the handleAddToCart guard uses (the `unchosen` check); empty
+  // for simple products, so their label is untouched.
+  const needsOptions = axisNames.some((name) => !selected[name])
 
   const savingPercent =
     onSale && regularPrice > price
@@ -338,7 +342,13 @@ export default function ProductBuyBox({ product }: ProductBuyBoxProps) {
               disabled={!isPurchasable || isPending}
               className="btn-gold flex h-12 w-full cursor-pointer items-center justify-center text-sm tracking-[0.1em] uppercase"
             >
-              {isPurchasable ? (isPending ? 'Adding…' : 'Add to cart') : 'Out of stock'}
+              {!isPurchasable
+                ? 'Out of stock'
+                : isPending
+                  ? 'Adding…'
+                  : needsOptions
+                    ? 'Select options'
+                    : 'Add to cart'}
             </button>
 
             {/* One live region for both the failure and the success message */}
@@ -394,7 +404,7 @@ export default function ProductBuyBox({ product }: ProductBuyBoxProps) {
           tabIndex={ctaVisible ? -1 : 0}
           className="btn-gold flex h-11 flex-shrink-0 cursor-pointer items-center justify-center px-5 text-xs tracking-[0.1em] uppercase"
         >
-          {isPurchasable ? (isPending ? '…' : 'Add') : 'Sold out'}
+          {!isPurchasable ? 'Sold out' : isPending ? '…' : needsOptions ? 'Options' : 'Add'}
         </button>
       </div>
     </>
