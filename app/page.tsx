@@ -2,6 +2,7 @@ import Navbar from '@/components/navbar'
 import HeroSection from '@/components/hero-section'
 import ProductCarousel from '@/components/product-carousel'
 import TestimonialsSection from '@/components/testimonials-section'
+import FaqSection from '@/components/faq-section'
 import Footer from '@/components/footer'
 import CategoriesSection from '@/components/categories-section'
 import { getProducts } from '@/lib/woocommerce'
@@ -32,6 +33,7 @@ export default async function HomePage() {
       <ProductCarousel products={products.slice(0, MOST_WANTED_LIMIT)} />
       <CategoriesSection categoryDetails={categoryDetails} products={products} />
       <TestimonialsSection />
+      <FaqSection />
       <Footer />
     </main>
   )

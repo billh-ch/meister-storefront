@@ -226,6 +226,30 @@ export const shippingReturnsCopy = [
   },
 ] as const
 
+/**
+ * Homepage FAQ copy. Storefront content, not backend data. Kept deliberately
+ * short: the four questions that most often stall a purchase (fit, returns,
+ * shipping, brand trust).
+ */
+export const homepageFaqs = [
+  {
+    q: 'Will it fit, and what if it does not?',
+    a: 'Every wetsuit and fin page has a size chart. A wetsuit should feel snug with no gaps at the neck, wrists or ankles. For fin foot pockets, order your normal shoe size, or one size up if you dive with socks. Not sure which size to pick? Email us at info@meister.gr before you order, because we dive this gear ourselves. If it still is not right, you have 14 days to exchange or return it.',
+  },
+  {
+    q: 'What is your return and exchange policy?',
+    a: 'You have 14 days from delivery to return or exchange an unused item in its original packaging. Message us first at info@meister.gr and we will send return instructions. Refunds go back to your original payment method. If an item arrives faulty or we sent the wrong one, we cover the return shipping and fix it right away.',
+  },
+  {
+    q: 'How much is shipping and how fast will it arrive?',
+    a: 'Shipping within Greece is free on orders over 80€. Below that it is a flat 5€, shown before you pay. Orders placed before 14:00 on a working day ship the same day, with delivery in 1 to 3 working days. You get a tracking link by email once your order is on its way.',
+  },
+  {
+    q: 'Who makes this gear, and is it genuine?',
+    a: 'Meister designs and makes its own fins, blades, wetsuits and much of the equipment you see here, built and tested by freedivers and spearos. We also stock select gear from trusted brands such as Mares, C4 and Pathos where they do it best. Everything on the site is genuine and officially sourced, shipped from our store in Aigaleo, Athens.',
+  },
+] as const
+
 export interface Testimonial {
   id: string
   name: string
