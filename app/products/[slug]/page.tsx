@@ -129,7 +129,7 @@ function buildJsonLd(product: ProductDetail) {
     description: stripTags(product.descriptionHtml).slice(0, 500),
     image: product.gallery.map((image) => image.src),
     ...(product.sku && { sku: product.sku }),
-    brand: { '@type': 'Brand', name: 'Meister' },
+    ...(product.brand && { brand: { '@type': 'Brand', name: product.brand } }),
     offers: {
       '@type': 'Offer',
       // Raw number, never the formatted string — that one is Greek-locale

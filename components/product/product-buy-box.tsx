@@ -256,12 +256,22 @@ export default function ProductBuyBox({ product }: ProductBuyBoxProps) {
             would leave a sticky element no room to travel. top-24 clears
             the sticky navbar. */}
         <div className="flex flex-col gap-5 lg:sticky lg:top-24 lg:self-start">
-          <h1
-            className="text-xl leading-tight text-white sm:text-2xl lg:text-3xl"
-            style={{ fontFamily: DISPLAY, fontWeight: 800 }}
-          >
-            {product.name}
-          </h1>
+          <div className="flex flex-col gap-2">
+            {product.brand && (
+              <p
+                className="text-xs tracking-wide text-[#999999] uppercase"
+                style={{ fontFamily: MONO }}
+              >
+                {product.brand}
+              </p>
+            )}
+            <h1
+              className="text-xl leading-tight text-white sm:text-2xl lg:text-3xl"
+              style={{ fontFamily: DISPLAY, fontWeight: 800 }}
+            >
+              {product.name}
+            </h1>
+          </div>
 
           {/* Price */}
           <div>

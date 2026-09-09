@@ -55,10 +55,25 @@ const CATEGORY_ID_TO_SLUG: Record<number, string> = {
 
 const DEFAULT_SLUG = 'accessories'
 
+/**
+ * When a product's WooCommerce categories map to more than one storefront
+ * slug, the earliest slug here wins — regardless of WooCommerce's own array
+ * order. `guns` is last: several Meister carry bags are filed under both
+ * "Όπλων" and "Σάκοι Μεταφοράς" and belong in accessories. `merch` sits above
+ * only `guns` so a smoothskin vest filed under both apparel and
+ * "Στολες Καταδυσης" resolves to `suits`. `accessories` beats `suits` so the
+ * store's dedicated "Γάντια" (gloves) stay in accessories.
+ */
+const SLUG_PRIORITY = ['fins', 'accessories', 'suits', 'merch', 'guns'] as const
+
 export function mapCategorySlug(categoryIds: number[]): string {
+  const matched = new Set<string>()
   for (const id of categoryIds) {
     const slug = CATEGORY_ID_TO_SLUG[id]
-    if (slug) return slug
+    if (slug) matched.add(slug)
+  }
+  for (const slug of SLUG_PRIORITY) {
+    if (matched.has(slug)) return slug
   }
   return DEFAULT_SLUG
 }
