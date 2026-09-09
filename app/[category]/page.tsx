@@ -5,11 +5,18 @@ import Footer from '@/components/footer'
 import CollectionView from '@/components/collection/collection-view'
 import { getProducts } from '@/lib/woocommerce'
 import { findCategory } from '@/lib/categories'
-import { paginateProducts, parseSort } from '@/lib/collection'
+import { paginateProducts, parseSort, parseFilters, deriveFacets } from '@/lib/collection'
 
 interface CategoryPageProps {
   params: Promise<{ category: string }>
-  searchParams: Promise<{ page?: string; sort?: string }>
+  searchParams: Promise<{
+    page?: string
+    sort?: string
+    brand?: string
+    minPrice?: string
+    maxPrice?: string
+    sale?: string
+  }>
 }
 
 /**
@@ -41,10 +48,16 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
   // (/cart, /privacy, a typo) as though it were a real category.
   if (!category) notFound()
 
-  const { page, sort } = await searchParams
+  const sp = await searchParams
+  const filters = parseFilters(sp)
   const allProducts = await getProducts()
   const categoryProducts = allProducts.filter((product) => product.category === category.slug)
-  const collection = paginateProducts(categoryProducts, { page, sort })
+  const facets = deriveFacets(categoryProducts, { includeCategories: false })
+  const collection = paginateProducts(categoryProducts, {
+    page: sp.page,
+    sort: sp.sort,
+    filters,
+  })
 
   return (
     <main style={{ backgroundColor: '#1B1B18' }}>
@@ -54,7 +67,9 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
         breadcrumbs={[{ label: 'HOME', href: '/' }, { label: category.name }]}
         basePath={`/${category.slug}`}
         collection={collection}
-        sort={parseSort(sort)}
+        sort={parseSort(sp.sort)}
+        facets={facets}
+        activeFilters={filters}
       />
       <Footer />
     </main>

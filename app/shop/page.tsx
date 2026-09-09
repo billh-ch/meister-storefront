@@ -3,10 +3,18 @@ import Navbar from '@/components/navbar'
 import Footer from '@/components/footer'
 import CollectionView from '@/components/collection/collection-view'
 import { getProducts } from '@/lib/woocommerce'
-import { paginateProducts, parseSort } from '@/lib/collection'
+import { paginateProducts, parseSort, parseFilters, deriveFacets } from '@/lib/collection'
 
 interface ShopPageProps {
-  searchParams: Promise<{ page?: string; sort?: string }>
+  searchParams: Promise<{
+    page?: string
+    sort?: string
+    brand?: string
+    category?: string
+    minPrice?: string
+    maxPrice?: string
+    sale?: string
+  }>
 }
 
 export const metadata: Metadata = {
@@ -20,9 +28,15 @@ export const metadata: Metadata = {
  * runtime ambiguity between the two despite both living at the app root.
  */
 export default async function ShopPage({ searchParams }: ShopPageProps) {
-  const { page, sort } = await searchParams
+  const sp = await searchParams
+  const filters = parseFilters(sp)
   const allProducts = await getProducts()
-  const collection = paginateProducts(allProducts, { page, sort })
+  const facets = deriveFacets(allProducts, { includeCategories: true })
+  const collection = paginateProducts(allProducts, {
+    page: sp.page,
+    sort: sp.sort,
+    filters,
+  })
 
   return (
     <main style={{ backgroundColor: '#1B1B18' }}>
@@ -32,7 +46,9 @@ export default async function ShopPage({ searchParams }: ShopPageProps) {
         breadcrumbs={[{ label: 'HOME', href: '/' }, { label: 'SHOP' }]}
         basePath="/shop"
         collection={collection}
-        sort={parseSort(sort)}
+        sort={parseSort(sp.sort)}
+        facets={facets}
+        activeFilters={filters}
       />
       <Footer />
     </main>

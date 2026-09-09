@@ -3,13 +3,22 @@ import Navbar from '@/components/navbar'
 import Footer from '@/components/footer'
 import CollectionView from '@/components/collection/collection-view'
 import { getProducts } from '@/lib/woocommerce'
-import { paginateProducts, parseSort } from '@/lib/collection'
+import { paginateProducts, parseSort, parseFilters, deriveFacets } from '@/lib/collection'
 
 const MONO = 'var(--font-space-mono), monospace'
 const DISPLAY = 'var(--font-dela-gothic), sans-serif'
 
 interface SearchPageProps {
-  searchParams: Promise<{ q?: string; page?: string; sort?: string }>
+  searchParams: Promise<{
+    q?: string
+    page?: string
+    sort?: string
+    brand?: string
+    category?: string
+    minPrice?: string
+    maxPrice?: string
+    sale?: string
+  }>
 }
 
 export async function generateMetadata({ searchParams }: SearchPageProps): Promise<Metadata> {
@@ -32,8 +41,10 @@ export async function generateMetadata({ searchParams }: SearchPageProps): Promi
  * simplicity as the rest of the collection pages, no fuzzy matching.
  */
 export default async function SearchPage({ searchParams }: SearchPageProps) {
-  const { q, page, sort } = await searchParams
+  const sp = await searchParams
+  const { q, page, sort } = sp
   const query = q?.trim() ?? ''
+  const filters = parseFilters(sp)
 
   if (!query) {
     return (
@@ -59,7 +70,8 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
   const matches = allProducts.filter((product) =>
     product.name.toLowerCase().includes(query.toLowerCase()),
   )
-  const collection = paginateProducts(matches, { page, sort })
+  const facets = deriveFacets(matches, { includeCategories: true })
+  const collection = paginateProducts(matches, { page, sort, filters })
 
   return (
     <main style={{ backgroundColor: '#1B1B18' }}>
@@ -70,6 +82,8 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
         basePath="/search"
         collection={collection}
         sort={parseSort(sort)}
+        facets={facets}
+        activeFilters={filters}
         emptyMessage="NO PRODUCTS MATCH YOUR SEARCH"
         searchQuery={query}
       />
