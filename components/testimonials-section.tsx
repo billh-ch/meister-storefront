@@ -18,6 +18,26 @@ function StarRating({ rating }: { rating: number }) {
   )
 }
 
+/** Check-in-circle icon marking a review that links out to its verifiable source. */
+function VerifiedIcon() {
+  return (
+    <svg
+      width="14"
+      height="14"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <circle cx="12" cy="12" r="10" />
+      <path d="m8 12 3 3 5-6" />
+    </svg>
+  )
+}
+
 /** Single testimonial card */
 function TestimonialCard({ testimonial }: { testimonial: Testimonial }) {
   return (
@@ -36,13 +56,26 @@ function TestimonialCard({ testimonial }: { testimonial: Testimonial }) {
         </p>
       </blockquote>
 
-      <footer>
+      <footer className="flex items-center justify-between gap-3">
         <cite
           className="not-italic text-base text-white"
           style={{ fontFamily: 'var(--font-dela-gothic), sans-serif', fontWeight: 700 }}
         >
           {testimonial.name}
         </cite>
+
+        <a
+          href={testimonial.reviewUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex shrink-0 items-center gap-1.5 text-xs text-[#cccccc] transition-colors hover:text-[#FFD700]"
+          style={{ fontFamily: 'var(--font-space-mono), monospace' }}
+          aria-label={`Read the verified review from ${testimonial.name} on Google`}
+          title="Verified review. Opens the original on Google."
+        >
+          <VerifiedIcon />
+          <span>Verified</span>
+        </a>
       </footer>
     </article>
   )

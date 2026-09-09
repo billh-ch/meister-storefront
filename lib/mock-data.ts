@@ -255,6 +255,8 @@ export interface Testimonial {
   name: string
   rating: number
   quote: string
+  /** Link to the original public review, so visitors can verify it is genuine. */
+  reviewUrl: string
 }
 
 export interface AccordionItem {
@@ -582,23 +584,26 @@ export const categoryDetails: readonly CategoryDetail[] = [
 export const testimonials: Testimonial[] = [
   {
     id: 't1',
-    name: 'Nikos Papadopoulos',
+    name: 'Mattheos Kakaris',
     rating: 5,
     quote:
-      'Absolutely top-tier gear. The carbon fins transformed my freediving performance. Fast shipping from Athens and impeccable quality.',
+      'Excellent service and expertise in spearfishing. The advice helped me immensely in achieving better results. The products are of exceptional quality and very competitively priced.',
+    reviewUrl: 'https://share.google/OcBdLod9GIPpsYfCp',
   },
   {
     id: 't2',
-    name: 'Sofia Andreou',
+    name: 'Filip Andzelm',
     rating: 5,
     quote:
-      'I bought the roller speargun and it exceeded every expectation. The Meister team gave me expert advice and the equipment is exceptional.',
+      'I am now embarking on my spearfishing adventure and the guys have stood by me in everything I needed and guided me in the right choice of gear. Great people, very good prices, great variety for every budget. Well done, that is all I can say.',
+    reviewUrl: 'https://share.google/SgqUl4afisDRcQnTV',
   },
   {
     id: 't3',
-    name: 'Dimitris Vasilis',
+    name: 'Nondas Despotidis',
     rating: 5,
     quote:
-      'Best diving store in Greece. The wetsuit fits perfectly and arrived next day. Will definitely be my go-to for all future equipment.',
+      'Excellent shop of its kind, very kind and experienced staff, I highly recommend it.',
+    reviewUrl: 'https://share.google/6bnzgV86gKSDd9fTr',
   },
 ]
