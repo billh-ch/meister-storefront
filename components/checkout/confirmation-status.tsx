@@ -13,12 +13,38 @@ interface OrderSummary {
   number: string
 }
 
+interface GuestSignup {
+  first: string
+  last: string
+  email: string
+}
+
+interface ConfirmationStatusProps {
+  paymentIntentId: string
+  /** Present only for a guest checkout — drives the post-purchase
+   *  "create an account" invitation and keeps the account links away from a
+   *  page a guest can't load. */
+  guestSignup?: GuestSignup
+}
+
+/** Builds the prefilled sign-up URL for a guest who just ordered. */
+function guestSignupHref({ first, last, email }: GuestSignup): string {
+  const params = new URLSearchParams({ redirect_url: '/account' })
+  if (email) params.set('email', email)
+  if (first) params.set('first_name', first)
+  if (last) params.set('last_name', last)
+  return `/sign-up?${params.toString()}`
+}
+
 /**
  * Polls for the order the Stripe webhook creates asynchronously — payment
  * confirmation on the client can complete before the webhook has finished
  * creating the WooCommerce order, so this waits rather than assuming.
  */
-export default function ConfirmationStatus({ paymentIntentId }: { paymentIntentId: string }) {
+export default function ConfirmationStatus({
+  paymentIntentId,
+  guestSignup,
+}: ConfirmationStatusProps) {
   const [order, setOrder] = useState<OrderSummary | null>(null)
   const [gaveUp, setGaveUp] = useState(false)
 
@@ -61,6 +87,10 @@ export default function ConfirmationStatus({ paymentIntentId }: { paymentIntentI
     }
   }, [paymentIntentId])
 
+  const isGuest = Boolean(guestSignup)
+  const primaryHref = isGuest ? '/shop' : '/account'
+  const primaryLabel = isGuest ? 'CONTINUE SHOPPING' : 'VIEW YOUR ORDERS'
+
   if (order) {
     return (
       <>
@@ -68,10 +98,24 @@ export default function ConfirmationStatus({ paymentIntentId }: { paymentIntentI
           THANK YOU
         </h1>
         <p className="mt-3 text-sm text-[#999999]" style={{ fontFamily: MONO }}>
-          Order #{order.number} is confirmed.
+          Order #{order.number} is confirmed.{' '}
+          {isGuest ? 'A confirmation email is on its way.' : ''}
         </p>
-        <Link href="/account" className="btn-gold mt-6 inline-flex px-6 py-3 text-xs tracking-[0.1em] uppercase">
-          VIEW YOUR ORDERS
+
+        {guestSignup && (
+          <p className="mt-4 text-sm text-[#999999]" style={{ fontFamily: MONO }}>
+            <Link href={guestSignupHref(guestSignup)} className="text-[#FFD700] hover:underline">
+              Create an account
+            </Link>{' '}
+            to track this order and check out faster next time.
+          </p>
+        )}
+
+        <Link
+          href={primaryHref}
+          className="btn-gold mt-6 inline-flex px-6 py-3 text-xs tracking-[0.1em] uppercase"
+        >
+          {primaryLabel}
         </Link>
       </>
     )
@@ -84,11 +128,15 @@ export default function ConfirmationStatus({ paymentIntentId }: { paymentIntentI
           PAYMENT RECEIVED
         </h1>
         <p className="mt-3 text-sm text-[#999999]" style={{ fontFamily: MONO }}>
-          We&apos;re still finalizing your order — check your account in a moment, or we&apos;ll email your
-          confirmation shortly.
+          {isGuest
+            ? 'We are still finalizing your order — we will email your confirmation shortly.'
+            : 'We are still finalizing your order — check your account in a moment, or we will email your confirmation shortly.'}
         </p>
-        <Link href="/account" className="btn-gold mt-6 inline-flex px-6 py-3 text-xs tracking-[0.1em] uppercase">
-          GO TO YOUR ACCOUNT
+        <Link
+          href={primaryHref}
+          className="btn-gold mt-6 inline-flex px-6 py-3 text-xs tracking-[0.1em] uppercase"
+        >
+          {isGuest ? 'CONTINUE SHOPPING' : 'GO TO YOUR ACCOUNT'}
         </Link>
       </>
     )

@@ -1,6 +1,5 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
-import { redirect } from 'next/navigation'
 import Navbar from '@/components/navbar'
 import Footer from '@/components/footer'
 import SimpleBreadcrumbs from '@/components/collection/simple-breadcrumbs'
@@ -20,17 +19,15 @@ export const metadata: Metadata = {
 }
 
 /**
- * `proxy.ts` already gates this route, but that's the *only* mechanism —
- * this app's Next.js version has had proxy/middleware-bypass CVEs (see
- * `pnpm audit`), so this page checks the session itself too, matching
- * `app/account/page.tsx`'s own defense-in-depth guard rather than trusting
- * a single layer.
+ * Open to guests — no sign-in gate. A logged-in shopper gets their saved
+ * address prefilled and their order attached to their account; a guest fills
+ * in an extra email field (see `CheckoutForm`) and gets a WooCommerce guest
+ * order. The Server Action (`lib/checkout/actions.ts`) enforces the same
+ * split server-side.
  */
 export default async function CheckoutPage() {
   const [cart, session] = await Promise.all([getCart(), getSession()])
-  if (!session.wcCustomerId) {
-    redirect('/sign-in?redirect_url=/checkout')
-  }
+  const isGuest = !session.wcCustomerId
   const resolved = await resolveCartItems(cart)
 
   // Best-effort — a WooCommerce read failure here must never block checkout,
@@ -88,7 +85,19 @@ export default async function CheckoutPage() {
         ) : (
           <div className="flex flex-col gap-6 lg:flex-row lg:items-start">
             <div className="flex-1">
-              <CheckoutForm initialAddress={initialAddress} />
+              {isGuest && (
+                <p className="mb-4 text-xs text-[#999999]" style={{ fontFamily: MONO }}>
+                  Have an account?{' '}
+                  <Link
+                    href="/sign-in?redirect_url=/checkout"
+                    className="text-[#FFD700] hover:underline"
+                  >
+                    Sign in
+                  </Link>{' '}
+                  for faster checkout, or just continue below.
+                </p>
+              )}
+              <CheckoutForm initialAddress={initialAddress} isGuest={isGuest} />
             </div>
 
             <div className="w-full lg:w-80 lg:flex-shrink-0" style={{ border: '1px solid #444444' }}>

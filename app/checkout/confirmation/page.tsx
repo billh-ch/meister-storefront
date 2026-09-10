@@ -4,6 +4,7 @@ import Navbar from '@/components/navbar'
 import Footer from '@/components/footer'
 import ConfirmationStatus from '@/components/checkout/confirmation-status'
 import { getStripe } from '@/lib/stripe'
+import { getSession } from '@/lib/auth/session'
 
 const MONO = 'var(--font-space-mono), monospace'
 const DISPLAY = 'var(--font-dela-gothic), sans-serif'
@@ -28,8 +29,11 @@ interface ConfirmationPageProps {
 export default async function ConfirmationPage({ searchParams }: ConfirmationPageProps) {
   const { session_id: sessionId } = await searchParams
 
+  const isGuest = !(await getSession()).wcCustomerId
+
   let status: 'succeeded' | 'processing' | 'failed' | 'unknown' = 'unknown'
   let paymentIntentId: string | undefined
+  let guestName: { first: string; last: string; email: string } | undefined
 
   if (sessionId) {
     try {
@@ -40,6 +44,17 @@ export default async function ConfirmationPage({ searchParams }: ConfirmationPag
         typeof checkoutSession.payment_intent === 'string'
           ? checkoutSession.payment_intent
           : checkoutSession.payment_intent?.id
+
+      if (isGuest) {
+        guestName = {
+          first: checkoutSession.metadata?.ship_first_name ?? '',
+          last: checkoutSession.metadata?.ship_last_name ?? '',
+          email:
+            checkoutSession.customer_details?.email ??
+            checkoutSession.metadata?.ship_email ??
+            '',
+        }
+      }
 
       if (checkoutSession.payment_status === 'paid' || checkoutSession.payment_status === 'no_payment_required') {
         status = 'succeeded'
@@ -59,7 +74,10 @@ export default async function ConfirmationPage({ searchParams }: ConfirmationPag
 
       <div className="mx-auto max-w-xl px-4 py-24 text-center sm:px-6">
         {status === 'succeeded' && paymentIntentId ? (
-          <ConfirmationStatus paymentIntentId={paymentIntentId} />
+          <ConfirmationStatus
+            paymentIntentId={paymentIntentId}
+            guestSignup={guestName}
+          />
         ) : status === 'processing' ? (
           <>
             <h1 className="text-2xl text-white sm:text-3xl" style={{ fontFamily: DISPLAY, fontWeight: 800 }}>

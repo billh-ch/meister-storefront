@@ -11,6 +11,7 @@ export function toWcAddress(input: AddressInput): WcAddress {
     postcode: input.postcode,
     country: input.country,
     phone: input.phone,
+    ...(input.email ? { email: input.email } : {}),
   }
 }
 

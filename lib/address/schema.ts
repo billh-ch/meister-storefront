@@ -13,6 +13,10 @@ export const addressSchema = z.object({
   postcode: z.string().min(1),
   country: z.string().min(2).max(2).default('GR'),
   phone: z.string().min(1),
+  /** Only collected at guest checkout — logged-in orders take the email from
+   *  the WooCommerce customer record. Optional here so the account address
+   *  form (which never collects it) still validates. */
+  email: z.string().email().optional(),
 })
 
 export type AddressInput = z.infer<typeof addressSchema>

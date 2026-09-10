@@ -23,6 +23,7 @@ function addressFromMetadata(metadata: Stripe.Metadata): WcAddress {
     postcode: metadata.ship_postcode ?? '',
     country: metadata.ship_country ?? '',
     phone: metadata.ship_phone ?? '',
+    email: metadata.ship_email || undefined,
   }
 }
 
@@ -90,16 +91,21 @@ export async function POST(request: Request) {
 
   try {
     const metadata = checkoutSession.metadata ?? {}
-    const wcCustomerId = Number(metadata.wcCustomerId)
+    // Blank / absent for a guest checkout → 0 → a real WooCommerce guest
+    // order keyed off the billing email.
+    const wcCustomerId = metadata.wcCustomerId ? Number(metadata.wcCustomerId) : 0
     const lines = JSON.parse(metadata.cartLines ?? '[]') as CartLineMeta[]
     const address = addressFromMetadata(metadata)
 
-    if (!wcCustomerId || lines.length === 0) {
-      throw new Error('Checkout Session metadata is missing required checkout data')
+    if (lines.length === 0) {
+      throw new Error('Checkout Session metadata is missing the cart contents')
+    }
+    if (!wcCustomerId && !address.email) {
+      throw new Error('Guest checkout Session metadata is missing the billing email')
     }
 
     const order = await createOrder({
-      customerId: wcCustomerId,
+      customerId: wcCustomerId || undefined,
       lineItems: lines.map((line) => ({
         productId: Number(line.p),
         variationId: line.v ? Number(line.v) : undefined,
@@ -109,6 +115,15 @@ export async function POST(request: Request) {
       shipping: address,
       transactionId: paymentIntentId,
     })
+
+    // Lets the confirmation page resolve a guest's order — it has no session
+    // to scope `getOrdersByCustomer` by. Short TTL: only needed for the
+    // minute or two the confirmation page polls.
+    await redis.set(
+      `stripe:order:${paymentIntentId}`,
+      JSON.stringify({ id: order.id, number: order.number }),
+      { ex: 60 * 60 * 24 },
+    )
 
     // Marked 'done' only after real success — a failed attempt below
     // releases the lock instead, so Stripe's own retry can attempt again.

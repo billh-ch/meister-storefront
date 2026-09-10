@@ -7,7 +7,21 @@ import { getSafeRedirectUrl } from '@/lib/auth/safe-redirect'
 
 const MONO = 'var(--font-space-mono), monospace'
 
-export default function SignUpForm({ redirectUrl }: { redirectUrl: string }) {
+interface SignUpFormProps {
+  redirectUrl: string
+  /** Prefill for a guest coming from the post-purchase "create an account"
+   *  link — their name and email are already known from the order. */
+  defaultEmail?: string
+  defaultFirstName?: string
+  defaultLastName?: string
+}
+
+export default function SignUpForm({
+  redirectUrl,
+  defaultEmail = '',
+  defaultFirstName = '',
+  defaultLastName = '',
+}: SignUpFormProps) {
   const router = useRouter()
   const [isPending, startTransition] = useTransition()
   const [error, setError] = useState('')
@@ -50,6 +64,7 @@ export default function SignUpForm({ redirectUrl }: { redirectUrl: string }) {
             type="text"
             required
             autoComplete="given-name"
+            defaultValue={defaultFirstName}
             className="bg-transparent px-3 py-2 text-sm text-white outline-none"
             style={{ border: '1px solid #444444', fontFamily: MONO }}
           />
@@ -68,6 +83,7 @@ export default function SignUpForm({ redirectUrl }: { redirectUrl: string }) {
             type="text"
             required
             autoComplete="family-name"
+            defaultValue={defaultLastName}
             className="bg-transparent px-3 py-2 text-sm text-white outline-none"
             style={{ border: '1px solid #444444', fontFamily: MONO }}
           />
@@ -88,6 +104,7 @@ export default function SignUpForm({ redirectUrl }: { redirectUrl: string }) {
           type="email"
           required
           autoComplete="email"
+          defaultValue={defaultEmail}
           className="bg-transparent px-3 py-2 text-sm text-white outline-none"
           style={{ border: '1px solid #444444', fontFamily: MONO }}
         />

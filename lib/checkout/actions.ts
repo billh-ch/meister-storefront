@@ -32,13 +32,17 @@ export async function createCheckoutSessionAction(
 ): Promise<CreateCheckoutSessionResult> {
   const session = await getSession()
   const wcCustomerId = session.wcCustomerId
-  if (!wcCustomerId) {
-    return { error: 'Please sign in to continue.' }
-  }
+  const isGuest = !wcCustomerId
 
   const parsed = addressSchema.safeParse(input)
   if (!parsed.success) {
     return { error: 'Please fill in every required field.' }
+  }
+
+  // A logged-in order takes its email from the WooCommerce customer record;
+  // a guest order has nowhere else to get it.
+  if (isGuest && !parsed.data.email) {
+    return { error: 'Please enter your email address.' }
   }
 
   const cart = await getCart()
@@ -52,10 +56,13 @@ export async function createCheckoutSessionAction(
   }
 
   // Best-effort — remembers the address for next time, but must never block
-  // or fail checkout if the write itself fails.
-  updateWcCustomerAddress(wcCustomerId, toWcAddress(parsed.data)).catch((error) => {
-    console.error('[account] Failed to save address at checkout:', error)
-  })
+  // or fail checkout if the write itself fails. Guests have no customer
+  // record to save it to, so this is skipped for them.
+  if (wcCustomerId) {
+    updateWcCustomerAddress(wcCustomerId, toWcAddress(parsed.data)).catch((error) => {
+      console.error('[account] Failed to save address at checkout:', error)
+    })
+  }
 
   const shipping = resolved.subtotal >= FREE_SHIPPING_THRESHOLD ? 0 : FLAT_SHIPPING_RATE
 
@@ -97,11 +104,18 @@ export async function createCheckoutSessionAction(
     const checkoutSession = await stripe.checkout.sessions.create({
       mode: 'payment',
       line_items: lineItems,
+      // Guests give Stripe their email so it can send them a receipt and so
+      // the confirmation page can recover it; logged-in shoppers already
+      // have an account email on file.
+      ...(parsed.data.email ? { customer_email: parsed.data.email } : {}),
       success_url: `${baseUrl}/checkout/confirmation?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${baseUrl}/checkout`,
       metadata: {
-        wcCustomerId: String(wcCustomerId),
+        // Empty string for a guest — the webhook reads this back and treats
+        // a blank/zero value as "guest order" (customer_id 0 in WooCommerce).
+        wcCustomerId: wcCustomerId ? String(wcCustomerId) : '',
         cartLines: JSON.stringify(cartLines),
+        ship_email: parsed.data.email ?? '',
         ship_first_name: parsed.data.firstName,
         ship_last_name: parsed.data.lastName,
         ship_address1: parsed.data.address1,

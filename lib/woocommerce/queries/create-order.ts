@@ -9,10 +9,16 @@ export interface WcAddress {
   postcode: string
   country: string
   phone?: string
+  /** Guest orders need the email on the billing address — a logged-in order
+   *  gets it from the WooCommerce customer record instead. */
+  email?: string
 }
 
 export interface CreateOrderInput {
-  customerId: number
+  /** Omitted / undefined for a guest checkout — sent to WooCommerce as
+   *  `customer_id: 0`, which creates a real guest order keyed off
+   *  `billing.email`. */
+  customerId?: number
   lineItems: { productId: number; variationId?: number; quantity: number }[]
   billing: WcAddress
   shipping: WcAddress
@@ -39,7 +45,7 @@ export interface WcCreatedOrder {
  */
 export async function createOrder(input: CreateOrderInput): Promise<WcCreatedOrder> {
   return wcMutate<WcCreatedOrder>('/orders', 'POST', {
-    customer_id: input.customerId,
+    customer_id: input.customerId ?? 0,
     line_items: input.lineItems.map((item) => ({
       product_id: item.productId,
       variation_id: item.variationId,

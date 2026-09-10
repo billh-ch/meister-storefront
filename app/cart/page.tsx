@@ -7,7 +7,6 @@ import SimpleBreadcrumbs from '@/components/collection/simple-breadcrumbs'
 import CartLineControls from '@/components/cart/cart-line-controls'
 import { getCart } from '@/lib/cart/cookie'
 import { resolveCartItems } from '@/lib/cart/resolve'
-import { getSession } from '@/lib/auth/session'
 import { formatPrice } from '@/lib/mock-data'
 
 const MONO = 'var(--font-space-mono), monospace'
@@ -18,16 +17,15 @@ export const metadata: Metadata = {
 }
 
 /**
- * Static path segment, publicly viewable — no sign-in required to see or
- * edit the cart, only to check out (Phase 2/3 gate `/checkout` itself).
+ * Static path segment, publicly viewable — no sign-in required to see or edit
+ * the cart, and none to check out either: `/checkout` supports guest orders.
  */
 export default async function CartPage() {
   const cart = await getCart()
   const resolved = await resolveCartItems(cart)
   const hasPurchasableLines = resolved.lines.some((line) => line.purchasable)
 
-  const session = await getSession()
-  const checkoutHref = session.wcCustomerId ? '/checkout' : '/sign-in?redirect_url=/checkout'
+  const checkoutHref = '/checkout'
 
   return (
     <main style={{ backgroundColor: '#1B1B18' }}>

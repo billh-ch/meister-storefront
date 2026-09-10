@@ -12,11 +12,16 @@ export const metadata: Metadata = {
 }
 
 interface SignUpPageProps {
-  searchParams: Promise<{ redirect_url?: string }>
+  searchParams: Promise<{
+    redirect_url?: string
+    email?: string
+    first_name?: string
+    last_name?: string
+  }>
 }
 
 export default async function SignUpPage({ searchParams }: SignUpPageProps) {
-  const { redirect_url } = await searchParams
+  const { redirect_url, email, first_name, last_name } = await searchParams
 
   return (
     <main style={{ backgroundColor: '#1B1B18' }}>
@@ -29,7 +34,12 @@ export default async function SignUpPage({ searchParams }: SignUpPageProps) {
           CREATE ACCOUNT
         </h1>
 
-        <SignUpForm redirectUrl={redirect_url ?? '/account'} />
+        <SignUpForm
+          redirectUrl={redirect_url ?? '/account'}
+          defaultEmail={email ?? ''}
+          defaultFirstName={first_name ?? ''}
+          defaultLastName={last_name ?? ''}
+        />
 
         <p className="text-sm text-[#999999]" style={{ fontFamily: MONO }}>
           Already have an account?{' '}

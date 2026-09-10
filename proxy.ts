@@ -3,11 +3,13 @@ import { getIronSession } from 'iron-session'
 import { SESSION_COOKIE_NAME, getSessionPassword, type SessionData } from '@/lib/auth/session-options'
 
 /**
- * Gates `/checkout` and `/account` — everything else (browsing, search, the
- * cart itself) stays public per the approved plan. Named `proxy` per this
- * Next.js version's file convention (renamed from `middleware` in v16.0.0 —
- * see `node_modules/next/dist/docs/01-app/03-api-reference/03-file-
- * conventions/proxy.md`).
+ * Gates `/account` only — everything else (browsing, search, the cart, and
+ * `/checkout` itself) stays public. Checkout supports guest purchases, so it
+ * must not require a session; `lib/checkout/actions.ts` and
+ * `app/checkout/page.tsx` handle the logged-in vs guest split themselves.
+ * Named `proxy` per this Next.js version's file convention (renamed from
+ * `middleware` in v16.0.0 — see `node_modules/next/dist/docs/01-app/03-api-
+ * reference/03-file-conventions/proxy.md`).
  *
  * Note (from the same docs): Server Actions are POST requests to the route
  * that defines them, not separate routes — a matcher change could silently
@@ -32,5 +34,5 @@ export async function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/checkout/:path*', '/account/:path*'],
+  matcher: ['/account/:path*'],
 }

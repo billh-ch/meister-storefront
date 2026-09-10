@@ -12,5 +12,6 @@ export function addressFromFormData(formData: FormData): AddressInput {
     postcode: String(formData.get('postcode') ?? ''),
     country: String(formData.get('country') ?? 'GR'),
     phone: String(formData.get('phone') ?? ''),
+    email: String(formData.get('email') ?? '') || undefined,
   }
 }
