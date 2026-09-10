@@ -6,6 +6,7 @@ import SimpleBreadcrumbs from '@/components/collection/simple-breadcrumbs'
 import CheckoutForm from '@/components/checkout/checkout-form'
 import { getCart } from '@/lib/cart/cookie'
 import { resolveCartItems } from '@/lib/cart/resolve'
+import { formatVariationLabel } from '@/lib/cart/variation-label'
 import { FLAT_SHIPPING_RATE, FREE_SHIPPING_THRESHOLD, formatPrice } from '@/lib/mock-data'
 import { getSession } from '@/lib/auth/session'
 import { getWcCustomerById } from '@/lib/woocommerce'
@@ -108,8 +109,15 @@ export default async function CheckoutPage() {
                     className="flex items-start justify-between gap-3 text-xs"
                     style={{ fontFamily: MONO }}
                   >
-                    <span className="text-[#CCCCCC]">
-                      {line.quantity} × {line.name}
+                    <span className="flex min-w-0 flex-col text-[#CCCCCC]">
+                      <span>
+                        {line.quantity} × {line.name}
+                      </span>
+                      {Object.keys(line.attributes).length > 0 && (
+                        <span className="mt-0.5 text-[#999999]">
+                          {formatVariationLabel(line.attributes)}
+                        </span>
+                      )}
                     </span>
                     <span className="whitespace-nowrap text-white">
                       {formatPrice(line.unitPrice * line.quantity)}

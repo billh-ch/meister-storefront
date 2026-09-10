@@ -7,6 +7,7 @@ import SimpleBreadcrumbs from '@/components/collection/simple-breadcrumbs'
 import CartLineControls from '@/components/cart/cart-line-controls'
 import { getCart } from '@/lib/cart/cookie'
 import { resolveCartItems } from '@/lib/cart/resolve'
+import { formatVariationLabel } from '@/lib/cart/variation-label'
 import { formatPrice } from '@/lib/mock-data'
 
 const MONO = 'var(--font-space-mono), monospace'
@@ -96,9 +97,7 @@ export default async function CartPage() {
                         </Link>
                         {Object.keys(line.attributes).length > 0 && (
                           <p className="mt-1 text-xs text-[#999999]" style={{ fontFamily: MONO }}>
-                            {Object.entries(line.attributes)
-                              .map(([name, value]) => `${name}: ${value}`)
-                              .join(' · ')}
+                            {formatVariationLabel(line.attributes)}
                           </p>
                         )}
                         {!line.purchasable && (

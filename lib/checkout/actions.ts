@@ -3,6 +3,7 @@
 import { getSession } from '@/lib/auth/session'
 import { getCart } from '@/lib/cart/cookie'
 import { resolveCartItems } from '@/lib/cart/resolve'
+import { formatVariationLabel } from '@/lib/cart/variation-label'
 import { getStripe } from '@/lib/stripe'
 import { getBaseUrl } from '@/lib/url'
 import { FLAT_SHIPPING_RATE, FREE_SHIPPING_THRESHOLD } from '@/lib/mock-data'
@@ -77,14 +78,19 @@ export async function createCheckoutSessionAction(
     q: line.quantity,
   }))
 
-  const lineItems = resolved.lines.map((line) => ({
-    price_data: {
-      currency: 'eur',
-      product_data: { name: line.name },
-      unit_amount: Math.round(line.unitPrice * 100),
-    },
-    quantity: line.quantity,
-  }))
+  const lineItems = resolved.lines.map((line) => {
+    // Show the chosen variation on Stripe's hosted page and the receipt too,
+    // so the last screen before payment matches our own checkout summary.
+    const variation = formatVariationLabel(line.attributes, ', ')
+    return {
+      price_data: {
+        currency: 'eur',
+        product_data: { name: variation ? `${line.name} (${variation})` : line.name },
+        unit_amount: Math.round(line.unitPrice * 100),
+      },
+      quantity: line.quantity,
+    }
+  })
 
   if (shipping > 0) {
     lineItems.push({
