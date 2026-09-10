@@ -20,10 +20,28 @@ const wcIdSchema = z.string().regex(/^\d+$/, 'Invalid id')
  * `lib/cart/resolve.ts` and `lib/cart/actions.ts`). This schema alone can
  * never let a tampered cookie misprice anything.
  */
+/**
+ * The full set of variation-axis choices the shopper made on the PDP, keyed
+ * by attribute name (`{ "Σκληρότητα": "M", "Skin Color": "Πράσινο - Green" }`).
+ *
+ * WooCommerce only pins *some* axes on a variation — any axis left as "Any …"
+ * in WP admin is absent from the variation object, so `variationId` alone
+ * loses those picks. Storing the shopper's whole selection here keeps the
+ * cart, checkout summary, and order line honest about what was actually
+ * chosen. Bounded (12 keys, 120 chars each) so the cart cookie stays small;
+ * values are re-checked against the live product in `addToCartAction`.
+ */
+const selectedOptionsSchema = z
+  .record(z.string().min(1).max(120), z.string().min(1).max(120))
+  .refine((options) => Object.keys(options).length <= 12, {
+    message: 'Too many options',
+  })
+
 export const cartItemSchema = z.object({
   productId: wcIdSchema,
   variationId: wcIdSchema.optional(),
   quantity: z.number().int().positive().max(99),
+  selectedOptions: selectedOptionsSchema.optional(),
 })
 
 export const cartSchema = z.array(cartItemSchema).max(50)

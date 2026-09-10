@@ -68,15 +68,35 @@ export async function createCheckoutSessionAction(
   const shipping = resolved.subtotal >= FREE_SHIPPING_THRESHOLD ? 0 : FLAT_SHIPPING_RATE
 
   // Metadata carries only *identity* — product/variation ids, quantities,
-  // and the shipping address — never a price. WooCommerce prices every
-  // line item itself from live product data at order-creation time, so a
-  // stale/tampered metadata value can reference a bad id but can never
-  // dictate what gets charged.
-  const cartLines = resolved.lines.map((line) => ({
-    p: line.productId,
-    v: line.variationId,
-    q: line.quantity,
-  }))
+  // the shopper's axis picks, and the shipping address — never a price.
+  // WooCommerce prices every line item itself from live product data at
+  // order-creation time, so a stale/tampered metadata value can reference a
+  // bad id but can never dictate what gets charged.
+  //
+  // `a` is only the axes the variation does NOT pin ("Any …" axes like skin
+  // colour / hardness) — WooCommerce already records the pinned ones on the
+  // order from `variation_id`, so this is the minimum the shop needs to
+  // fulfil the right item.
+  const cartLines = resolved.lines.map((line) => {
+    const extraOptions = Object.fromEntries(
+      Object.entries(line.attributes).filter(([name]) => !(name in line.variantAttributes)),
+    )
+    return {
+      p: line.productId,
+      v: line.variationId,
+      q: line.quantity,
+      ...(Object.keys(extraOptions).length > 0 ? { a: extraOptions } : {}),
+    }
+  })
+
+  // Stripe caps a metadata value at 500 chars. If a big multi-axis cart
+  // would blow that, drop the `a` fields rather than the order — our own
+  // checkout summary still shows everything from the cookie.
+  const cartLinesJson = JSON.stringify(cartLines)
+  const safeCartLinesJson =
+    cartLinesJson.length <= 480
+      ? cartLinesJson
+      : JSON.stringify(cartLines.map((line) => ({ p: line.p, v: line.v, q: line.q })))
 
   const lineItems = resolved.lines.map((line) => {
     // Show the chosen variation on Stripe's hosted page and the receipt too,
@@ -120,7 +140,7 @@ export async function createCheckoutSessionAction(
         // Empty string for a guest — the webhook reads this back and treats
         // a blank/zero value as "guest order" (customer_id 0 in WooCommerce).
         wcCustomerId: wcCustomerId ? String(wcCustomerId) : '',
-        cartLines: JSON.stringify(cartLines),
+        cartLines: safeCartLinesJson,
         ship_email: parsed.data.email ?? '',
         ship_first_name: parsed.data.firstName,
         ship_last_name: parsed.data.lastName,

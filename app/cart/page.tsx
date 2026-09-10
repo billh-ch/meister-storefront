@@ -8,6 +8,7 @@ import CartLineControls from '@/components/cart/cart-line-controls'
 import { getCart } from '@/lib/cart/cookie'
 import { resolveCartItems } from '@/lib/cart/resolve'
 import { formatVariationLabel } from '@/lib/cart/variation-label'
+import { cartLineKey } from '@/lib/cart/line-key'
 import { formatPrice } from '@/lib/mock-data'
 
 const MONO = 'var(--font-space-mono), monospace'
@@ -72,7 +73,7 @@ export default async function CartPage() {
 
               {resolved.lines.map((line) => (
                 <div
-                  key={`${line.productId}:${line.variationId ?? ''}`}
+                  key={cartLineKey(line)}
                   className="flex gap-4 p-4"
                   style={{ borderBottom: '1px solid #222222' }}
                 >
@@ -120,6 +121,7 @@ export default async function CartPage() {
                     <CartLineControls
                       productId={line.productId}
                       variationId={line.variationId}
+                      selectedOptions={line.selectedOptions}
                       quantity={line.quantity}
                     />
                   </div>

@@ -7,6 +7,7 @@ import CheckoutForm from '@/components/checkout/checkout-form'
 import { getCart } from '@/lib/cart/cookie'
 import { resolveCartItems } from '@/lib/cart/resolve'
 import { formatVariationLabel } from '@/lib/cart/variation-label'
+import { cartLineKey } from '@/lib/cart/line-key'
 import { FLAT_SHIPPING_RATE, FREE_SHIPPING_THRESHOLD, formatPrice } from '@/lib/mock-data'
 import { getSession } from '@/lib/auth/session'
 import { getWcCustomerById } from '@/lib/woocommerce'
@@ -105,7 +106,7 @@ export default async function CheckoutPage() {
               <div className="flex flex-col gap-3 p-4">
                 {resolved.lines.map((line) => (
                   <div
-                    key={`${line.productId}:${line.variationId ?? ''}`}
+                    key={cartLineKey(line)}
                     className="flex items-start justify-between gap-3 text-xs"
                     style={{ fontFamily: MONO }}
                   >

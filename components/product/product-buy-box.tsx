@@ -225,6 +225,11 @@ export default function ProductBuyBox({ product }: ProductBuyBoxProps) {
         productId: product.id,
         variationId: activeVariant?.id,
         quantity,
+        // The full axis selection — WooCommerce pins only some axes on the
+        // variation, so `variationId` alone would drop the rest ("Any …"
+        // axes like skin colour / hardness). Only meaningful for variable
+        // products; a simple product has no axes so this is `{}`.
+        selectedOptions: axisNames.length > 0 ? selected : undefined,
       })
       if (result.ok) {
         setConfirmation(`Added to cart — ${quantity} × ${product.name}`)

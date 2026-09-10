@@ -14,12 +14,23 @@ export interface WcAddress {
   email?: string
 }
 
+export interface CreateOrderLineItem {
+  productId: number
+  variationId?: number
+  quantity: number
+  /** Extra choices the variation doesn't already carry (e.g. an "Any …" skin
+   *  colour the shopper picked) — surfaced on the order so the shop can pick
+   *  and pack the right item. `key`/`value` is WooCommerce's line-item meta
+   *  shape; `key` shows as the label in the admin. */
+  metaData?: { key: string; value: string }[]
+}
+
 export interface CreateOrderInput {
   /** Omitted / undefined for a guest checkout — sent to WooCommerce as
    *  `customer_id: 0`, which creates a real guest order keyed off
    *  `billing.email`. */
   customerId?: number
-  lineItems: { productId: number; variationId?: number; quantity: number }[]
+  lineItems: CreateOrderLineItem[]
   billing: WcAddress
   shipping: WcAddress
   transactionId: string
@@ -50,6 +61,7 @@ export async function createOrder(input: CreateOrderInput): Promise<WcCreatedOrd
       product_id: item.productId,
       variation_id: item.variationId,
       quantity: item.quantity,
+      ...(item.metaData && item.metaData.length > 0 ? { meta_data: item.metaData } : {}),
     })),
     billing: input.billing,
     shipping: input.shipping,

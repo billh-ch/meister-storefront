@@ -11,6 +11,9 @@ interface CartLineMeta {
   p: string
   v?: string
   q: number
+  /** Axis picks the variation itself doesn't pin ("Any …" axes), so the
+   *  shop can see the full choice on the order. */
+  a?: Record<string, string>
 }
 
 function addressFromMetadata(metadata: Stripe.Metadata): WcAddress {
@@ -110,6 +113,10 @@ export async function POST(request: Request) {
         productId: Number(line.p),
         variationId: line.v ? Number(line.v) : undefined,
         quantity: line.q,
+        metaData:
+          line.a && Object.keys(line.a).length > 0
+            ? Object.entries(line.a).map(([key, value]) => ({ key, value }))
+            : undefined,
       })),
       billing: address,
       shipping: address,

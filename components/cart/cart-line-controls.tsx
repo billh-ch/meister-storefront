@@ -8,6 +8,9 @@ import { notifyCartUpdated } from '@/lib/cart/client-events'
 interface CartLineControlsProps {
   productId: string
   variationId?: string
+  /** Carried back into the cart actions so they address this exact line —
+   *  two lines can share a `variationId` but differ on "Any …" axis picks. */
+  selectedOptions?: Record<string, string>
   quantity: number
 }
 
@@ -16,6 +19,7 @@ const MONO = 'var(--font-space-mono), monospace'
 export default function CartLineControls({
   productId,
   variationId,
+  selectedOptions,
   quantity,
 }: CartLineControlsProps) {
   const [isPending, startTransition] = useTransition()
@@ -23,14 +27,14 @@ export default function CartLineControls({
 
   const handleQuantityChange = (next: number) => {
     startTransition(async () => {
-      await updateQuantityAction({ productId, variationId, quantity: next })
+      await updateQuantityAction({ productId, variationId, selectedOptions, quantity: next })
       notifyCartUpdated()
     })
   }
 
   const handleRemove = () => {
     startTransition(async () => {
-      await removeFromCartAction({ productId, variationId })
+      await removeFromCartAction({ productId, variationId, selectedOptions })
       notifyCartUpdated()
     })
   }
