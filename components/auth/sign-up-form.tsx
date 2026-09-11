@@ -50,7 +50,7 @@ export default function SignUpForm({
   return (
     <form onSubmit={handleSubmit} className="flex flex-col gap-4">
       <div className="flex gap-4">
-        <div className="flex flex-1 flex-col gap-1">
+        <div className="flex min-w-0 flex-1 flex-col gap-1">
           <label
             htmlFor="sign-up-first-name"
             className="text-xs font-bold tracking-wide text-white uppercase"
@@ -65,11 +65,11 @@ export default function SignUpForm({
             required
             autoComplete="given-name"
             defaultValue={defaultFirstName}
-            className="bg-transparent px-3 py-2 text-sm text-white outline-none"
+            className="w-full min-w-0 bg-transparent px-3 py-2 text-sm text-white outline-none"
             style={{ border: '1px solid #444444', fontFamily: MONO }}
           />
         </div>
-        <div className="flex flex-1 flex-col gap-1">
+        <div className="flex min-w-0 flex-1 flex-col gap-1">
           <label
             htmlFor="sign-up-last-name"
             className="text-xs font-bold tracking-wide text-white uppercase"
@@ -84,7 +84,7 @@ export default function SignUpForm({
             required
             autoComplete="family-name"
             defaultValue={defaultLastName}
-            className="bg-transparent px-3 py-2 text-sm text-white outline-none"
+            className="w-full min-w-0 bg-transparent px-3 py-2 text-sm text-white outline-none"
             style={{ border: '1px solid #444444', fontFamily: MONO }}
           />
         </div>
@@ -105,7 +105,7 @@ export default function SignUpForm({
           required
           autoComplete="email"
           defaultValue={defaultEmail}
-          className="bg-transparent px-3 py-2 text-sm text-white outline-none"
+          className="w-full min-w-0 bg-transparent px-3 py-2 text-sm text-white outline-none"
           style={{ border: '1px solid #444444', fontFamily: MONO }}
         />
       </div>
@@ -125,7 +125,7 @@ export default function SignUpForm({
           required
           minLength={8}
           autoComplete="new-password"
-          className="bg-transparent px-3 py-2 text-sm text-white outline-none"
+          className="w-full min-w-0 bg-transparent px-3 py-2 text-sm text-white outline-none"
           style={{ border: '1px solid #444444', fontFamily: MONO }}
         />
         <p className="text-xs text-[#999999]" style={{ fontFamily: MONO }}>

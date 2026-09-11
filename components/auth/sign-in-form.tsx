@@ -46,7 +46,7 @@ export default function SignInForm({ redirectUrl }: { redirectUrl: string }) {
           type="email"
           required
           autoComplete="email"
-          className="bg-transparent px-3 py-2 text-sm text-white outline-none"
+          className="w-full min-w-0 bg-transparent px-3 py-2 text-sm text-white outline-none"
           style={{ border: '1px solid #444444', fontFamily: MONO }}
         />
       </div>
@@ -65,7 +65,7 @@ export default function SignInForm({ redirectUrl }: { redirectUrl: string }) {
           type="password"
           required
           autoComplete="current-password"
-          className="bg-transparent px-3 py-2 text-sm text-white outline-none"
+          className="w-full min-w-0 bg-transparent px-3 py-2 text-sm text-white outline-none"
           style={{ border: '1px solid #444444', fontFamily: MONO }}
         />
       </div>

@@ -2,7 +2,11 @@ import type { AddressInput } from '@/lib/address/schema'
 
 const MONO = 'var(--font-space-mono), monospace'
 
-const FIELD_CLASS = 'bg-transparent px-3 py-2 text-sm text-white outline-none'
+// `w-full` + `min-w-0`: an <input> has a browser-default intrinsic minimum
+// width (~20 characters) that a flex item won't shrink below on its own —
+// on a narrow phone that pushed the two-column rows below (name, city/
+// postcode, country/phone) past the viewport edge.
+const FIELD_CLASS = 'w-full min-w-0 bg-transparent px-3 py-2 text-sm text-white outline-none'
 const FIELD_STYLE = { border: '1px solid #444444', fontFamily: MONO }
 const LABEL_CLASS = 'text-xs font-bold tracking-wide text-white uppercase'
 
@@ -19,7 +23,7 @@ export default function AddressFields({ defaultValues, idPrefix }: AddressFields
   return (
     <>
       <div className="flex gap-4">
-        <div className="flex flex-1 flex-col gap-1">
+        <div className="flex min-w-0 flex-1 flex-col gap-1">
           <label htmlFor={`${idPrefix}-first-name`} className={LABEL_CLASS} style={{ fontFamily: MONO }}>
             First name
           </label>
@@ -34,7 +38,7 @@ export default function AddressFields({ defaultValues, idPrefix }: AddressFields
             style={FIELD_STYLE}
           />
         </div>
-        <div className="flex flex-1 flex-col gap-1">
+        <div className="flex min-w-0 flex-1 flex-col gap-1">
           <label htmlFor={`${idPrefix}-last-name`} className={LABEL_CLASS} style={{ fontFamily: MONO }}>
             Last name
           </label>
@@ -83,7 +87,7 @@ export default function AddressFields({ defaultValues, idPrefix }: AddressFields
       </div>
 
       <div className="flex gap-4">
-        <div className="flex flex-1 flex-col gap-1">
+        <div className="flex min-w-0 flex-1 flex-col gap-1">
           <label htmlFor={`${idPrefix}-city`} className={LABEL_CLASS} style={{ fontFamily: MONO }}>
             City
           </label>
@@ -98,7 +102,7 @@ export default function AddressFields({ defaultValues, idPrefix }: AddressFields
             style={FIELD_STYLE}
           />
         </div>
-        <div className="flex w-32 flex-col gap-1">
+        <div className="flex w-24 min-w-0 flex-col gap-1 sm:w-32">
           <label htmlFor={`${idPrefix}-postcode`} className={LABEL_CLASS} style={{ fontFamily: MONO }}>
             Postcode
           </label>
@@ -116,7 +120,7 @@ export default function AddressFields({ defaultValues, idPrefix }: AddressFields
       </div>
 
       <div className="flex gap-4">
-        <div className="flex w-24 flex-col gap-1">
+        <div className="flex w-20 min-w-0 flex-col gap-1 sm:w-24">
           <label htmlFor={`${idPrefix}-country`} className={LABEL_CLASS} style={{ fontFamily: MONO }}>
             Country
           </label>
@@ -132,7 +136,7 @@ export default function AddressFields({ defaultValues, idPrefix }: AddressFields
             style={FIELD_STYLE}
           />
         </div>
-        <div className="flex flex-1 flex-col gap-1">
+        <div className="flex min-w-0 flex-1 flex-col gap-1">
           <label htmlFor={`${idPrefix}-phone`} className={LABEL_CLASS} style={{ fontFamily: MONO }}>
             Phone
           </label>

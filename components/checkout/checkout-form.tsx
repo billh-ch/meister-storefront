@@ -56,7 +56,7 @@ export default function CheckoutForm({ initialAddress, isGuest = false }: Checko
             type="email"
             required
             autoComplete="email"
-            className="bg-transparent px-3 py-2 text-sm text-white outline-none"
+            className="w-full min-w-0 bg-transparent px-3 py-2 text-sm text-white outline-none"
             style={{ border: '1px solid #444444', fontFamily: MONO }}
           />
         </div>

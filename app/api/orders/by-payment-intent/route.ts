@@ -28,7 +28,17 @@ export async function GET(request: Request) {
     return NextResponse.json({ found: false })
   }
 
-  const match = (await findByCustomer(paymentIntentId)) ?? (await findInRedis(paymentIntentId))
+  // Scoped strictly on session presence, not on "no match found" — falling
+  // through to the unscoped Redis lookup for any signed-in caller whose own
+  // orders simply didn't contain this PaymentIntent would let one shopper
+  // look up another shopper's order id/number just by knowing (or guessing)
+  // their PaymentIntent id. Only a true guest (no session at all) has no
+  // other way to be scoped, matching the webhook's own stated intent for
+  // that Redis record.
+  const session = await getSession()
+  const match = session.wcCustomerId
+    ? await findByCustomer(session.wcCustomerId, paymentIntentId)
+    : await findInRedis(paymentIntentId)
 
   if (!match) {
     return NextResponse.json({ found: false })
@@ -40,13 +50,11 @@ export async function GET(request: Request) {
 }
 
 /** Signed-in shopper: scan their own recent orders for the transaction id. */
-async function findByCustomer(paymentIntentId: string): Promise<OrderSummary | null> {
-  const session = await getSession()
-  if (!session.wcCustomerId) {
-    return null
-  }
-
-  const orders = await getOrdersByCustomer(session.wcCustomerId)
+async function findByCustomer(
+  wcCustomerId: number,
+  paymentIntentId: string,
+): Promise<OrderSummary | null> {
+  const orders = await getOrdersByCustomer(wcCustomerId)
   const match = orders.find((order) => order.transactionId === paymentIntentId)
   return match ? { id: match.id, number: match.number } : null
 }
