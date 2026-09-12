@@ -9,22 +9,34 @@ import { getBaseUrl } from '@/lib/url'
 import { addressSchema, type AddressInput } from '@/lib/address/schema'
 import { toWcAddress } from '@/lib/address/map-address'
 import { updateWcCustomerAddress } from '@/lib/woocommerce/queries/update-customer-address'
-import { getShippingMethods, type ShippingMethod } from '@/lib/woocommerce'
+import { getShippingMethods, type ShippingCartItem, type ShippingMethod } from '@/lib/woocommerce'
+import type { ResolvedCartLine } from '@/lib/cart/resolve'
 
 export type CreateCheckoutSessionResult = { url: string } | { error: string }
 
-/** Reads live WooCommerce shipping zones/methods for the given country and
- *  the shopper's real cart subtotal — called both to render the checkout
- *  page's initial options and, client-side, to refresh them whenever the
- *  shopper edits the delivery country (`components/checkout/checkout-form.tsx`).
- *  Subtotal is always re-derived from the server-side cart, never trusted
- *  from the caller — this only affects which options are *displayed*, but
- *  there's no reason to trust a client-supplied number when the real cart
- *  is one read away. */
+/** `getShippingMethods` wants each line's full attribute picks (so the Store
+ *  API can add a variation correctly — see `get-shipping-rates.ts`), which
+ *  `ResolvedCartLine.attributes` already carries. */
+function toShippingCartItems(lines: ResolvedCartLine[]): ShippingCartItem[] {
+  return lines.map((line) => ({
+    productId: line.productId,
+    quantity: line.quantity,
+    attributes: line.attributes,
+  }))
+}
+
+/** Reads live WooCommerce shipping rates (via `getShippingMethods`'s Store
+ *  API call) for the shopper's real cart and the given country — called
+ *  both to render the checkout page's initial options and, client-side, to
+ *  refresh them whenever the shopper edits the delivery country
+ *  (`components/checkout/checkout-form.tsx`). The cart itself is always
+ *  re-derived from the server-side cookie, never trusted from the caller —
+ *  this only affects which options are *displayed*, but there's no reason
+ *  to trust a client-supplied cart when the real one is one read away. */
 export async function getShippingMethodsAction(countryCode: string): Promise<ShippingMethod[]> {
   const cart = await getCart()
   const resolved = await resolveCartItems(cart)
-  return getShippingMethods(countryCode, resolved.subtotal)
+  return getShippingMethods(toShippingCartItems(resolved.lines), { country: countryCode })
 }
 
 /**
@@ -80,10 +92,23 @@ export async function createCheckoutSessionAction(
     })
   }
 
-  // Re-validated against the shopper's real country and cart subtotal —
-  // never trust the client's own idea of which method (or price) applies,
-  // same principle already used for cart line pricing below.
-  const availableMethods = await getShippingMethods(parsed.data.country, resolved.subtotal)
+  // Re-validated against the shopper's real cart and full validated address
+  // — never trust the client's own idea of which method (or price) applies,
+  // same principle already used for cart line pricing below. A WooCommerce
+  // Store API failure here (the store unreachable, a plugin erroring) must
+  // fail checkout cleanly rather than let a stale/tampered method through.
+  let availableMethods: ShippingMethod[]
+  try {
+    availableMethods = await getShippingMethods(toShippingCartItems(resolved.lines), {
+      country: parsed.data.country,
+      city: parsed.data.city,
+      postcode: parsed.data.postcode,
+      address1: parsed.data.address1,
+    })
+  } catch (error) {
+    console.error('[checkout] Failed to resolve shipping methods:', error)
+    return { error: 'Could not calculate shipping. Please try again.' }
+  }
   const method = availableMethods.find((candidate) => candidate.id === deliveryMethodId)
   if (!method) {
     return { error: 'Please choose a delivery method.' }

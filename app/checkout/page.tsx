@@ -45,7 +45,19 @@ export default async function CheckoutPage() {
   // server action's re-validation at submit time) can recover from it.
   const initialMethods = isEmpty || hasChanged
     ? []
-    : await getShippingMethods(initialAddress?.country ?? 'GR', resolved.subtotal).catch(() => [])
+    : await getShippingMethods(
+        resolved.lines.map((line) => ({
+          productId: line.productId,
+          quantity: line.quantity,
+          attributes: line.attributes,
+        })),
+        {
+          country: initialAddress?.country ?? 'GR',
+          city: initialAddress?.city,
+          postcode: initialAddress?.postcode,
+          address1: initialAddress?.address1,
+        },
+      ).catch(() => [])
 
   return (
     <main style={{ backgroundColor: '#1B1B18' }}>
