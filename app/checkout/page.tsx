@@ -6,11 +6,8 @@ import SimpleBreadcrumbs from '@/components/collection/simple-breadcrumbs'
 import CheckoutForm from '@/components/checkout/checkout-form'
 import { getCart } from '@/lib/cart/cookie'
 import { resolveCartItems } from '@/lib/cart/resolve'
-import { formatVariationLabel } from '@/lib/cart/variation-label'
-import { cartLineKey } from '@/lib/cart/line-key'
-import { FLAT_SHIPPING_RATE, FREE_SHIPPING_THRESHOLD, formatPrice } from '@/lib/mock-data'
 import { getSession } from '@/lib/auth/session'
-import { getWcCustomerById } from '@/lib/woocommerce'
+import { getWcCustomerById, getShippingMethods } from '@/lib/woocommerce'
 import { toAddressInput } from '@/lib/address/map-address'
 
 const MONO = 'var(--font-space-mono), monospace'
@@ -42,8 +39,13 @@ export default async function CheckoutPage() {
 
   const isEmpty = resolved.lines.length === 0
   const hasChanged = resolved.unavailableCount > 0 || resolved.lines.some((line) => !line.purchasable)
-  const shipping = resolved.subtotal >= FREE_SHIPPING_THRESHOLD ? 0 : FLAT_SHIPPING_RATE
-  const total = resolved.subtotal + shipping
+
+  // Best-effort here too — a shipping lookup failure shouldn't block
+  // rendering the page; the form's own country-change refetch (and the
+  // server action's re-validation at submit time) can recover from it.
+  const initialMethods = isEmpty || hasChanged
+    ? []
+    : await getShippingMethods(initialAddress?.country ?? 'GR', resolved.subtotal).catch(() => [])
 
   return (
     <main style={{ backgroundColor: '#1B1B18' }}>
@@ -85,61 +87,23 @@ export default async function CheckoutPage() {
             </Link>
           </div>
         ) : (
-          <div className="flex flex-col gap-6 lg:flex-row lg:items-start">
-            <div className="flex-1">
-              {isGuest && (
-                <p className="mb-4 text-xs text-[#999999]" style={{ fontFamily: MONO }}>
-                  Have an account?{' '}
-                  <Link
-                    href="/sign-in?redirect_url=/checkout"
-                    className="text-[#FFD700] hover:underline"
-                  >
-                    Sign in
-                  </Link>{' '}
-                  for faster checkout, or just continue below.
-                </p>
-              )}
-              <CheckoutForm initialAddress={initialAddress} isGuest={isGuest} />
-            </div>
-
-            <div className="w-full lg:w-80 lg:flex-shrink-0" style={{ border: '1px solid #444444' }}>
-              <div className="flex flex-col gap-3 p-4">
-                {resolved.lines.map((line) => (
-                  <div
-                    key={cartLineKey(line)}
-                    className="flex items-start justify-between gap-3 text-xs"
-                    style={{ fontFamily: MONO }}
-                  >
-                    <span className="flex min-w-0 flex-col text-[#CCCCCC]">
-                      <span>
-                        {line.quantity} × {line.name}
-                      </span>
-                      {Object.keys(line.attributes).length > 0 && (
-                        <span className="mt-0.5 text-[#999999]">
-                          {formatVariationLabel(line.attributes)}
-                        </span>
-                      )}
-                    </span>
-                    <span className="whitespace-nowrap text-white">
-                      {formatPrice(line.unitPrice * line.quantity)}
-                    </span>
-                  </div>
-                ))}
-
-                <div className="flex items-center justify-between pt-2 text-xs" style={{ fontFamily: MONO, borderTop: '1px solid #222222', color: '#999999' }}>
-                  <span>SUBTOTAL</span>
-                  <span>{formatPrice(resolved.subtotal)}</span>
-                </div>
-                <div className="flex items-center justify-between text-xs" style={{ fontFamily: MONO, color: '#999999' }}>
-                  <span>SHIPPING</span>
-                  <span>{shipping === 0 ? 'FREE' : formatPrice(shipping)}</span>
-                </div>
-                <div className="flex items-center justify-between pt-2 text-base font-bold" style={{ fontFamily: MONO, borderTop: '1px solid #444444' }}>
-                  <span className="text-white">TOTAL</span>
-                  <span className="text-[#FFD700]">{formatPrice(total)}</span>
-                </div>
-              </div>
-            </div>
+          <div className="flex flex-col gap-4">
+            {isGuest && (
+              <p className="text-xs text-[#999999]" style={{ fontFamily: MONO }}>
+                Have an account?{' '}
+                <Link href="/sign-in?redirect_url=/checkout" className="text-[#FFD700] hover:underline">
+                  Sign in
+                </Link>{' '}
+                for faster checkout, or just continue below.
+              </p>
+            )}
+            <CheckoutForm
+              initialAddress={initialAddress}
+              isGuest={isGuest}
+              lines={resolved.lines}
+              subtotal={resolved.subtotal}
+              initialMethods={initialMethods}
+            />
           </div>
         )}
       </div>

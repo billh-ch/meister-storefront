@@ -178,20 +178,14 @@ export interface TrustItem {
   readonly href?: string
 }
 
-/** Free-shipping threshold in EUR. Placeholder — confirm with the shop. */
-export const FREE_SHIPPING_THRESHOLD = 80
-
-/** Flat shipping rate in EUR below the free-shipping threshold. Placeholder — confirm with the shop. */
-export const FLAT_SHIPPING_RATE = 5
-
 /** Shop support line. Placeholder — confirm with the shop. */
 export const SUPPORT_PHONE = '+30 210 000 0000'
 
 export const trustItems: readonly TrustItem[] = [
   {
     id: 'shipping',
-    title: 'FREE SHIPPING',
-    detail: `On orders over ${FREE_SHIPPING_THRESHOLD}€ within Greece`,
+    title: 'FAST DELIVERY',
+    detail: 'Courier delivery or free pickup in-store',
   },
   {
     id: 'returns',
@@ -214,7 +208,7 @@ export const trustItems: readonly TrustItem[] = [
 export const shippingReturnsCopy = [
   {
     headline: 'Delivery',
-    body: `Orders placed before 14:00 ship the same working day. Delivery within Greece takes 1–3 working days. Shipping is free on orders over ${FREE_SHIPPING_THRESHOLD}€; below that a flat rate applies at checkout.`,
+    body: 'Orders placed before 14:00 ship the same working day. Delivery within Greece takes 1–3 working days. Exact delivery methods and rates — including free in-store pickup — are shown at checkout.',
   },
   {
     headline: 'Returns',

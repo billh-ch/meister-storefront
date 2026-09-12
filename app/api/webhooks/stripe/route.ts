@@ -121,6 +121,13 @@ export async function POST(request: Request) {
       billing: address,
       shipping: address,
       transactionId: paymentIntentId,
+      shippingLine: metadata.shippingMethodId
+        ? {
+            methodId: metadata.shippingMethodId,
+            methodTitle: metadata.shippingMethodTitle ?? 'Shipping',
+            total: metadata.shippingCost ?? '0',
+          }
+        : undefined,
     })
 
     // Lets the confirmation page resolve a guest's order — it has no session

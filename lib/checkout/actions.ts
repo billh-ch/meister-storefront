@@ -6,12 +6,26 @@ import { resolveCartItems } from '@/lib/cart/resolve'
 import { formatVariationLabel } from '@/lib/cart/variation-label'
 import { getStripe } from '@/lib/stripe'
 import { getBaseUrl } from '@/lib/url'
-import { FLAT_SHIPPING_RATE, FREE_SHIPPING_THRESHOLD } from '@/lib/mock-data'
 import { addressSchema, type AddressInput } from '@/lib/address/schema'
 import { toWcAddress } from '@/lib/address/map-address'
 import { updateWcCustomerAddress } from '@/lib/woocommerce/queries/update-customer-address'
+import { getShippingMethods, type ShippingMethod } from '@/lib/woocommerce'
 
 export type CreateCheckoutSessionResult = { url: string } | { error: string }
+
+/** Reads live WooCommerce shipping zones/methods for the given country and
+ *  the shopper's real cart subtotal — called both to render the checkout
+ *  page's initial options and, client-side, to refresh them whenever the
+ *  shopper edits the delivery country (`components/checkout/checkout-form.tsx`).
+ *  Subtotal is always re-derived from the server-side cart, never trusted
+ *  from the caller — this only affects which options are *displayed*, but
+ *  there's no reason to trust a client-supplied number when the real cart
+ *  is one read away. */
+export async function getShippingMethodsAction(countryCode: string): Promise<ShippingMethod[]> {
+  const cart = await getCart()
+  const resolved = await resolveCartItems(cart)
+  return getShippingMethods(countryCode, resolved.subtotal)
+}
 
 /**
  * Re-checks everything server-side rather than trusting the client — the
@@ -30,6 +44,7 @@ export type CreateCheckoutSessionResult = { url: string } | { error: string }
  */
 export async function createCheckoutSessionAction(
   input: AddressInput,
+  deliveryMethodId: string,
 ): Promise<CreateCheckoutSessionResult> {
   const session = await getSession()
   const wcCustomerId = session.wcCustomerId
@@ -65,7 +80,15 @@ export async function createCheckoutSessionAction(
     })
   }
 
-  const shipping = resolved.subtotal >= FREE_SHIPPING_THRESHOLD ? 0 : FLAT_SHIPPING_RATE
+  // Re-validated against the shopper's real country and cart subtotal —
+  // never trust the client's own idea of which method (or price) applies,
+  // same principle already used for cart line pricing below.
+  const availableMethods = await getShippingMethods(parsed.data.country, resolved.subtotal)
+  const method = availableMethods.find((candidate) => candidate.id === deliveryMethodId)
+  if (!method) {
+    return { error: 'Please choose a delivery method.' }
+  }
+  const shipping = method.cost
 
   // Metadata carries only *identity* — product/variation ids, quantities,
   // the shopper's axis picks, and the shipping address — never a price.
@@ -112,16 +135,17 @@ export async function createCheckoutSessionAction(
     }
   })
 
-  if (shipping > 0) {
-    lineItems.push({
-      price_data: {
-        currency: 'eur',
-        product_data: { name: 'Shipping' },
-        unit_amount: Math.round(shipping * 100),
-      },
-      quantity: 1,
-    })
-  }
+  // Always shown, even when free (€0 pickup) — so the customer sees exactly
+  // which delivery method they're getting on Stripe's hosted page and the
+  // receipt, not just a silent absence of a shipping line.
+  lineItems.push({
+    price_data: {
+      currency: 'eur',
+      product_data: { name: method.title },
+      unit_amount: Math.round(shipping * 100),
+    },
+    quantity: 1,
+  })
 
   try {
     const stripe = getStripe()
@@ -141,6 +165,9 @@ export async function createCheckoutSessionAction(
         // a blank/zero value as "guest order" (customer_id 0 in WooCommerce).
         wcCustomerId: wcCustomerId ? String(wcCustomerId) : '',
         cartLines: safeCartLinesJson,
+        shippingMethodId: method.wcMethodId,
+        shippingMethodTitle: method.title,
+        shippingCost: String(shipping),
         ship_email: parsed.data.email ?? '',
         ship_first_name: parsed.data.firstName,
         ship_last_name: parsed.data.lastName,

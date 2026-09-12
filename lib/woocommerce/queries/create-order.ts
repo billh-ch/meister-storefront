@@ -25,6 +25,17 @@ export interface CreateOrderLineItem {
   metaData?: { key: string; value: string }[]
 }
 
+export interface CreateOrderShippingLine {
+  /** WooCommerce's shipping method *type* (`flat_rate`, `local_pickup`, a
+   *  plugin's own slug, …) — from `ShippingMethod.wcMethodId`
+   *  (`lib/woocommerce/index.ts`), not the app's own zone-scoped selection id. */
+  methodId: string
+  methodTitle: string
+  /** Decimal string, e.g. `'3'` or `'0'` — same format WooCommerce itself
+   *  uses for `shipping_lines[].total`. */
+  total: string
+}
+
 export interface CreateOrderInput {
   /** Omitted / undefined for a guest checkout — sent to WooCommerce as
    *  `customer_id: 0`, which creates a real guest order keyed off
@@ -34,6 +45,10 @@ export interface CreateOrderInput {
   billing: WcAddress
   shipping: WcAddress
   transactionId: string
+  /** Omitted only if checkout somehow completed with no resolvable method —
+   *  the order then simply has no shipping_lines, same as before this field
+   *  existed. */
+  shippingLine?: CreateOrderShippingLine
 }
 
 export interface WcCreatedOrder {
@@ -63,6 +78,17 @@ export async function createOrder(input: CreateOrderInput): Promise<WcCreatedOrd
       quantity: item.quantity,
       ...(item.metaData && item.metaData.length > 0 ? { meta_data: item.metaData } : {}),
     })),
+    ...(input.shippingLine
+      ? {
+          shipping_lines: [
+            {
+              method_id: input.shippingLine.methodId,
+              method_title: input.shippingLine.methodTitle,
+              total: input.shippingLine.total,
+            },
+          ],
+        }
+      : {}),
     billing: input.billing,
     shipping: input.shipping,
     payment_method: 'stripe',

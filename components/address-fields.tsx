@@ -13,13 +13,17 @@ const LABEL_CLASS = 'text-xs font-bold tracking-wide text-white uppercase'
 interface AddressFieldsProps {
   defaultValues?: Partial<AddressInput>
   idPrefix: string
+  /** Fired on every keystroke in the country field — checkout uses this to
+   *  refresh the delivery-method list for the new country (shipping zones
+   *  are country-scoped). Unused by the account "saved address" form. */
+  onCountryChange?: (country: string) => void
 }
 
 /** The 8-field address block shared by checkout and the account "saved
  *  address" form — same `name`s either way so both parents read it via
  *  plain `FormData`. `idPrefix` keeps DOM ids unique if both ever render
  *  on the same page (matches `QuantityStepper`'s existing `id` prop). */
-export default function AddressFields({ defaultValues, idPrefix }: AddressFieldsProps) {
+export default function AddressFields({ defaultValues, idPrefix, onCountryChange }: AddressFieldsProps) {
   return (
     <>
       <div className="flex gap-4">
@@ -132,6 +136,7 @@ export default function AddressFields({ defaultValues, idPrefix }: AddressFields
             maxLength={2}
             defaultValue={defaultValues?.country ?? 'GR'}
             autoComplete="country"
+            onChange={onCountryChange ? (e) => onCountryChange(e.target.value) : undefined}
             className={`${FIELD_CLASS} uppercase`}
             style={FIELD_STYLE}
           />
