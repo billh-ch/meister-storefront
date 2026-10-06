@@ -33,4 +33,9 @@ request, blocked payment and retry. Mock delivery/pickup options also exercise
 preserving the chosen method during address typing. They verify development behavior; they
 do not establish real WooCommerce/Stripe/Redis integration readiness.
 
+The cart-options regression check seeds two valid cookie lines with different
+selections and no variation ID, matching variable products whose WooCommerce
+variation attributes are empty. It verifies each line can be updated and removed
+independently and that the popup cart renders a loaded product thumbnail.
+
 Stop the dev server before running `NODE_USE_ENV_PROXY=1 npm run build`.

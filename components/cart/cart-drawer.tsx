@@ -1,6 +1,7 @@
 'use client'
 
 import Link from 'next/link'
+import Image from 'next/image'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { usePathname } from 'next/navigation'
 import type { ResolvedCart } from '@/lib/cart/resolve'
@@ -117,10 +118,19 @@ export default function CartDrawer() {
                 <ul className="flex flex-col gap-6">
                   {cart.lines.map(line => (
                     <li key={cartLineKey(line)} className="flex min-w-0 flex-col gap-3 border-b border-white/20 pb-5">
-                      <Link href={`/products/${line.slug}`} onClick={close} className="text-sm font-bold">{line.name}</Link>
-                      {Object.entries(line.attributes).map(([name, value]) => <p key={name} className="text-xs">{name}: {value}</p>)}
-                      <p className="text-sm">{formatPrice(line.unitPrice)} × {line.quantity}</p>
-                      {!line.purchasable && <p className="text-xs">Out of stock</p>}
+                      <div className="flex min-w-0 items-start gap-3">
+                        {line.image && (
+                          <Link href={`/products/${line.slug}`} onClick={close} className="relative h-20 w-20 shrink-0 overflow-hidden">
+                            <Image src={line.image} alt={line.name} fill sizes="80px" className="object-cover" />
+                          </Link>
+                        )}
+                        <div className="flex min-w-0 flex-1 flex-col gap-2 break-words">
+                          <Link href={`/products/${line.slug}`} onClick={close} className="text-sm font-bold">{line.name}</Link>
+                          {Object.entries(line.attributes).map(([name, value]) => <p key={name} className="text-xs">{name}: {value}</p>)}
+                          <p className="text-sm">{formatPrice(line.unitPrice)} × {line.quantity}</p>
+                          {!line.purchasable && <p className="text-xs">Out of stock</p>}
+                        </div>
+                      </div>
                       {!onCheckoutPage && <CartLineControls productId={line.productId} variationId={line.variationId} selectedOptions={line.selectedOptions} quantity={line.quantity} onPendingChange={setMutationPending} />}
                     </li>
                   ))}
