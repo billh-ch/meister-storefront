@@ -44,7 +44,7 @@ export interface ResolvedCart {
  */
 function lineAttributes(
   product: ProductDetail,
-  variant: ProductVariant,
+  variant: ProductVariant | null,
   selectedOptions: Record<string, string> | undefined,
 ): Record<string, string> {
   const axisNames = product.attributes
@@ -52,12 +52,12 @@ function lineAttributes(
     .map((attribute) => attribute.name)
 
   if (axisNames.length === 0) {
-    return { ...selectedOptions, ...variant.attributes }
+    return { ...selectedOptions, ...variant?.attributes }
   }
 
   const attributes: Record<string, string> = {}
   for (const name of axisNames) {
-    const value = variant.attributes[name] ?? selectedOptions?.[name]
+    const value = variant?.attributes[name] ?? selectedOptions?.[name]
     if (value) attributes[name] = value
   }
   return attributes
@@ -116,12 +116,13 @@ export async function resolveCartItems(cart: CartItem[]): Promise<ResolvedCart> 
     } else {
       lines.push({
         productId: item.productId,
+        selectedOptions: item.selectedOptions,
         quantity: item.quantity,
         name: product.name,
         slug: product.slug,
         image: product.image,
         unitPrice: product.price,
-        attributes: {},
+        attributes: lineAttributes(product, null, item.selectedOptions),
         variantAttributes: {},
         stockStatus: product.stockStatus,
         purchasable: product.stockStatus !== 'outofstock',
