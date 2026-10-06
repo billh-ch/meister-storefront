@@ -66,7 +66,7 @@ export default function CollectionView({
     <div className="pb-16">
       <SimpleBreadcrumbs items={breadcrumbs} />
 
-      <div className="mx-auto max-w-[1400px] px-2 sm:px-3 md:px-4">
+      <div className="mx-auto max-w-[1280px] px-2 sm:px-3 md:px-4">
         <div className="mb-6 sm:mb-8">
           <h1
             className="text-2xl text-white sm:text-3xl md:text-4xl"

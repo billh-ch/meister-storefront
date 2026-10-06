@@ -93,10 +93,7 @@ export default function ProductCard({ product }: ProductCardProps) {
       style={{ border: '1px solid #FFFFFF' }}
       aria-label={`${product.name}, ${formatPrice(product.price)}`}
     >
-      {/* Image area — square, which with the 72px footer below makes the card
-          itself taller than it is wide (a 576px desktop slide → 576px image +
-          72px footer = 648px card). 8:7 here left the whole card square; 4:5
-          overshot into a card half again as tall as it was wide. */}
+      {/* Square image area; crop photos to fill the card edge to edge. */}
       <Link
         href={`/products/${product.slug}`}
         className="relative aspect-square overflow-hidden"
@@ -107,8 +104,8 @@ export default function ProductCard({ product }: ProductCardProps) {
             src={product.image}
             alt={product.name}
             fill
-            sizes="(max-width: 640px) 85vw, (max-width: 1024px) 50vw, 33vw"
-            className="object-contain"
+            sizes="(max-width: 640px) 85vw, (max-width: 1024px) 50vw, 30vw"
+            className="object-cover"
             preload={false}
           />
         ) : (
