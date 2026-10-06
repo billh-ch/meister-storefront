@@ -6,7 +6,7 @@ import { resolveCartItems } from '@/lib/cart/resolve'
 import { formatVariationLabel } from '@/lib/cart/variation-label'
 import { getStripe } from '@/lib/stripe'
 import { getBaseUrl } from '@/lib/url'
-import { addressSchema, type AddressInput } from '@/lib/address/schema'
+import { addressSchema, shippingAddressSchema, type AddressInput, type ShippingAddressInput } from '@/lib/address/schema'
 import { toWcAddress } from '@/lib/address/map-address'
 import { updateWcCustomerAddress } from '@/lib/woocommerce/queries/update-customer-address'
 import { getShippingMethods, type ShippingCartItem, type ShippingMethod } from '@/lib/woocommerce'
@@ -33,10 +33,11 @@ function toShippingCartItems(lines: ResolvedCartLine[]): ShippingCartItem[] {
  *  re-derived from the server-side cookie, never trusted from the caller —
  *  this only affects which options are *displayed*, but there's no reason
  *  to trust a client-supplied cart when the real one is one read away. */
-export async function getShippingMethodsAction(countryCode: string): Promise<ShippingMethod[]> {
+export async function getShippingMethodsAction(input: ShippingAddressInput): Promise<ShippingMethod[]> {
+  const address = shippingAddressSchema.parse(input)
   const cart = await getCart()
   const resolved = await resolveCartItems(cart)
-  return getShippingMethods(toShippingCartItems(resolved.lines), { country: countryCode })
+  return getShippingMethods(toShippingCartItems(resolved.lines), address)
 }
 
 /**
@@ -58,6 +59,9 @@ export async function createCheckoutSessionAction(
   input: AddressInput,
   deliveryMethodId: string,
 ): Promise<CreateCheckoutSessionResult> {
+  if (process.env.NEXT_PUBLIC_USE_MOCK_DATA === 'true') {
+    return { error: 'Payments are unavailable in mock-data mode. Connect WooCommerce to continue.' }
+  }
   const session = await getSession()
   const wcCustomerId = session.wcCustomerId
   const isGuest = !wcCustomerId

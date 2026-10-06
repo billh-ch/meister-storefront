@@ -1,4 +1,5 @@
 import type { AddressInput } from '@/lib/address/schema'
+import { countries, isCountryCode } from '@/lib/address/countries'
 
 const MONO = 'var(--font-space-mono), monospace'
 
@@ -13,17 +14,20 @@ const LABEL_CLASS = 'text-xs font-bold tracking-wide text-white uppercase'
 interface AddressFieldsProps {
   defaultValues?: Partial<AddressInput>
   idPrefix: string
-  /** Fired on every keystroke in the country field — checkout uses this to
+  /** Fired when the selected country changes — checkout uses this to
    *  refresh the delivery-method list for the new country (shipping zones
    *  are country-scoped). Unused by the account "saved address" form. */
   onCountryChange?: (country: string) => void
+  /** Checkout refreshes rates for postcode/city/address-dependent zones too. */
+  onShippingAddressChange?: () => void
 }
 
 /** The 8-field address block shared by checkout and the account "saved
  *  address" form — same `name`s either way so both parents read it via
  *  plain `FormData`. `idPrefix` keeps DOM ids unique if both ever render
  *  on the same page (matches `QuantityStepper`'s existing `id` prop). */
-export default function AddressFields({ defaultValues, idPrefix, onCountryChange }: AddressFieldsProps) {
+export default function AddressFields({ defaultValues, idPrefix, onCountryChange, onShippingAddressChange }: AddressFieldsProps) {
+  const country = defaultValues?.country?.trim().toUpperCase() ?? 'GR'
   return (
     <>
       <div className="flex gap-4">
@@ -69,6 +73,7 @@ export default function AddressFields({ defaultValues, idPrefix, onCountryChange
           type="text"
           required
           autoComplete="address-line1"
+          onChange={onShippingAddressChange}
           defaultValue={defaultValues?.address1}
           className={FIELD_CLASS}
           style={FIELD_STYLE}
@@ -101,6 +106,7 @@ export default function AddressFields({ defaultValues, idPrefix, onCountryChange
             type="text"
             required
             autoComplete="address-level2"
+            onChange={onShippingAddressChange}
             defaultValue={defaultValues?.city}
             className={FIELD_CLASS}
             style={FIELD_STYLE}
@@ -116,6 +122,7 @@ export default function AddressFields({ defaultValues, idPrefix, onCountryChange
             type="text"
             required
             autoComplete="postal-code"
+            onChange={onShippingAddressChange}
             defaultValue={defaultValues?.postcode}
             className={FIELD_CLASS}
             style={FIELD_STYLE}
@@ -124,22 +131,25 @@ export default function AddressFields({ defaultValues, idPrefix, onCountryChange
       </div>
 
       <div className="flex gap-4">
-        <div className="flex w-20 min-w-0 flex-col gap-1 sm:w-24">
+        <div className="flex min-w-0 flex-1 flex-col gap-1">
           <label htmlFor={`${idPrefix}-country`} className={LABEL_CLASS} style={{ fontFamily: MONO }}>
             Country
           </label>
-          <input
+          <select
             id={`${idPrefix}-country`}
             name="country"
-            type="text"
             required
-            maxLength={2}
-            defaultValue={defaultValues?.country ?? 'GR'}
+            defaultValue={isCountryCode(country) ? country : ''}
             autoComplete="country"
             onChange={onCountryChange ? (e) => onCountryChange(e.target.value) : undefined}
-            className={`${FIELD_CLASS} uppercase`}
-            style={FIELD_STYLE}
-          />
+            className={FIELD_CLASS}
+            style={{ ...FIELD_STYLE, backgroundColor: 'var(--color-dark)' }}
+          >
+            <option value="" disabled>Select a country</option>
+            {countries.map(country => (
+              <option key={country.code} value={country.code}>{country.name}</option>
+            ))}
+          </select>
         </div>
         <div className="flex min-w-0 flex-1 flex-col gap-1">
           <label htmlFor={`${idPrefix}-phone`} className={LABEL_CLASS} style={{ fontFamily: MONO }}>

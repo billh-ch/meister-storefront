@@ -10,6 +10,7 @@ import { fetchShippingRates, type StoreApiAddress } from './queries/get-shipping
 import { mapProduct } from './mappers/map-product'
 import { mapProductDetail } from './mappers/map-product-detail'
 import { mapOrder } from './mappers/map-order'
+import { asUnavailableProductPreview } from './preview-product'
 
 const useMock = process.env.NEXT_PUBLIC_USE_MOCK_DATA === 'true'
 
@@ -21,7 +22,7 @@ export async function getProducts(): Promise<Product[]> {
     return wcProducts.map(mapProduct)
   } catch (error) {
     console.error('[WooCommerce] Failed to fetch products, falling back to mock data:', error)
-    return mockProducts
+    return mockProducts.map(asUnavailableProductPreview)
   }
 }
 
@@ -56,7 +57,8 @@ export async function getProductBySlug(slug: string): Promise<ProductDetail | nu
       `[WooCommerce] Failed to fetch product "${slug}", falling back to mock data:`,
       error,
     )
-    return findMockDetail(slug)
+    const preview = findMockDetail(slug)
+    return preview ? asUnavailableProductPreview(preview) : null
   }
 }
 
@@ -128,11 +130,12 @@ export interface ShippingCartItem {
   attributes?: Record<string, string>
 }
 
-/** A single flat-rate placeholder for mock-data mode — there's no mock
+/** Delivery and pickup fixtures for mock-data mode — there's no mock
  *  WooCommerce shipping config to read, and checkout must still render
  *  something. Never reached against the live store. */
 const MOCK_SHIPPING_METHODS: ShippingMethod[] = [
   { id: 'mock:1', wcMethodId: 'flat_rate', title: 'Standard Delivery', cost: 5, isPickup: false },
+  { id: 'mock:pickup', wcMethodId: 'local_pickup', title: 'Store pickup', cost: 0, isPickup: true },
 ]
 
 /**

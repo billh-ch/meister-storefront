@@ -303,7 +303,7 @@ type MockProductSeed = Omit<
 const productSeeds: MockProductSeed[] = [
   // --- FINS ---
   {
-    id: 'p1',
+    id: '1',
     slug: 'carbon-blade-fins',
     name: 'Carbon Blade Freediving Fins',
     price: 349,
@@ -314,7 +314,7 @@ const productSeeds: MockProductSeed[] = [
     priceFrom: true,
   },
   {
-    id: 'p7',
+    id: '7',
     slug: 'fiberglass-fins',
     name: 'Fiberglass Freediving Fins',
     price: 219,
@@ -324,7 +324,7 @@ const productSeeds: MockProductSeed[] = [
     category: 'fins',
   },
   {
-    id: 'p8',
+    id: '8',
     slug: 'training-fins',
     name: 'Pool Training Fins',
     price: 129,
@@ -335,7 +335,7 @@ const productSeeds: MockProductSeed[] = [
     stockStatus: 'outofstock',
   },
   {
-    id: 'p9',
+    id: '9',
     slug: 'carbon-pro-fins',
     name: 'Carbon Pro Competition Fins',
     price: 489,
@@ -348,7 +348,7 @@ const productSeeds: MockProductSeed[] = [
   },
   // --- SUITS ---
   {
-    id: 'p4',
+    id: '4',
     slug: 'wetsuit-3mm',
     name: 'Camouflage Wetsuit 3mm',
     price: 289,
@@ -358,7 +358,7 @@ const productSeeds: MockProductSeed[] = [
     category: 'suits',
   },
   {
-    id: 'p10',
+    id: '10',
     slug: 'wetsuit-5mm',
     name: 'Open Cell Wetsuit 5mm',
     price: 389,
@@ -370,7 +370,7 @@ const productSeeds: MockProductSeed[] = [
     priceFrom: true,
   },
   {
-    id: 'p11',
+    id: '11',
     slug: 'rashguard',
     name: 'UV Protection Rashguard',
     price: 69,
@@ -380,7 +380,7 @@ const productSeeds: MockProductSeed[] = [
     category: 'suits',
   },
   {
-    id: 'p12',
+    id: '12',
     slug: 'hood-3mm',
     name: 'Neoprene Hood 3mm',
     price: 49,
@@ -391,7 +391,7 @@ const productSeeds: MockProductSeed[] = [
   },
   // --- ACCESSORIES ---
   {
-    id: 'p2',
+    id: '2',
     slug: 'roller-speargun-90cm',
     name: 'Roller Speargun 90cm',
     price: 529,
@@ -404,7 +404,7 @@ const productSeeds: MockProductSeed[] = [
     brand: 'Pathos',
   },
   {
-    id: 'p3',
+    id: '3',
     slug: 'low-volume-mask',
     name: 'Low-Volume Freediving Mask',
     price: 119,
@@ -414,7 +414,7 @@ const productSeeds: MockProductSeed[] = [
     category: 'accessories',
   },
   {
-    id: 'p5',
+    id: '5',
     slug: 'weight-belt',
     name: 'Rubber Weight Belt',
     price: 69,
@@ -424,7 +424,7 @@ const productSeeds: MockProductSeed[] = [
     category: 'accessories',
   },
   {
-    id: 'p6',
+    id: '6',
     slug: 'dive-knife',
     name: 'Titanium Dive Knife',
     price: 89,
@@ -435,7 +435,7 @@ const productSeeds: MockProductSeed[] = [
   },
   // --- MERCH ---
   {
-    id: 'p13',
+    id: '13',
     slug: 'meister-tee',
     name: 'Meister Logo Tee',
     price: 39,
@@ -445,7 +445,7 @@ const productSeeds: MockProductSeed[] = [
     category: 'merch',
   },
   {
-    id: 'p14',
+    id: '14',
     slug: 'meister-hoodie',
     name: 'Meister Heavyweight Hoodie',
     price: 79,
@@ -455,7 +455,7 @@ const productSeeds: MockProductSeed[] = [
     category: 'merch',
   },
   {
-    id: 'p15',
+    id: '15',
     slug: 'meister-cap',
     name: 'Meister Dive Cap',
     price: 29,
@@ -467,7 +467,7 @@ const productSeeds: MockProductSeed[] = [
     category: 'merch',
   },
   {
-    id: 'p16',
+    id: '16',
     slug: 'meister-drybag',
     name: 'Meister Dry Bag 20L',
     price: 49,

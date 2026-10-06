@@ -5,7 +5,7 @@ import Link from 'next/link'
 import { useState, useTransition } from 'react'
 import { type Product, type StockStatus, formatPrice } from '@/lib/mock-data'
 import { addToCartAction } from '@/lib/cart/actions'
-import { notifyCartUpdated } from '@/lib/cart/client-events'
+import { notifyCartAdded } from '@/lib/cart/client-events'
 
 interface ProductCardProps {
   product: Product
@@ -73,7 +73,7 @@ export default function ProductCard({ product }: ProductCardProps) {
       const result = await addToCartAction({ productId: product.id, quantity: 1 })
       if (result.ok) {
         setJustAdded(true)
-        notifyCartUpdated()
+        notifyCartAdded()
         setTimeout(() => setJustAdded(false), 1500)
       } else {
         setError(result.error)
@@ -108,7 +108,7 @@ export default function ProductCard({ product }: ProductCardProps) {
             alt={product.name}
             fill
             sizes="(max-width: 640px) 85vw, (max-width: 1024px) 50vw, 33vw"
-            className="object-cover"
+            className="object-contain"
             preload={false}
           />
         ) : (
@@ -132,26 +132,25 @@ export default function ProductCard({ product }: ProductCardProps) {
 
       {/* Footer row — responsive height */}
       <footer
-        className="flex items-stretch"
+        className="flex flex-col"
         style={{
           borderTop: '1px solid #FFFFFF',
           backgroundColor: '#1B1B18',
           minHeight: '72px',
         }}
       >
-        {/* Left: name + swatches + price (80%) */}
+        {/* Product details have the full width, including long option labels. */}
         <Link
           href={`/products/${product.slug}`}
-          className="flex flex-col justify-center gap-1 overflow-hidden px-3 py-2"
-          style={{ width: '80%' }}
+          className="flex min-w-0 flex-col justify-center gap-1 overflow-hidden px-3 py-3"
         >
           {/* Product name */}
-          <h2
+          <h3
             className="truncate text-xs font-bold text-white sm:text-sm"
             style={{ fontFamily: 'var(--font-space-mono), monospace' }}
           >
             {product.name}
-          </h2>
+          </h3>
 
           {/* Swatches + options */}
           <div className="flex items-center gap-1.5 sm:gap-2">
@@ -183,18 +182,16 @@ export default function ProductCard({ product }: ProductCardProps) {
           </p>
         </Link>
 
-        {/* Right: ADD button (20%) — min-width for touch target.
+        {/* Full-width action — readable labels and a 44px touch target.
             Variable products (real size/attribute choices) have no room for
             a picker here — the PDP already owns that selector, so the card
             just routes there instead of pretending to add anything. */}
         {product.type === 'variable' ? (
           <Link
             href={`/products/${product.slug}`}
-            className="btn-gold flex flex-shrink-0 items-center justify-center px-1 text-center text-[11px] leading-tight font-bold tracking-wider uppercase sm:text-sm"
+            className="btn-gold flex min-h-11 w-full items-center justify-center px-3 py-2 text-center text-xs font-bold tracking-wider uppercase"
             style={{
-              width: '20%',
-              minWidth: '44px',
-              borderLeft: '1px solid #FFFFFF',
+              borderTop: '1px solid #FFFFFF',
             }}
             aria-label={`Choose options for ${product.name}`}
           >
@@ -204,11 +201,9 @@ export default function ProductCard({ product }: ProductCardProps) {
           <button
             // `.btn-gold:disabled` in globals.css already greys it out and sets
             // the not-allowed cursor, so there's nothing to override here.
-            className="btn-gold flex flex-shrink-0 cursor-pointer items-center justify-center text-sm font-bold tracking-wider uppercase sm:text-base"
+            className="btn-gold flex min-h-11 w-full cursor-pointer items-center justify-center px-3 py-2 text-xs font-bold tracking-wider uppercase"
             style={{
-              width: '20%',
-              minWidth: '44px',
-              borderLeft: '1px solid #FFFFFF',
+              borderTop: '1px solid #FFFFFF',
             }}
             onClick={handleAddToCart}
             disabled={isSoldOut || isPending}
@@ -222,10 +217,18 @@ export default function ProductCard({ product }: ProductCardProps) {
                     : `Add ${product.name} to cart`
             }
           >
-            {isSoldOut ? '—' : error ? '!' : justAdded ? 'ADDED' : 'ADD'}
+            {isSoldOut ? 'OUT OF STOCK' : isPending ? 'ADDING…' : justAdded ? 'ADDED TO CART' : 'ADD TO CART'}
           </button>
         )}
       </footer>
+      <p className="sr-only" role="status">
+        {error || (justAdded ? `${product.name} added to cart` : '')}
+      </p>
+      {error && (
+        <p className="px-3 py-2 text-xs" style={{ color: 'var(--color-gold)', fontFamily: MONO }}>
+          {error}
+        </p>
+      )}
     </article>
   )
 }
