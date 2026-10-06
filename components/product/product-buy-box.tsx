@@ -8,7 +8,7 @@ import {
   type StockStatus,
 } from '@/lib/mock-data'
 import { addToCartAction } from '@/lib/cart/actions'
-import { notifyCartUpdated } from '@/lib/cart/client-events'
+import { notifyCartAdded } from '@/lib/cart/client-events'
 import ProductGallery from './product-gallery'
 import ProductTrustStrip from './product-trust-strip'
 import VariantSelector from './variant-selector'
@@ -234,7 +234,7 @@ export default function ProductBuyBox({ product }: ProductBuyBoxProps) {
       if (result.ok) {
         setConfirmation(`Added to cart — ${quantity} × ${product.name}`)
         setIsConfirmationError(false)
-        notifyCartUpdated()
+        notifyCartAdded()
       } else {
         setConfirmation(result.error)
         setIsConfirmationError(true)

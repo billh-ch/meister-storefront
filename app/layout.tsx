@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import { Space_Mono, Zalando_Sans_Expanded } from 'next/font/google'
 import './globals.css'
+import CartDrawer from '@/components/cart/cart-drawer'
 
 /**
  * Zalando Sans Expanded — display heading font.
@@ -46,7 +47,7 @@ export default function RootLayout({
       dir="ltr"
       className={`${zalandoSansExpanded.variable} ${spaceMono.variable}`}
     >
-      <body className="min-h-screen antialiased">{children}</body>
+      <body className="min-h-screen antialiased">{children}<CartDrawer /></body>
     </html>
   )
 }

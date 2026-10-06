@@ -1,6 +1,6 @@
 'use client'
 
-import { useTransition } from 'react'
+import { useId, useState, useTransition } from 'react'
 import QuantityStepper from '@/components/product/quantity-stepper'
 import { removeFromCartAction, updateQuantityAction } from '@/lib/cart/actions'
 import { notifyCartUpdated } from '@/lib/cart/client-events'
@@ -12,6 +12,7 @@ interface CartLineControlsProps {
    *  two lines can share a `variationId` but differ on "Any …" axis picks. */
   selectedOptions?: Record<string, string>
   quantity: number
+  onPendingChange?: (pending: boolean) => void
 }
 
 const MONO = 'var(--font-space-mono), monospace'
@@ -21,26 +22,39 @@ export default function CartLineControls({
   variationId,
   selectedOptions,
   quantity,
+  onPendingChange,
 }: CartLineControlsProps) {
   const [isPending, startTransition] = useTransition()
-  const stepperId = `cart-qty-${productId}-${variationId ?? 'simple'}`
+  const stepperId = useId()
+  const [error, setError] = useState('')
+
+  const mutate = (action: () => ReturnType<typeof updateQuantityAction>) => {
+    setError('')
+    onPendingChange?.(true)
+    startTransition(async () => {
+      try {
+        const result = await action()
+        if (result.ok) notifyCartUpdated()
+        else setError(result.error)
+      } catch {
+        setError('Could not update your cart. Please try again.')
+      } finally {
+        onPendingChange?.(false)
+      }
+    })
+  }
 
   const handleQuantityChange = (next: number) => {
-    startTransition(async () => {
-      await updateQuantityAction({ productId, variationId, selectedOptions, quantity: next })
-      notifyCartUpdated()
-    })
+    mutate(() => updateQuantityAction({ productId, variationId, selectedOptions, quantity: next }))
   }
 
   const handleRemove = () => {
-    startTransition(async () => {
-      await removeFromCartAction({ productId, variationId, selectedOptions })
-      notifyCartUpdated()
-    })
+    mutate(() => removeFromCartAction({ productId, variationId, selectedOptions }))
   }
 
   return (
-    <div
+    <fieldset
+      disabled={isPending}
       className="flex flex-wrap items-center gap-4"
       style={{ opacity: isPending ? 0.5 : 1, transition: 'opacity 150ms' }}
     >
@@ -54,6 +68,7 @@ export default function CartLineControls({
       >
         Remove
       </button>
-    </div>
+      {error && <p role="alert" className="w-full text-xs" style={{ color: 'var(--color-gold)', fontFamily: MONO }}>{error}</p>}
+    </fieldset>
   )
 }

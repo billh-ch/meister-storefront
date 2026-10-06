@@ -1,7 +1,7 @@
 import Image from 'next/image'
 import Link from 'next/link'
 
-const BORING_STUFF = [
+const CUSTOMER_CARE_LINKS = [
   { label: 'Privacy Policy', href: '/privacy' },
   { label: 'Returns Policy', href: '/returns' },
   { label: 'Contact', href: '/contact' },
@@ -59,15 +59,11 @@ export default function Footer() {
         </div>
 
         {/* ── Row 2: Logo + Newsletter ── */}
-        <div
-          className="flex w-full"
-          style={{ height: '100px' }}
-        >
-          {/* Logo — 20% */}
+        <div className="flex w-full flex-col md:flex-row">
+          {/* Stack the logo above the newsletter on narrow screens. */}
           <div
-            className="flex items-center justify-center"
+            className="flex min-w-0 items-center justify-center px-6 py-6 md:w-1/5"
             style={{
-              width: '20%',
               border: '1px solid #ffffff',
             }}
           >
@@ -76,26 +72,25 @@ export default function Footer() {
               alt="Meister"
               width={170}
               height={40}
+              className="h-auto max-w-full"
             />
           </div>
 
-          {/* Newsletter — 80% */}
+          {/* Newsletter keeps its intrinsic input/button widths contained. */}
           <div
-            className="flex items-center gap-4 px-6 md:gap-6 md:px-10"
+            className="flex min-w-0 flex-1 flex-col items-center gap-4 px-6 py-6 lg:flex-row lg:gap-6 lg:px-10"
             style={{
-              width: '80%',
               border: '1px solid #ffffff',
-              borderLeft: 'none',
             }}
           >
             <p
-              className="hidden shrink-0 text-xs tracking-[0.05em] text-white md:block md:text-sm"
+              className="text-center text-xs tracking-[0.05em] text-white lg:max-w-xs lg:text-left"
               style={{ fontFamily: 'var(--font-space-mono), monospace' }}
             >
               SIGN UP TO OUR NEWSLETTER TO RECEIVE LATEST UPDATES
             </p>
 
-            <div className="flex flex-1 items-center gap-2">
+            <div className="flex w-full min-w-0 flex-1 items-center gap-2">
               <label htmlFor="footer-email" className="sr-only">
                 Email address
               </label>
@@ -131,16 +126,16 @@ export default function Footer() {
 
         {/* ── Row 3: Links grid ── */}
         <div className="grid w-full grid-cols-1 gap-10 px-6 py-14 md:grid-cols-4 md:px-10 lg:px-16">
-          {/* Column 1 — Boring Stuff */}
+          {/* Column 1 — Customer Care */}
           <div className="flex flex-col items-center gap-4 text-center">
             <h3
               className="text-base font-bold tracking-[0.1em] text-white underline"
               style={{ fontFamily: 'var(--font-space-mono), monospace' }}
             >
-              Boring Stuff
+              Customer Care
             </h3>
             <ul className="flex flex-col items-center gap-2" role="list">
-              {BORING_STUFF.map(({ label, href }) => (
+              {CUSTOMER_CARE_LINKS.map(({ label, href }) => (
                 <li key={label}>
                   <Link
                     href={href}
@@ -203,13 +198,13 @@ export default function Footer() {
 
           {/* Column 4 — Google Maps */}
           <div className="flex flex-col items-center gap-0">
-            <div className="overflow-hidden" style={{ width: '280px', height: '230px' }}>
+            <div className="w-full max-w-[280px] overflow-hidden" style={{ height: '230px' }}>
               <iframe
                 title="Meister Dive store location — Aigaleo, Athens"
                 src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3145.5!2d23.6822!3d37.9927!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x14a1bb8c4f6f0001%3A0x0!2sLeoforos%20Athinon%20387%2C%20Aigaleo!5e0!3m2!1sen!2sgr!4v1710000000000!5m2!1sen!2sgr"
                 width="280"
                 height="230"
-                style={{ border: 0, filter: 'grayscale(0.8) brightness(0.8)' }}
+                style={{ width: '100%', border: 0, filter: 'grayscale(0.8) brightness(0.8)' }}
                 allowFullScreen={false}
                 loading="lazy"
                 referrerPolicy="no-referrer-when-downgrade"

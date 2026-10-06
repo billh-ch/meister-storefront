@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { isCountryCode } from './countries'
 
 /** First/last name kept separate, not one field, so this maps directly onto
  *  WooCommerce's `first_name`/`last_name` fields with no guesswork split.
@@ -11,7 +12,7 @@ export const addressSchema = z.object({
   address2: z.string().optional(),
   city: z.string().min(1),
   postcode: z.string().min(1),
-  country: z.string().min(2).max(2).default('GR'),
+  country: z.string().trim().toUpperCase().refine(isCountryCode, 'Choose a valid country.').default('GR'),
   phone: z.string().min(1),
   /** Only collected at guest checkout — logged-in orders take the email from
    *  the WooCommerce customer record. Optional here so the account address
@@ -20,3 +21,10 @@ export const addressSchema = z.object({
 })
 
 export type AddressInput = z.infer<typeof addressSchema>
+
+/** Rates may be requested while the shopper is still entering an address. */
+export const shippingAddressSchema = addressSchema
+  .pick({ country: true, city: true, postcode: true, address1: true })
+  .partial({ city: true, postcode: true, address1: true })
+
+export type ShippingAddressInput = z.infer<typeof shippingAddressSchema>

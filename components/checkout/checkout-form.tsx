@@ -9,13 +9,13 @@ import type { AddressInput } from '@/lib/address/schema'
 import { addressFromFormData } from '@/lib/address/form-data'
 import type { ResolvedCartLine } from '@/lib/cart/resolve'
 import type { ShippingMethod } from '@/lib/woocommerce'
+import { createRequestGuard } from '@/lib/checkout/request-guard'
+import { isCountryCode } from '@/lib/address/countries'
 
 const MONO = 'var(--font-space-mono), monospace'
 
-/** Country field changes settle before refetching methods — shipping zones
- *  are country-scoped, but re-fetching on every keystroke of a 2-letter code
- *  would fire mid-edit for no reason. */
-const COUNTRY_DEBOUNCE_MS = 400
+/** Avoid dispatching a new rate request on every address keystroke. */
+const ADDRESS_DEBOUNCE_MS = 400
 
 interface CheckoutFormProps {
   initialAddress?: AddressInput
@@ -49,39 +49,62 @@ export default function CheckoutForm({
   const [isPending, startTransition] = useTransition()
   const [error, setError] = useState('')
   const [isRedirecting, setIsRedirecting] = useState(false)
+  const [shippingPending, setShippingPending] = useState(false)
+  const [shippingError, setShippingError] = useState('')
 
   const [methods, setMethods] = useState(initialMethods)
   const [selectedMethodId, setSelectedMethodId] = useState(() => pickDefaultMethodId(initialMethods))
+  const preferredMethodId = useRef(selectedMethodId)
   const debounceRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
+  const requestGuard = useRef(createRequestGuard())
+  const formRef = useRef<HTMLFormElement>(null)
 
   // Clears any pending debounced fetch on unmount so a slow response can't
   // try to set state on an unmounted component (same pattern as the navbar's
   // search-suggestions debounce).
   useEffect(() => {
-    return () => clearTimeout(debounceRef.current)
+    const guard = requestGuard.current
+    return () => {
+      clearTimeout(debounceRef.current)
+      guard.invalidate()
+    }
   }, [])
 
-  const handleCountryChange = (country: string) => {
+  const refreshShipping = () => {
+    if (!formRef.current) return
+    const values = addressFromFormData(new FormData(formRef.current))
+    const address = {
+      country: values.country.trim().toUpperCase(),
+      ...(values.city.trim() && { city: values.city.trim() }),
+      ...(values.postcode.trim() && { postcode: values.postcode.trim() }),
+      ...(values.address1.trim() && { address1: values.address1.trim() }),
+    }
     clearTimeout(debounceRef.current)
-    const trimmed = country.trim().toUpperCase()
-    if (trimmed.length !== 2) return
+    const isCurrent = requestGuard.current.begin()
+    if (!isCountryCode(address.country)) return
+    const previousMethodId = preferredMethodId.current
+    setShippingPending(true)
+    setShippingError('')
+    setMethods([])
+    setSelectedMethodId('')
 
     debounceRef.current = setTimeout(() => {
-      getShippingMethodsAction(trimmed)
+      getShippingMethodsAction(address)
         .then((next) => {
+          if (!isCurrent()) return
           setMethods(next)
           // Keep the current pick if it's still offered for the new country;
           // otherwise fall back to the same "cheapest courier" default.
-          setSelectedMethodId((current) =>
-            next.some((method) => method.id === current) ? current : pickDefaultMethodId(next),
-          )
+          const nextMethodId = next.some(method => method.id === previousMethodId) ? previousMethodId : pickDefaultMethodId(next)
+          preferredMethodId.current = nextMethodId
+          setSelectedMethodId(nextMethodId)
         })
         .catch(() => {
-          // A transient failure just leaves the previous list in place —
-          // the real address/country is re-validated again at submit time
-          // regardless.
+          if (!isCurrent()) return
+          setShippingError('Could not calculate delivery. Please try again.')
         })
-    }, COUNTRY_DEBOUNCE_MS)
+        .finally(() => { if (isCurrent()) setShippingPending(false) })
+    }, ADDRESS_DEBOUNCE_MS)
   }
 
   const selectedMethod = methods.find((method) => method.id === selectedMethodId)
@@ -108,7 +131,7 @@ export default function CheckoutForm({
 
   return (
     <div className="flex flex-col gap-6 lg:flex-row lg:items-start">
-      <form onSubmit={handleSubmit} className="flex flex-1 flex-col gap-4">
+      <form ref={formRef} onSubmit={handleSubmit} className="flex flex-1 flex-col gap-4">
         {isGuest && (
           <div className="flex flex-col gap-1">
             <label
@@ -130,9 +153,21 @@ export default function CheckoutForm({
           </div>
         )}
 
-        <DeliveryMethods methods={methods} selectedId={selectedMethodId} onSelect={setSelectedMethodId} />
+        {shippingPending ? (
+          <p role="status" className="text-xs text-white" style={{ fontFamily: MONO }}>Updating delivery methods…</p>
+        ) : shippingError ? (
+          <div>
+            <p role="alert" className="text-xs" style={{ fontFamily: MONO, color: '#FF6B6B' }}>{shippingError}</p>
+            <button type="button" onClick={refreshShipping} className="mt-2 text-xs text-white underline">Retry delivery calculation</button>
+          </div>
+        ) : (
+          <DeliveryMethods methods={methods} selectedId={selectedMethodId} onSelect={id => {
+            preferredMethodId.current = id
+            setSelectedMethodId(id)
+          }} />
+        )}
 
-        <AddressFields defaultValues={initialAddress} idPrefix="checkout" onCountryChange={handleCountryChange} />
+        <AddressFields defaultValues={initialAddress} idPrefix="checkout" onCountryChange={refreshShipping} onShippingAddressChange={refreshShipping} />
 
         {error && (
           <p aria-live="polite" className="text-xs" style={{ fontFamily: MONO, color: '#FF6B6B' }}>
@@ -142,7 +177,7 @@ export default function CheckoutForm({
 
         <button
           type="submit"
-          disabled={isPending || isRedirecting || methods.length === 0}
+          disabled={isPending || isRedirecting || shippingPending || !!shippingError || !selectedMethodId}
           className="btn-gold flex h-12 w-full items-center justify-center text-xs tracking-[0.1em] uppercase"
         >
           {isRedirecting ? 'Redirecting to Stripe…' : isPending ? 'Preparing payment…' : 'Continue to payment'}

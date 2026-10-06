@@ -5,7 +5,7 @@ import Link from 'next/link'
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { formatPrice } from '@/lib/mock-data'
 import type { SearchSuggestion } from '@/app/api/search-suggestions/route'
-import { CART_UPDATED_EVENT } from '@/lib/cart/client-events'
+import { CART_UPDATED_EVENT, openCartDrawer } from '@/lib/cart/client-events'
 
 const SUGGESTION_DEBOUNCE_MS = 250
 const SUGGESTION_MIN_LENGTH = 2
@@ -174,6 +174,9 @@ export default function Navbar() {
           {/* Cart icon */}
           <Link
             href="/cart"
+            onClick={event => {
+              if (!event.metaKey && !event.ctrlKey && !event.shiftKey && !event.altKey && openCartDrawer()) event.preventDefault()
+            }}
             aria-label={cartCount > 0 ? `Shopping cart, ${cartCount} items` : 'Shopping cart'}
             className="relative text-white transition-colors hover:text-[#FFD700]"
           >
