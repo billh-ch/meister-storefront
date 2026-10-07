@@ -64,8 +64,11 @@ const MAX_PAGES = 10
  * until it comes back, but pages after that are independent requests and
  * are fetched concurrently rather than one at a time.
  */
-export async function fetchProducts(): Promise<WcProduct[]> {
+export async function fetchProducts({ requireComplete = false }: { requireComplete?: boolean } = {}): Promise<WcProduct[]> {
   const first = await fetchPage(1)
+  if (requireComplete && first.totalPages > MAX_PAGES) {
+    throw new Error('Published catalog exceeds the pagination limit.')
+  }
   const totalPages = Math.min(first.totalPages, MAX_PAGES)
 
   if (totalPages <= 1) return first.data

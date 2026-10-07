@@ -39,3 +39,22 @@ variation attributes are empty. It verifies each line can be updated and removed
 independently and that the popup cart renders a loaded product thumbnail.
 
 Stop the dev server before running `NODE_USE_ENV_PROXY=1 npm run build`.
+
+
+## Technical SEO regression checks
+
+Stop any Next.js development server in this checkout, then run:
+
+```sh
+CHROMIUM_PATH=/usr/bin/chromium npm run test:seo
+```
+
+This runner starts and stops its own app on port 3002 and a local WooCommerce
+fixture server on a random port. It tests production and preview deployment-mode
+metadata, headers, Greek canonicals, pagination, private/search exclusions,
+robots and sitemap responses. It overrides backend settings with fixture-only
+credentials and makes no real-store mutations or payments. It does not fix or
+validate the protected Vercel preview cart connection.
+
+`npm test` additionally verifies entity decoding, Unicode-safe descriptions,
+sitemap 503/no-store/retry behavior, catalog limits and rejection of demo entries.

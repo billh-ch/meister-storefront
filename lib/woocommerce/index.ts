@@ -14,6 +14,16 @@ import { asUnavailableProductPreview } from './preview-product'
 
 const useMock = process.env.NEXT_PUBLIC_USE_MOCK_DATA === 'true'
 
+/** Real published catalog for search engines. Never substitute outage/demo
+ * products; callers return a retryable failure if the backend is unavailable. */
+export async function getPublishedProducts(): Promise<Product[]> {
+  if (process.env.NEXT_PUBLIC_USE_MOCK_DATA === 'true') {
+    throw new Error('Demo products are not a published catalog.')
+  }
+  const products = await fetchProducts({ requireComplete: true })
+  return products.filter(product => product.status === 'publish').map(mapProduct)
+}
+
 export async function getProducts(): Promise<Product[]> {
   if (useMock) return mockProducts
 

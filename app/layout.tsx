@@ -2,6 +2,8 @@ import type { Metadata } from 'next'
 import { Space_Mono, Zalando_Sans_Expanded } from 'next/font/google'
 import './globals.css'
 import CartDrawer from '@/components/cart/cart-drawer'
+import { buildPageMetadata } from '@/lib/seo/metadata'
+import { getPublicSiteUrl } from '@/lib/seo/site'
 
 /**
  * Zalando Sans Expanded — display heading font.
@@ -26,14 +28,12 @@ const spaceMono = Space_Mono({
 })
 
 export const metadata: Metadata = {
-  title: 'Meister — Diving Equipment Athens',
-  description:
-    'Premium diving equipment store in Athens, Greece. Fins, spearguns, accessories and more.',
-  openGraph: {
-    title: 'Meister — Diving Equipment Athens',
-    description: 'Premium diving equipment. Athens, Greece.',
-    type: 'website',
-  },
+  metadataBase: getPublicSiteUrl(),
+  ...buildPageMetadata({
+    title: 'Meister — Freediving & Spearfishing Equipment',
+    description: 'Explore freediving and spearfishing equipment at Meister: fins, wetsuits, spearguns and diving accessories. Browse product specifications and available options.',
+    path: '/',
+  }),
 }
 
 export default function RootLayout({
