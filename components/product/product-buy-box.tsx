@@ -143,6 +143,7 @@ export default function ProductBuyBox({ product }: ProductBuyBoxProps) {
   const [ctaVisible, setCtaVisible] = useState(true)
 
   const ctaRef = useRef<HTMLButtonElement | null>(null)
+  const variantsRef = useRef<HTMLDivElement | null>(null)
 
   const activeVariant = useMemo(
     () => resolveVariant(product.variants, axisNames, selected),
@@ -216,6 +217,18 @@ export default function ProductBuyBox({ product }: ProductBuyBoxProps) {
       setMissing(unchosen)
       setConfirmation(`Please choose ${unchosen.join(' and ')} first`)
       setIsConfirmationError(true)
+      if (window.matchMedia('(max-width: 1023px)').matches) {
+        requestAnimationFrame(() => {
+          const group = Array.from(variantsRef.current?.querySelectorAll<HTMLElement>('[data-variant-axis]') ?? [])
+            .find(element => element.dataset.variantAxis === unchosen[0])
+          if (!group) return
+          group.querySelector<HTMLElement>('select, button')?.focus({ preventScroll: true })
+          group.scrollIntoView({
+            block: 'start',
+            behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'instant' : 'smooth',
+          })
+        })
+      }
       return
     }
 
@@ -340,12 +353,16 @@ export default function ProductBuyBox({ product }: ProductBuyBoxProps) {
             />
           )}
 
-          <VariantSelector
-            attributes={variationAxes}
-            selected={selected}
-            onSelect={handleSelect}
-            missing={missing}
-          />
+          {variationAxes.length > 0 && (
+            <div ref={variantsRef}>
+              <VariantSelector
+                attributes={variationAxes}
+                selected={selected}
+                onSelect={handleSelect}
+                missing={missing}
+              />
+            </div>
+          )}
 
           <QuantityStepper value={quantity} onChange={handleQuantityChange} />
 
