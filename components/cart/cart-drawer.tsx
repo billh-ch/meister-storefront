@@ -9,6 +9,7 @@ import { cartLineKey } from '@/lib/cart/line-key'
 import { CART_OPEN_EVENT, CART_UPDATED_EVENT } from '@/lib/cart/client-events'
 import { formatPrice } from '@/lib/mock-data'
 import CartLineControls from './cart-line-controls'
+import CartRecommendations from './cart-recommendations'
 
 const MONO = 'var(--font-space-mono), monospace'
 
@@ -113,29 +114,32 @@ export default function CartDrawer() {
                   <Link href="/shop" onClick={close} className="btn-gold px-4 py-3 text-center text-xs">Explore the range</Link>
                 </div>
               ) : (
-                <fieldset disabled={mutationPending || loading}>
-                {onCheckoutPage && <p className="mb-4 text-xs">To change quantities, open the full cart before returning to checkout.</p>}
-                <ul className="flex flex-col gap-6">
-                  {cart.lines.map(line => (
-                    <li key={cartLineKey(line)} className="flex min-w-0 flex-col gap-3 border-b border-white/20 pb-5">
-                      <div className="flex min-w-0 items-start gap-3">
-                        {line.image && (
-                          <Link href={`/products/${line.slug}`} onClick={close} className="relative h-20 w-20 shrink-0 overflow-hidden">
-                            <Image src={line.image} alt={line.name} fill sizes="80px" className="object-cover" />
-                          </Link>
-                        )}
-                        <div className="flex min-w-0 flex-1 flex-col gap-2 break-words">
-                          <Link href={`/products/${line.slug}`} onClick={close} className="text-sm font-bold">{line.name}</Link>
-                          {Object.entries(line.attributes).map(([name, value]) => <p key={name} className="text-xs">{name}: {value}</p>)}
-                          <p className="text-sm">{formatPrice(line.unitPrice)} × {line.quantity}</p>
-                          {!line.purchasable && <p className="text-xs">Out of stock</p>}
-                        </div>
-                      </div>
-                      {!onCheckoutPage && <CartLineControls productId={line.productId} variationId={line.variationId} selectedOptions={line.selectedOptions} quantity={line.quantity} onPendingChange={setMutationPending} />}
-                    </li>
-                  ))}
-                </ul>
-                </fieldset>
+                <>
+                  <fieldset disabled={mutationPending || loading}>
+                    {onCheckoutPage && <p className="mb-4 text-xs">To change quantities, open the full cart before returning to checkout.</p>}
+                    <ul className="flex flex-col gap-6">
+                      {cart.lines.map(line => (
+                        <li key={cartLineKey(line)} className="flex min-w-0 flex-col gap-3 border-b border-white/20 pb-5">
+                          <div className="flex min-w-0 items-start gap-3">
+                            {line.image && (
+                              <Link href={`/products/${line.slug}`} onClick={close} className="relative h-20 w-20 shrink-0 overflow-hidden">
+                                <Image src={line.image} alt={line.name} fill sizes="80px" className="object-cover" />
+                              </Link>
+                            )}
+                            <div className="flex min-w-0 flex-1 flex-col gap-2 break-words">
+                              <Link href={`/products/${line.slug}`} onClick={close} className="text-sm font-bold">{line.name}</Link>
+                              {Object.entries(line.attributes).map(([name, value]) => <p key={name} className="text-xs">{name}: {value}</p>)}
+                              <p className="text-sm">{formatPrice(line.unitPrice)} × {line.quantity}</p>
+                              {!line.purchasable && <p className="text-xs">Out of stock</p>}
+                            </div>
+                          </div>
+                          {!onCheckoutPage && <CartLineControls productId={line.productId} variationId={line.variationId} selectedOptions={line.selectedOptions} quantity={line.quantity} onPendingChange={setMutationPending} />}
+                        </li>
+                      ))}
+                    </ul>
+                  </fieldset>
+                  {!onCheckoutPage && <CartRecommendations productIds={cart.lines.map(line => line.productId)} disabled={loading || mutationPending} onPendingChange={setMutationPending} onNavigate={close} />}
+                </>
               )}
             </>
           )}

@@ -136,7 +136,7 @@ function buildMockGallery(image: string, productName: string): ProductImage[] {
  * Widens a mock `Product` into a `ProductDetail` so every mock slug still
  * has a working PDP when WooCommerce is unreachable. `options` on the mock
  * products is a "S / M / L"-style string, which becomes a single display-only
- * attribute — mock data has no variants to resolve against.
+ * attribute for simple products, or selectable variants for variable fixtures.
  */
 export function toMockProductDetail(product: Product): ProductDetail {
   const sizeValues = product.options
@@ -158,9 +158,17 @@ export function toMockProductDetail(product: Product): ProductDetail {
     salePrice: null,
     attributes:
       sizeValues.length > 0
-        ? [{ name: 'Options', values: sizeValues, isVariationAxis: false }]
+        ? [{ name: 'Options', values: sizeValues, isVariationAxis: product.type === 'variable' }]
         : [],
-    variants: [],
+    variants: product.type === 'variable' ? sizeValues.map((value, index) => ({
+      id: `${product.id}${index + 1}`,
+      price: product.price,
+      regularPrice: product.price,
+      onSale: product.onSale,
+      stockStatus: product.stockStatus,
+      image: null,
+      attributes: { Options: value },
+    })) : [],
     weight: '',
     dimensions: { length: '', width: '', height: '' },
   }
@@ -382,6 +390,7 @@ const productSeeds: MockProductSeed[] = [
   {
     id: '12',
     slug: 'hood-3mm',
+    type: 'variable',
     name: 'Neoprene Hood 3mm',
     price: 49,
     options: 'S / M / L',

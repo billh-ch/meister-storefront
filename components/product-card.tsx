@@ -43,7 +43,7 @@ function ImagePlaceholder({ productName }: { productName: string }) {
 const STOCK_BADGES: Record<StockStatus, string | null> = {
   instock: null,
   outofstock: 'OUT OF STOCK',
-  onbackorder: 'BACKORDER',
+  onbackorder: null,
 }
 
 function Badge({ label, tone }: { label: string; tone: 'gold' | 'muted' }) {

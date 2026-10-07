@@ -39,3 +39,9 @@ variation attributes are empty. It verifies each line can be updated and removed
 independently and that the popup cart renders a loaded product thumbnail.
 
 Stop the dev server before running `NODE_USE_ENV_PROXY=1 npm run build`.
+
+Cart recommendations checks cover horizontal scrolling, exclusion of existing
+cart items, quick additions and refreshed totals in both cart views, backorder
+purchases, variant navigation, pending additions, and recommendation outages.
+The mobile variants check uses the mock variable hood product and verifies that
+Options scrolls to and focuses its selector before adding the chosen variant.

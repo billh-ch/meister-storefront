@@ -5,6 +5,7 @@ import Navbar from '@/components/navbar'
 import Footer from '@/components/footer'
 import SimpleBreadcrumbs from '@/components/collection/simple-breadcrumbs'
 import CartLineControls from '@/components/cart/cart-line-controls'
+import CartShoppingLayout from '@/components/cart/cart-shopping-layout'
 import { getCart } from '@/lib/cart/cookie'
 import { resolveCartItems } from '@/lib/cart/resolve'
 import { formatVariationLabel } from '@/lib/cart/variation-label'
@@ -26,8 +27,6 @@ export default async function CartPage() {
   const cart = await getCart()
   const resolved = await resolveCartItems(cart)
   const hasPurchasableLines = resolved.lines.some((line) => line.purchasable)
-
-  const checkoutHref = '/checkout'
 
   return (
     <main style={{ backgroundColor: '#1B1B18' }}>
@@ -58,8 +57,12 @@ export default async function CartPage() {
             </Link>
           </div>
         ) : (
-          <div className="flex flex-col gap-6 lg:flex-row lg:items-start">
-            <div className="flex-1" style={{ border: '1px solid #444444' }}>
+          <CartShoppingLayout
+            productIds={resolved.lines.map(line => line.productId)}
+            subtotal={resolved.subtotal}
+            hasPurchasableLines={hasPurchasableLines}
+          >
+            <div style={{ border: '1px solid #444444' }}>
               {resolved.unavailableCount > 0 && (
                 <p
                   className="px-4 py-3 text-xs"
@@ -128,39 +131,7 @@ export default async function CartPage() {
                 </div>
               ))}
             </div>
-
-            <div className="w-full lg:w-80 lg:flex-shrink-0" style={{ border: '1px solid #444444' }}>
-              <div className="flex flex-col gap-4 p-4">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-[#999999]" style={{ fontFamily: MONO }}>
-                    SUBTOTAL
-                  </span>
-                  <span className="text-lg font-bold text-white" style={{ fontFamily: MONO }}>
-                    {formatPrice(resolved.subtotal)}
-                  </span>
-                </div>
-                <p className="text-xs text-[#999999]" style={{ fontFamily: MONO }}>
-                  Shipping and any remaining total are calculated at checkout.
-                </p>
-
-                {hasPurchasableLines ? (
-                  <Link
-                    href={checkoutHref}
-                    className="btn-gold flex h-12 w-full items-center justify-center text-xs tracking-[0.1em] uppercase"
-                  >
-                    PROCEED TO CHECKOUT
-                  </Link>
-                ) : (
-                  <span
-                    className="flex h-12 w-full cursor-not-allowed items-center justify-center text-xs tracking-[0.1em] uppercase"
-                    style={{ backgroundColor: '#444444', color: '#999999', fontFamily: MONO }}
-                  >
-                    PROCEED TO CHECKOUT
-                  </span>
-                )}
-              </div>
-            </div>
-          </div>
+          </CartShoppingLayout>
         )}
       </div>
 
