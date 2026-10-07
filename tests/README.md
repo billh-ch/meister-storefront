@@ -58,3 +58,8 @@ validate the protected Vercel preview cart connection.
 
 `npm test` additionally verifies entity decoding, Unicode-safe descriptions,
 sitemap 503/no-store/retry behavior, catalog limits and rejection of demo entries.
+
+Product schema unit tests cover sale/stock/range/wildcard/legacy data and safe
+JSON embedding. Content tests cover legacy feature lists, preserved bracketed
+text and HTML sanitization. The SEO browser runner also checks rendered product
+and breadcrumb JSON-LD against canonical URLs and description lists at 390px.
