@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import { buildCollectionMetadata, categoryMetadata } from '@/lib/seo/metadata'
 import { notFound } from 'next/navigation'
 import Navbar from '@/components/navbar'
 import Footer from '@/components/footer'
@@ -26,18 +27,22 @@ interface CategoryPageProps {
  * own rules, so nothing extra needs configuring here. Same split as the PDP:
  * cached data, per-request render.
  */
-export async function generateMetadata({
-  params,
-}: CategoryPageProps): Promise<Metadata> {
+export async function generateMetadata({ params, searchParams }: CategoryPageProps): Promise<Metadata> {
   const { category: slug } = await params
   const category = findCategory(slug)
-
-  if (!category) return { title: 'Not found — Meister' }
-
-  return {
-    title: `${category.name} — Meister`,
-    description: `Shop ${category.name.toLowerCase()} at Meister — diving equipment, Athens.`,
-  }
+  if (!category) return { title: 'Not found — Meister', alternates: { canonical: null }, robots: { index: false, follow: true } }
+  const sp = await searchParams
+  const products = await getProducts()
+  const collection = paginateProducts(products.filter(product => product.category === slug), {
+    page: sp.page, sort: sp.sort, filters: parseFilters(sp),
+  })
+  const copy = categoryMetadata[slug]
+  return buildCollectionMetadata({
+    title: copy?.title || `${category.name} — Meister`,
+    description: copy?.description || `Browse ${category.name.toLowerCase()} at Meister.`,
+    path: `/${slug}`, currentPage: collection.currentPage, searchParams: sp,
+    noindex: products.some(product => !/^\d+$/.test(product.id)),
+  })
 }
 
 export default async function CategoryPage({ params, searchParams }: CategoryPageProps) {

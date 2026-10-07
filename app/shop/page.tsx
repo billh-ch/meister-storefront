@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import { buildCollectionMetadata } from '@/lib/seo/metadata'
 import Navbar from '@/components/navbar'
 import Footer from '@/components/footer'
 import CollectionView from '@/components/collection/collection-view'
@@ -17,9 +18,16 @@ interface ShopPageProps {
   }>
 }
 
-export const metadata: Metadata = {
-  title: 'Shop — Meister',
-  description: 'Every product Meister carries — diving equipment, Athens.',
+export async function generateMetadata({ searchParams }: ShopPageProps): Promise<Metadata> {
+  const sp = await searchParams
+  const products = await getProducts()
+  const collection = paginateProducts(products, { page: sp.page, sort: sp.sort, filters: parseFilters(sp) })
+  return buildCollectionMetadata({
+    title: 'Shop Diving & Spearfishing Equipment — Meister',
+    description: 'Browse the Meister catalog of freediving and spearfishing equipment. Explore fins, wetsuits, spearguns, accessories and merchandise.',
+    path: '/shop', currentPage: collection.currentPage, searchParams: sp,
+    noindex: products.some(product => !/^\d+$/.test(product.id)),
+  })
 }
 
 /**

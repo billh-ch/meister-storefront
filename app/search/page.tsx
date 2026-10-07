@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import { buildPageMetadata } from '@/lib/seo/metadata'
 import Navbar from '@/components/navbar'
 import Footer from '@/components/footer'
 import CollectionView from '@/components/collection/collection-view'
@@ -25,10 +26,11 @@ export async function generateMetadata({ searchParams }: SearchPageProps): Promi
   const { q } = await searchParams
   const query = q?.trim()
 
-  return {
+  return buildPageMetadata({
     title: query ? `Search: "${query}" — Meister` : 'Search — Meister',
     description: 'Search Meister’s diving equipment catalogue.',
-  }
+    path: '/search', noindex: true,
+  })
 }
 
 /**

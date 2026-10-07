@@ -10,6 +10,8 @@ const MONO = 'var(--font-space-mono), monospace'
 const DISPLAY = 'var(--font-dela-gothic), sans-serif'
 
 export const metadata: Metadata = {
+  robots: { index: false, follow: false },
+  alternates: { canonical: null },
   title: 'Order Confirmation — Meister',
 }
 

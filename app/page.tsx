@@ -1,3 +1,5 @@
+import type { Metadata } from 'next'
+import { buildPageMetadata } from '@/lib/seo/metadata'
 import Navbar from '@/components/navbar'
 import HeroSection from '@/components/hero-section'
 import ProductCarousel from '@/components/product-carousel'
@@ -7,6 +9,16 @@ import Footer from '@/components/footer'
 import CategoriesSection from '@/components/categories-section'
 import { getProducts } from '@/lib/woocommerce'
 import { categoryDetails } from '@/lib/mock-data'
+
+export async function generateMetadata(): Promise<Metadata> {
+  const products = await getProducts()
+  return buildPageMetadata({
+    title: 'Meister — Freediving & Spearfishing Equipment',
+    description: 'Explore freediving and spearfishing equipment at Meister: fins, wetsuits, spearguns and diving accessories. Browse product specifications and available options.',
+    path: '/',
+    noindex: products.some(product => !/^\d+$/.test(product.id)),
+  })
+}
 
 /**
  * Meister homepage — assembles all 8 sections in order.

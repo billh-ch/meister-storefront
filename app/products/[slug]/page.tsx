@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import { buildProductMetadata, plainTextDescription } from '@/lib/seo/metadata'
 import { notFound } from 'next/navigation'
 import Navbar from '@/components/navbar'
 import Footer from '@/components/footer'
@@ -92,27 +93,10 @@ export async function generateMetadata({
   const product = await getProductBySlug(decodeSlug(slug))
 
   if (!product) {
-    return { title: 'Product not found — Meister' }
+    return { title: 'Product not found — Meister', alternates: { canonical: null }, robots: { index: false, follow: true } }
   }
 
-  const description =
-    stripTags(product.shortDescriptionHtml || product.descriptionHtml).slice(0, 160) ||
-    `${product.name} — premium diving equipment from Meister, Athens.`
-
-  return {
-    title: `${product.name} — Meister`,
-    description,
-    openGraph: {
-      title: `${product.name} — Meister`,
-      description,
-      type: 'website',
-      images: product.gallery[0] ? [{ url: product.gallery[0].src }] : undefined,
-    },
-  }
-}
-
-function stripTags(html: string): string {
-  return html.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim()
+  return buildProductMetadata(product)
 }
 
 const SCHEMA_AVAILABILITY: Record<StockStatus, string> = {
@@ -126,7 +110,7 @@ function buildJsonLd(product: ProductDetail) {
     '@context': 'https://schema.org',
     '@type': 'Product',
     name: product.name,
-    description: stripTags(product.descriptionHtml).slice(0, 500),
+    description: plainTextDescription(product.descriptionHtml, 500),
     image: product.gallery.map((image) => image.src),
     ...(product.sku && { sku: product.sku }),
     ...(product.brand && { brand: { '@type': 'Brand', name: product.brand } }),
