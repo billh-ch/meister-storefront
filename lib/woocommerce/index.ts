@@ -90,7 +90,7 @@ export async function getProductById(id: string): Promise<ProductDetail | null> 
   if (!wcProduct) return null
 
   const variations =
-    wcProduct.type === 'variable' ? await fetchVariations(wcProduct.id) : []
+    wcProduct.type === 'variable' ? await fetchVariations(wcProduct.id, { fresh: true }) : []
 
   return mapProductDetail(wcProduct, variations)
 }
