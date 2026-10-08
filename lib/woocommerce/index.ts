@@ -41,6 +41,15 @@ function findMockDetail(slug: string): ProductDetail | null {
   return product ? toMockProductDetail(product) : null
 }
 
+/** Strict public detail lookup for agent tools: never return demo/outage data. */
+export async function getPublishedProductBySlug(slug: string): Promise<ProductDetail | null> {
+  if (process.env.NEXT_PUBLIC_USE_MOCK_DATA === 'true') throw new Error('Public catalog is unavailable in demo mode.')
+  const product = await fetchProductBySlug(slug)
+  if (!product || product.status !== 'publish') return null
+  const variants = product.type === 'variable' ? await fetchVariations(product.id, { publishedOnly: true }) : []
+  return mapProductDetail(product, variants)
+}
+
 /**
  * The error handling here is deliberately asymmetric:
  *

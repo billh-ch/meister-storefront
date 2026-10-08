@@ -34,6 +34,8 @@ export interface WcVariationAttribute {
 }
 
 export interface WcVariation {
+  /** Required for strict published agent reads; legacy buyer fixtures may omit it. */
+  status?: string
   id: number
   price: string
   regular_price: string
@@ -76,14 +78,15 @@ export async function fetchProductBySlug(
 /** Only called for `type === 'variable'` products. */
 export async function fetchVariations(
   productId: number,
-  { fresh = false }: { fresh?: boolean } = {},
+  { fresh = false, publishedOnly = false }: { fresh?: boolean; publishedOnly?: boolean } = {},
 ): Promise<WcVariation[]> {
-  return wcFetch<WcVariation[]>(
+  const variants = await wcFetch<WcVariation[]>(
     `/products/${productId}/variations`,
-    { per_page: '100' },
+    { per_page: '100', ...(publishedOnly && { status: 'publish' }) },
     {
       revalidate: fresh ? 0 : DETAIL_REVALIDATE,
       ...(fresh ? {} : { tags: ['products', `product:${productId}`, `product:${productId}:variations`] }),
     },
   )
+  return publishedOnly ? variants.filter(variant => variant.status === 'publish') : variants
 }

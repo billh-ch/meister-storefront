@@ -68,13 +68,13 @@ test('product metadata uses real product content and excludes outage fallback pr
 test('sitemap contains only real catalog URLs and excludes duplicate/mock/private entries', async () => {
   const products = [{ id: '1', slug: 'πέδιλα' }, { id: '2', slug: encodeURIComponent('πέδιλα') }]
   const urls = buildSitemapUrls(products, ['fins'], production)
-  assert.deepEqual(urls, [`${base}/`, `${base}/shop`, `${base}/fins`, canonicalProductUrl('πέδιλα')])
+  assert.deepEqual(urls, [`${base}/`, `${base}/shop`, `${base}/fins`, ...['about','contact','privacy','docs','docs/agents','docs/mcp','docs/auth'].map(path => `${base}/${path}`), canonicalProductUrl('πέδιλα')])
   assert.throws(() => buildSitemapUrls([{ id: 'preview:1', slug: 'fake' }], [], production))
   const success = await sitemapResponse(async () => products, ['fins'], production)
   assert.equal(success.status, 200)
   const xml = await success.text()
   assert.match(xml, /sitemaps.org\/schemas\/sitemap\/0.9/)
-  assert.doesNotMatch(xml, /lastmod|checkout|cart|privacy|fake/)
+  assert.doesNotMatch(xml, /lastmod|checkout|cart|fake/)
   const failure = await sitemapResponse(async () => { throw new Error('backend down') }, ['fins'], production)
   assert.equal(failure.status, 503)
   assert.equal(failure.headers.get('Retry-After'), '60')
