@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict'
 import { createServer } from 'node:http'
 import { spawn } from 'node:child_process'
-import { openSync, closeSync } from 'node:fs'
+import { openSync, closeSync, readFileSync } from 'node:fs'
 import { once } from 'node:events'
 import { chromium } from 'playwright'
 
@@ -55,6 +55,12 @@ async function start(mode) {
     const buildLog = openSync('/tmp/meister-agents-build.log','w')
     const build = spawn(process.execPath,['node_modules/next/dist/bin/next','build'],{cwd:new URL('../',import.meta.url),env,stdio:['ignore',buildLog,buildLog]})
     try { await once(build,'exit'); assert.equal(build.exitCode,0,'Inspect /tmp/meister-agents-build.log') } finally {closeSync(buildLog)}
+    const manifest=JSON.parse(readFileSync(new URL('../.next/routes-manifest.json',import.meta.url),'utf8'))
+    for(const path of ['/','/about','/contact','/privacy','/docs','/docs/agents','/docs/mcp','/docs/auth']){
+      const header=manifest.headers.find(rule=>rule.source===path)?.headers.find(header=>header.key.toLowerCase()==='vary')
+      assert.match(header?.value||'',/\bAccept\b/,'Deployment routing manifest must retain Accept for static HTML')
+      assert.match(header.value,/\brsc\b/i,'Keep the framework cache variations')
+    }
   }
   server = spawn(process.execPath, ['node_modules/next/dist/bin/next', production ? 'start' : 'dev', '--hostname', '127.0.0.1', '--port', '3004'], {
     cwd: new URL('../', import.meta.url), stdio: ['ignore', log, log], env,
