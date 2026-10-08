@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import { Space_Mono, Zalando_Sans_Expanded } from 'next/font/google'
 import './globals.css'
 import CartDrawer from '@/components/cart/cart-drawer'
+import CartAddedBanner from '@/components/cart/cart-added-banner'
 import { buildPageMetadata } from '@/lib/seo/metadata'
 import { getPublicSiteUrl } from '@/lib/seo/site'
 
@@ -47,7 +48,7 @@ export default function RootLayout({
       dir="ltr"
       className={`${zalandoSansExpanded.variable} ${spaceMono.variable}`}
     >
-      <body className="min-h-screen antialiased">{children}<CartDrawer /></body>
+      <body className="min-h-screen antialiased">{children}<CartDrawer /><CartAddedBanner /></body>
     </html>
   )
 }

@@ -90,7 +90,7 @@ export default function CartDrawer() {
       onCancel={close}
       onClose={close}
       onClick={event => { if (event.target === event.currentTarget) close() }}
-      className="fixed inset-y-0 right-0 left-auto m-0 h-dvh max-h-none w-full max-w-md border-0 p-0 text-white backdrop:bg-black/70"
+      className="fixed inset-y-0 right-0 left-auto m-0 h-dvh max-h-none w-[90vw] max-w-md border-0 p-0 text-white backdrop:bg-black/50"
       style={{ backgroundColor: 'var(--color-dark)', fontFamily: MONO }}
     >
       <div className="flex h-full min-w-0 flex-col">

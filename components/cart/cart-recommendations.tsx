@@ -5,7 +5,7 @@ import Link from 'next/link'
 import { useEffect, useId, useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import { addToCartAction } from '@/lib/cart/actions'
-import { notifyCartUpdated } from '@/lib/cart/client-events'
+import { notifyCartAdded } from '@/lib/cart/client-events'
 import { formatPrice, type Product } from '@/lib/mock-data'
 
 interface CartRecommendationsProps {
@@ -42,7 +42,7 @@ export default function CartRecommendations({ productIds, disabled = false, onPe
         const result = await addToCartAction({ productId: product.id, quantity: 1 })
         if (result.ok) {
           setProducts(current => current.filter(item => item.id !== product.id))
-          notifyCartUpdated()
+          notifyCartAdded(product.name)
           router.refresh()
         } else setError(result.error)
       } catch {
