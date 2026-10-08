@@ -5,6 +5,9 @@
 - `/` negotiates HTML versus Markdown using the Accept header. Both variants
   advertise `Vary: Accept`. Unsupported public paths and missing products retain
   HTTP 404 and return useful Markdown errors for Markdown clients.
+  Static HTML also has Vary rules in the deployment routing manifest: Vercel's
+  prerender cache does not retain the proxy's custom Vary alone. These rules
+  preserve Next.js's RSC/router cache variations alongside Accept.
 - `/about`, `/contact`, `/privacy`, `/docs`, `/docs/agents`, `/docs/mcp`, `/docs/auth`
   provide server-rendered HTML and negotiated Markdown. All have substantial
   factual content and are listed in the sitemap. Contact details come from

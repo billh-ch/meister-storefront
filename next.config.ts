@@ -1,9 +1,10 @@
 import type { NextConfig } from "next";
 import { buildIndexingHeaders } from "./lib/seo/site";
+import { buildAgentNegotiationHeaders } from "./lib/agents/headers";
 
 const nextConfig: NextConfig = {
   async headers() {
-    return buildIndexingHeaders();
+    return [...buildIndexingHeaders(), ...buildAgentNegotiationHeaders()];
   },
   images: {
     remotePatterns: [
