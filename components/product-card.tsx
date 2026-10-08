@@ -39,11 +39,11 @@ function ImagePlaceholder({ productName }: { productName: string }) {
   )
 }
 
-/** Badge copy per stock status. `instock` gets none. */
+/** Only unavailable stock gets a card badge; backorders remain purchasable. */
 const STOCK_BADGES: Record<StockStatus, string | null> = {
   instock: null,
   outofstock: 'OUT OF STOCK',
-  onbackorder: 'BACKORDER',
+  onbackorder: null,
 }
 
 function Badge({ label, tone }: { label: string; tone: 'gold' | 'muted' }) {
