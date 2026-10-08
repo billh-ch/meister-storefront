@@ -13,8 +13,14 @@ const products = Array.from({ length: 25 }, (_, index) => ({
   price: '80', regular_price: '80', sale_price: '', price_html: '80',
   type: 'simple', status: 'publish', on_sale: false, stock_status: 'instock', stock_quantity: 5,
   images: [], categories: [{ id: 86, name: 'Πέδιλα', slug: 'πέδιλα' }], attributes: [],
-  description: '<p>Fins &amp; accessories.</p>', short_description: '<p>Fins &amp; suits.</p>', sku: `FINS-${index + 1}`,
+  description: '<p>&gt;Multiple dive modes<br>&gt;Wide variety of alarms</p>', short_description: '<p>Fins &amp; suits.</p>', sku: `FINS-${index + 1}`,
 }))
+products[1] = { ...products[1], type: 'variable', price: '60', price_html: '60–95',
+  attributes: [{ name: 'Size', options: ['M', 'L'], variation: true, visible: true }] }
+const variations = [
+  { id: 101, price: '60', regular_price: '70', on_sale: true, stock_status: 'outofstock', attributes: [{ name: 'Size', option: 'M' }] },
+  { id: 102, price: '95', regular_price: '95', on_sale: false, stock_status: 'onbackorder', attributes: [{ name: 'Size', option: '' }] },
+]
 const backend = createServer((request, response) => {
   const url = new URL(request.url, 'http://localhost')
   const id = url.pathname.match(/^\/wp-json\/wc\/v3\/products\/(\d+)$/)?.[1]
@@ -22,7 +28,8 @@ const backend = createServer((request, response) => {
   response.setHeader('Content-Type', 'application/json')
   response.setHeader('X-WP-TotalPages', '1')
   response.setHeader('X-WP-Total', String(products.length))
-  if (id) {
+  if (url.pathname === '/wp-json/wc/v3/products/2/variations') { response.end(JSON.stringify(variations)) }
+  else if (id) {
     response.statusCode = product ? 200 : 404
     response.end(JSON.stringify(product || { message: 'Not found' }))
   } else if (url.pathname === '/wp-json/wc/v3/products') {
@@ -37,11 +44,11 @@ const baseURL = 'http://127.0.0.1:3002'
 const canonical = 'https://meister-storefront.vercel.app'
 let browser, server, log
 
-async function start(mode) {
+async function start(mode, mock = false) {
   log = openSync(`/tmp/meister-seo-${mode}.log`, 'w')
   server = spawn(process.execPath, ['node_modules/next/dist/bin/next', 'dev', '--hostname', '127.0.0.1', '--port', '3002'], {
     cwd: new URL('../', import.meta.url), stdio: ['ignore', log, log],
-    env: { ...process.env, VERCEL_ENV: mode, NEXT_PUBLIC_SITE_URL: canonical, NEXT_PUBLIC_USE_MOCK_DATA: 'false',
+    env: { ...process.env, VERCEL_ENV: mode, NEXT_PUBLIC_SITE_URL: canonical, NEXT_PUBLIC_USE_MOCK_DATA: String(mock),
       NEXT_PUBLIC_WC_URL: fixtureURL, WC_CONSUMER_KEY: 'fixture-key', WC_CONSUMER_SECRET: 'fixture-secret',
       NODE_USE_ENV_PROXY: '1', NO_PROXY: `${process.env.NO_PROXY || ''},127.0.0.1,localhost` },
   })
@@ -83,6 +90,23 @@ try {
   assert.equal(product.status, 200)
   assert.equal(product.canonical, `${canonical}/products/${products[0].slug}`)
   assert.equal(product.description, 'Fins & suits.')
+  const schemas = await page.locator('script[type="application/ld+json"]').evaluateAll(nodes => nodes.flatMap(node => JSON.parse(node.textContent)))
+  const productSchema = schemas.find(schema => schema['@type'] === 'Product')
+  assert.equal(productSchema.url, product.canonical)
+  assert.equal(productSchema.offers.price, 80)
+  assert.equal(productSchema.offers.url, product.canonical)
+  assert.equal(productSchema.offers.priceCurrency, 'EUR')
+  const breadcrumbSchema = schemas.find(schema => schema['@type'] === 'BreadcrumbList')
+  assert.deepEqual(breadcrumbSchema.itemListElement.map(item => item.item), [canonical + '/', canonical + '/fins', product.canonical])
+  assert.deepEqual(await page.locator('.product-prose ul li').allTextContents(), ['Multiple dive modes', 'Wide variety of alarms'])
+  assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth), true)
+  console.log('PASS: rendered Product/Breadcrumb schema, canonical offer URL and readable legacy description on mobile')
+  await snapshot(page, '/products/fins-2')
+  const variable = await page.locator('script[type="application/ld+json"]').evaluateAll(nodes => nodes.flatMap(node => JSON.parse(node.textContent)).find(schema => schema['@type'] === 'Product'))
+  assert.equal(variable.offers.lowPrice, 60)
+  assert.equal(variable.offers.highPrice, 95)
+  assert.deepEqual(variable.offers.offers.map(offer => offer.availability), ['https://schema.org/OutOfStock', 'https://schema.org/BackOrder'])
+  console.log('PASS: rendered variable offer range and per-variation availability')
   const paged = await snapshot(page, '/fins?page=999')
   assert.equal(paged.canonical, `${canonical}/fins?page=2`)
   assert.match(paged.title, /Page 2/)
@@ -117,6 +141,12 @@ try {
   assert.match(await (await fetch(`${baseURL}/robots.txt`)).text(), /Disallow: \/\n/)
   assert.doesNotMatch(await (await fetch(`${baseURL}/sitemap.xml`)).text(), /<loc>/)
   console.log('PASS: preview indexing exclusion and empty preview sitemap (local deployment-mode simulation)')
+  await stop()
+  await start('production', true)
+  await snapshot(page, '/products/carbon-blade-fins')
+  const demoSchemas = await page.locator('script[type="application/ld+json"]').evaluateAll(nodes => nodes.flatMap(node => JSON.parse(node.textContent)))
+  assert.ok(!demoSchemas.some(schema => schema['@type'] === 'Product'))
+  console.log('PASS: mock catalog cannot publish Product structured data')
 } finally {
   await browser?.close()
   await stop()

@@ -15,6 +15,7 @@
     "@upstash/redis": "^1.38.2",
     "embla-carousel-react": "^8.6.0",
     "entities": "^7.0.1",
+    "htmlparser2": "10.1.0",
     "iron-session": "^8.0.4",
     "next": "16.2.12",
     "react": "19.2.4",

@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import { buildProductMetadata, plainTextDescription } from '@/lib/seo/metadata'
+import { buildProductMetadata } from '@/lib/seo/metadata'
 import { notFound } from 'next/navigation'
 import Navbar from '@/components/navbar'
 import Footer from '@/components/footer'
@@ -9,7 +9,10 @@ import ProductBuyBox from '@/components/product/product-buy-box'
 import ProductSpecsTable from '@/components/product/product-specs-table'
 import AccordionItem from '@/components/product/accordion-item'
 import { getProductBySlug, getProducts } from '@/lib/woocommerce'
-import { shippingReturnsCopy, type ProductDetail, type StockStatus } from '@/lib/mock-data'
+import { shippingReturnsCopy } from '@/lib/mock-data'
+import { findCategory } from '@/lib/categories'
+import { canonicalProductUrl, getPublicSiteUrl } from '@/lib/seo/site'
+import { buildProductStructuredData, buildBreadcrumbStructuredData, serializeStructuredData } from '@/lib/seo/structured-data'
 
 interface ProductPageProps {
   // `params` is a Promise in Next 16 and must be awaited. The generated
@@ -99,32 +102,6 @@ export async function generateMetadata({
   return buildProductMetadata(product)
 }
 
-const SCHEMA_AVAILABILITY: Record<StockStatus, string> = {
-  instock: 'https://schema.org/InStock',
-  outofstock: 'https://schema.org/OutOfStock',
-  onbackorder: 'https://schema.org/BackOrder',
-}
-
-function buildJsonLd(product: ProductDetail) {
-  return {
-    '@context': 'https://schema.org',
-    '@type': 'Product',
-    name: product.name,
-    description: plainTextDescription(product.descriptionHtml, 500),
-    image: product.gallery.map((image) => image.src),
-    ...(product.sku && { sku: product.sku }),
-    ...(product.brand && { brand: { '@type': 'Brand', name: product.brand } }),
-    offers: {
-      '@type': 'Offer',
-      // Raw number, never the formatted string — that one is Greek-locale
-      // formatted with a comma decimal separator.
-      price: product.price,
-      priceCurrency: 'EUR',
-      availability: SCHEMA_AVAILABILITY[product.stockStatus],
-    },
-  }
-}
-
 const RELATED_LIMIT = 8
 
 export default async function ProductPage({ params }: ProductPageProps) {
@@ -143,6 +120,17 @@ export default async function ProductPage({ params }: ProductPageProps) {
     .slice(0, RELATED_LIMIT)
 
   const specs = <ProductSpecsTable product={product} />
+  const canonicalUrl = canonicalProductUrl(product.slug)
+  const category = findCategory(product.category)
+  const structuredData = [
+    ...(process.env.NEXT_PUBLIC_USE_MOCK_DATA !== 'true' && /^\d+$/.test(product.id)
+      ? [buildProductStructuredData(product, canonicalUrl)] : []),
+    buildBreadcrumbStructuredData([
+      { name: 'Home', url: getPublicSiteUrl().href },
+      ...(category ? [{ name: category.name, url: new URL(`/${category.slug}`, getPublicSiteUrl()).href }] : []),
+      { name: product.name, url: canonicalUrl },
+    ]),
+  ]
 
   return (
     <main style={{ backgroundColor: '#1B1B18' }}>
@@ -206,7 +194,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
         // from WooCommerce, outside this app's control) would close this
         // tag early and let the rest of the string execute as script.
         dangerouslySetInnerHTML={{
-          __html: JSON.stringify(buildJsonLd(product)).replace(/</g, '\\u003c'),
+          __html: serializeStructuredData(structuredData),
         }}
       />
     </main>
