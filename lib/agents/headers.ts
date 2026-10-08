@@ -1,6 +1,6 @@
-/** Vercel serves prerendered HTML outside the Next response pipeline. Publish
- * these rules in the deployment routing manifest as well as setting them in
- * proxy.ts so both cached HTML and dynamic Markdown advertise negotiation. */
+/** Publish the intended HTML variations in the routing manifest as well as
+ * proxy.ts. Vercel currently overwrites HTML Vary even with these rules;
+ * verify final deployed headers rather than assuming manifest rules survive. */
 export function buildAgentNegotiationHeaders() {
   const vary = 'Accept, rsc, next-router-state-tree, next-router-prefetch, next-router-segment-prefetch'
   return ['/', '/about', '/contact', '/privacy', '/docs', '/docs/agents', '/docs/mcp', '/docs/auth',

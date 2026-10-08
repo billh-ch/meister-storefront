@@ -2,12 +2,15 @@
 
 ## Public resources
 
-- `/` negotiates HTML versus Markdown using the Accept header. Both variants
-  advertise `Vary: Accept`. Unsupported public paths and missing products retain
+- `/` negotiates HTML versus Markdown using the Accept header. Markdown
+  advertises `Vary: Accept`. Unsupported public paths and missing products retain
   HTTP 404 and return useful Markdown errors for Markdown clients.
-  Static HTML also has Vary rules in the deployment routing manifest: Vercel's
-  prerender cache does not retain the proxy's custom Vary alone. These rules
-  preserve Next.js's RSC/router cache variations alongside Accept.
+  HTML has Vary rules in both the proxy and deployment routing manifest, keeping
+  Next.js's RSC/router cache variations alongside Accept locally. Live Vercel
+  still replaces HTML Vary with framework tokens, omitting Accept; adding the
+  deployment rules did not fix that platform behavior. Dynamic product HTML
+  shows the same omission. Treat this as an unresolved HTML cache-header warning,
+  even though direct HTML/Markdown requests return the correct representations.
 - `/about`, `/contact`, `/privacy`, `/docs`, `/docs/agents`, `/docs/mcp`, `/docs/auth`
   provide server-rendered HTML and negotiated Markdown. All have substantial
   factual content and are listed in the sitemap. Contact details come from
@@ -46,6 +49,13 @@ production-mode fixture after changes produced 6,794 text characters
 and a 10.24% content ratio without scripts. These datasets differ; they are not a production before/after benchmark
 or a new Ora score. The test verifies meaningful content, semantic headings and
 an above 5% ratio for its representative fixture with JavaScript disabled.
+
+Live verification after publication on 8 October 2026 measured 7,519 text
+characters and a 5.42% content ratio excluding scripts/styles. The sitemap had
+104 URLs including 90 products. Official MCP initialization/search/product calls
+and all new documentation resources worked against production. HTML Vary
+warnings are separate from the passing Markdown requirements; no new Ora score
+or brand ranking is claimed.
 
 ## Verification
 
@@ -100,6 +110,12 @@ capability. A plain GET is not an MCP initialization handshake.
    WooCommerce connection in the deployed environment.
 5. Agent purchasing, OAuth, customer access and write tools require a separate
    product/security design; this release offers public catalog research only.
+6. Prioritize a separate framework/dependency security update. The production
+   dependency scan reported 24 version advisories (3 critical, 12 high,
+   7 moderate, 2 low), including existing Next.js 16.2.12 and transitive packages.
+   The highest patched Next.js minimum in that scan was 16.3.8. These are scanner
+   matches rather than proof of exploitation; assess applicability and verify
+   commerce/images/caching/agent behavior before deploying dependency changes.
 
 Protocol references inspected: https://llmstxt.org/, https://acceptmarkdown.com/,
 https://modelcontextprotocol.io/specification/2025-11-25/basic/transports and the
