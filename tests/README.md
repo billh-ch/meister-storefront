@@ -82,3 +82,9 @@ HTML/Markdown negotiation, meaningful no-JS HTML, 404 representations, every
 new documentation/discovery endpoint and official MCP client handshake/tools.
 See `docs/guides/agent-readiness.md` for deployed curl checks and owner decisions.
 Set `AGENTS_PRODUCTION=true` to build and test the production app instead of dev.
+
+Cart recommendations checks cover horizontal scrolling, exclusion of existing
+cart items, quick additions and refreshed totals in both cart views, backorder
+purchases, variant navigation, pending additions, and recommendation outages.
+The mobile variants check uses the mock variable hood product and verifies that
+Options scrolls to and focuses its selector before adding the chosen variant.

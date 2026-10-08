@@ -58,7 +58,7 @@ export default function VariantSelector({
 
         if (attribute.values.length > DROPDOWN_THRESHOLD) {
           return (
-            <div key={attribute.name}>
+            <div key={attribute.name} data-variant-axis={attribute.name} className="scroll-mt-28">
               <label htmlFor={fieldId} className="mb-2 block">
                 {label}
               </label>
@@ -119,7 +119,7 @@ export default function VariantSelector({
         }
 
         return (
-          <fieldset key={attribute.name} className="border-0 p-0">
+          <fieldset key={attribute.name} data-variant-axis={attribute.name} className="scroll-mt-28 border-0 p-0">
             <legend className="mb-2">{label}</legend>
 
             <div className="flex flex-wrap gap-2">
