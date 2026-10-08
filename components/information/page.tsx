@@ -4,6 +4,9 @@ import Footer from '@/components/footer'
 import type { InformationPage } from '@/lib/agents/content'
 
 export default function InformationContent({ page }: { page: InformationPage }) {
+  const links = page.audience === 'customer'
+    ? [{ href: '/about', label: 'About Meister' }, { href: '/contact', label: 'Contact' }, { href: '/privacy', label: 'Privacy' }]
+    : ['/about','/contact','/privacy','/docs','/docs/agents','/docs/mcp','/docs/auth','/llms.txt','/sitemap.xml'].map(href => ({ href, label: href }))
   return <main style={{ backgroundColor: '#1B1B18' }}>
     <Navbar />
     <article className="mx-auto max-w-4xl px-6 py-16 text-white md:px-10">
@@ -13,7 +16,7 @@ export default function InformationContent({ page }: { page: InformationPage }) 
         {section.paragraphs.map(paragraph => <p key={paragraph} className="mb-4 text-sm leading-7" style={{ fontFamily: 'var(--font-space-mono), monospace' }}>{paragraph}</p>)}
       </section>)}
       <nav aria-label="Store information" className="flex flex-wrap gap-5 text-sm underline">
-        {['/about','/contact','/privacy','/docs','/docs/agents','/docs/mcp','/docs/auth','/llms.txt','/sitemap.xml'].map(path => <Link key={path} href={path}>{path}</Link>)}
+        {links.map(({ href, label }) => <Link key={href} href={href}>{label}</Link>)}
       </nav>
     </article>
     <Footer />

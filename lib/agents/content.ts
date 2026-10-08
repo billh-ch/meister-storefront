@@ -12,23 +12,26 @@ export const BUSINESS_CONTACT = {
 export const HOME_PARAGRAPHS = [
   'Meister is a storefront for freediving and spearfishing equipment. Explore fins, wetsuits, spearguns, diving accessories and merchandise in the public catalog. Product pages bring together photographs, descriptions, specifications and the options supplied for each model, so you can compare equipment before deciding what belongs in your diving setup. The catalog includes Meister-branded equipment as well as products from other manufacturers; check the brand shown for the individual item rather than assuming every product is made by Meister.',
   'Start with the equipment category that matches your activity, then open a product to review its details. Where a product offers variations, choose the available size or other options before adding it to your cart. A price range means different choices can have different prices. The cart lets you review quantities and selections, and checkout checks current product prices, stock and the delivery options available for your address. A displayed backorder status should not be interpreted as a confirmed delivery date.',
-  'Use product specifications to assess the model you are considering, and confirm sizing, compatibility and any required accessories before purchase. Photographs and descriptive features do not by themselves confirm which extras are included in the package. You can browse the catalog without an account; account, cart and checkout pages are separate from the public product information. For a concise overview of the store and its machine-readable resources, follow the About and agent documentation links below. Product descriptions retain their current Greek and English wording.',
+  'Use product specifications to assess the model you are considering, and confirm sizing, compatibility and any required accessories before purchase. Photographs and descriptive features do not by themselves confirm which extras are included in the package. You can browse the catalog without an account; account, cart and checkout pages are separate from the public product information. Visit the About page for an overview of the store and its equipment categories. Product descriptions retain their current Greek and English wording.',
 ] as const
 
-export interface InformationPage { title: string; description: string; sections: { heading: string; paragraphs: string[] }[] }
+export interface InformationPage { title: string; description: string; audience?: 'customer' | 'agent'; sections: { heading: string; paragraphs: string[] }[] }
 export const informationPages: Record<string, InformationPage> = {
   '/about': {
+    audience: 'customer',
     title: 'About Meister — Freediving & Spearfishing Equipment', description: 'Learn about the Meister equipment storefront and how to browse product information.',
     sections: [{ heading: 'Equipment and product information', paragraphs: [HOME_PARAGRAPHS[0], HOME_PARAGRAPHS[1]] }, { heading: 'Choosing your equipment', paragraphs: [HOME_PARAGRAPHS[2]] }],
   },
   '/contact': {
+    audience: 'customer',
     title: 'Contact Meister', description: 'Meister customer service email, telephone and store address in Aigaleo, Greece.',
     sections: [{ heading: 'Customer service and store address', paragraphs: [
       `Email Meister at ${BUSINESS_CONTACT.email} or call ${BUSINESS_CONTACT.displayTelephone}. The store address is ${BUSINESS_CONTACT.streetAddress}, ${BUSINESS_CONTACT.addressLocality} ${BUSINESS_CONTACT.postalCode}, Greece (Λεωφ. Αθηνών 387, Αιγάλεω). These business details are published by the Meister store at ${BUSINESS_CONTACT.source}, which also identifies dive-meister.gr. Contact the store directly to confirm current opening hours before travelling.`,
       'For a product question, include the product name and page link, the size or variation you are considering, and the relevant specification. For an existing order, provide your order reference by email or telephone. Do not send payment card details, passwords or account cookies. This page does not provide a support form; adding a product to the cart or starting checkout does not submit a support request.',
-    ] }, { heading: 'Privacy and product resources', paragraphs: ['Read the privacy information for an explanation of cart, account and checkout data. The About page describes the equipment categories. Agent documentation explains how to retrieve public catalog information, and does not provide customer support or access to private orders.'] }],
+    ] }, { heading: 'Privacy and product resources', paragraphs: ['Read the privacy information for an explanation of cart, account and checkout data. The About page describes the equipment categories and how to choose a product. Contact customer service directly for help with sizing, product availability or an existing order; public product pages cannot show private order details.'] }],
   },
   '/privacy': {
+    audience: 'customer',
     title: 'Meister Privacy Information', description: 'Meister privacy contacts, published business data-use information and storefront cookie and checkout details.',
     sections: [{ heading: 'Business privacy information and requests', paragraphs: [
       `This page combines the business privacy information published at ${BUSINESS_CONTACT.privacySource} with the data flows of this storefront. The published policy identifies dive-meister.gr and describes collecting the customer information needed to deliver products and issue invoices. It states that customer data is not sold or rented and may be shared with service partners as necessary to fulfil orders, with consent, or when required by law.`,
