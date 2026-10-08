@@ -20,7 +20,9 @@ function xmlEscape(value: string): string {
 }
 
 /** An explicit route response lets outages return retryable 503/no-store,
- * instead of caching an empty or mock-derived sitemap as a success. */
+ * instead of caching an empty or mock-derived sitemap as a success. Catalog
+ * fetches are cached; XML has no independent CDN copy that could outlive a
+ * signed product-deletion invalidation. */
 export async function sitemapResponse(
   loadProducts: () => Promise<SitemapProduct[]>,
   categories: string[],
@@ -30,7 +32,7 @@ export async function sitemapResponse(
     const products = isIndexingAllowed(env) ? await loadProducts() : []
     const urls = buildSitemapUrls(products, categories, env)
     const xml = `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls.map(url => `  <url><loc>${xmlEscape(url)}</loc></url>`).join('\n')}\n</urlset>`
-    return new Response(xml, { headers: { 'Content-Type': 'application/xml; charset=utf-8', 'Cache-Control': isIndexingAllowed(env) ? 'public, max-age=0, s-maxage=60' : 'private, no-store' } })
+    return new Response(xml, { headers: { 'Content-Type': 'application/xml; charset=utf-8', 'Cache-Control': isIndexingAllowed(env) ? 'no-store' : 'private, no-store' } })
   } catch {
     return new Response('Sitemap temporarily unavailable. Please retry later.', { status: 503, headers: { 'Cache-Control': 'no-store', 'Retry-After': '60', 'Content-Type': 'text/plain; charset=utf-8' } })
   }

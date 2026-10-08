@@ -108,6 +108,9 @@ async function wcRequest<T>(
 
   const init: NextRequestInit = {
     method: options?.method,
+    // Only explicitly public reads opt into shared caching. Private reads
+    // and mutations must not inherit a future route-level cache default.
+    ...(!cacheOptions || cacheOptions.revalidate === 0 ? { cache: 'no-store' as const } : {}),
     headers: {
       Authorization: `Basic ${basicAuth}`,
       ...(options?.body !== undefined && { 'Content-Type': 'application/json' }),

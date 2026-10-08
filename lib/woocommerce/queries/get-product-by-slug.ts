@@ -76,13 +76,14 @@ export async function fetchProductBySlug(
 /** Only called for `type === 'variable'` products. */
 export async function fetchVariations(
   productId: number,
+  { fresh = false }: { fresh?: boolean } = {},
 ): Promise<WcVariation[]> {
   return wcFetch<WcVariation[]>(
     `/products/${productId}/variations`,
     { per_page: '100' },
     {
-      revalidate: DETAIL_REVALIDATE,
-      tags: ['products', `product:${productId}:variations`],
+      revalidate: fresh ? 0 : DETAIL_REVALIDATE,
+      ...(fresh ? {} : { tags: ['products', `product:${productId}`, `product:${productId}:variations`] }),
     },
   )
 }

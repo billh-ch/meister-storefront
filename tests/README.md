@@ -63,3 +63,13 @@ Product schema unit tests cover sale/stock/range/wildcard/legacy data and safe
 JSON embedding. Content tests cover legacy feature lists, preserved bracketed
 text and HTML sanitization. The SEO browser runner also checks rendered product
 and breadcrumb JSON-LD against canonical URLs and description lists at 390px.
+
+## Product cache and webhook checks
+
+Stop Next.js dev/start processes in this checkout before running
+`CHROMIUM_PATH=/usr/bin/chromium npm run test:cache`. It builds and runs a
+production app on port 3003 with a local WooCommerce fixture, counts cache
+requests and verifies signed product update/deletion invalidation. No real
+backend writes or payments occur. See `docs/guides/cache-validation.md` for
+owner setup and limitations. Unit tests also cover raw-byte signatures, body
+limits, activation pings and private lookup cache boundaries.
