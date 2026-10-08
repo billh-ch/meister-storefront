@@ -73,7 +73,7 @@ export default function ProductCard({ product }: ProductCardProps) {
       const result = await addToCartAction({ productId: product.id, quantity: 1 })
       if (result.ok) {
         setJustAdded(true)
-        notifyCartAdded()
+        notifyCartAdded(product.name)
         setTimeout(() => setJustAdded(false), 1500)
       } else {
         setError(result.error)

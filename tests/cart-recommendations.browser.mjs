@@ -66,6 +66,8 @@ try {
   assert.equal(await drawer.getByRole('link', { name: 'Checkout', exact: true }).count(), 0, 'Checkout waits for a recommendation addition')
   releaseAdd()
   await page.waitForFunction(() => document.querySelector('a[aria-label="Shopping cart, 3 items"]'))
+  await drawer.getByRole('region', { name: 'Cart confirmation' }).waitFor()
+  await drawer.getByRole('button', { name: 'Dismiss cart confirmation' }).click()
   await drawer.getByRole('link', { name: 'Checkout', exact: true }).waitFor()
   assert.equal((await readCart()).lines.length, 3)
   assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth))

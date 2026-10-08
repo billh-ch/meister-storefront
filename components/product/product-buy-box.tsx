@@ -247,7 +247,7 @@ export default function ProductBuyBox({ product }: ProductBuyBoxProps) {
       if (result.ok) {
         setConfirmation(`Added to cart — ${quantity} × ${product.name}`)
         setIsConfirmationError(false)
-        notifyCartAdded()
+        notifyCartAdded(product.name, quantity)
       } else {
         setConfirmation(result.error)
         setIsConfirmationError(true)
