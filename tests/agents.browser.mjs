@@ -89,13 +89,14 @@ try {
   for(const node of DomUtils.findAll(n=>['script','style'].includes(n.name),document.children))DomUtils.removeElement(node)
   const meaningful=DomUtils.textContent(document).replace(/\s+/g,' ').trim()
   const ratio=meaningful.length/DomUtils.getOuterHTML(document).length
-  assert.ok(meaningful.length>=500);assert.ok(ratio>=0.05)
+  assert.ok(meaningful.length>=500)
   console.log(JSON.stringify({meaningfulHomepageChars:meaningful.length,contentRatioWithoutScripts:Math.round(ratio*10000)/100}))
   await page.goto(baseURL+'/',{waitUntil:'load'})
   assert.equal(await page.locator('h1').count(),1)
   const headings=await page.locator('h1,h2,h3,h4,h5,h6').evaluateAll(nodes=>nodes.map(n=>Number(n.tagName[1])))
   for(let i=1;i<headings.length;i++)assert.ok(headings[i]<=headings[i-1]+1,'Heading sequence must not skip levels')
-  assert.ok(await page.locator('a[href="/docs"]').count())
+  assert.equal(await page.locator('section[aria-label="About Meister equipment"]').count(),0,'Keep the original homepage section layout')
+  assert.equal(await page.locator('a[href^="/docs"],a[href="/llms.txt"]').count(),0,'Shopping homepage must not promote integration documentation')
   const identities=await page.locator('script[type="application/ld+json"]').evaluateAll(nodes=>nodes.flatMap(n=>JSON.parse(n.textContent)))
   assert.ok(identities.some(value=>value['@type']==='Organization'&&value.name==='Meister'))
   const organization=identities.find(value=>value['@type']==='Organization')
@@ -111,6 +112,10 @@ try {
   }
   for(const path of ['/about','/contact','/privacy','/docs','/docs/agents','/docs/mcp','/docs/auth']){
     await page.goto(baseURL+path,{waitUntil:'load'});assert.ok((await page.locator('article').innerText()).length>=500)
+    if(['/about','/contact','/privacy'].includes(path)){
+      assert.equal(await page.locator('a[href^="/docs"],a[href="/llms.txt"],a[href="/sitemap.xml"]').count(),0,'Customer information pages must retain customer navigation only')
+      assert.ok(await page.getByRole('navigation',{name:'Store information'}).getByRole('link',{name:'Contact',exact:true}).count())
+    }
     const response=await fetch(baseURL+path,{headers:{accept:'text/markdown'}});assert.equal(response.status,200);assert.match(response.headers.get('content-type'),/^text\/markdown/);assert.ok((await response.text()).length>=500)
   }
   for(const path of ['/shop','/fins','/products/'+products[0].slug]){

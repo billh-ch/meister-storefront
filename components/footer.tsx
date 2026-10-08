@@ -7,7 +7,6 @@ const CUSTOMER_CARE_LINKS = [
   { label: 'Returns Policy', href: '/returns' },
   { label: 'Contact', href: '/contact' },
   { label: 'About', href: '/about' },
-  { label: 'Agent & Developer Docs', href: '/docs' },
   { label: 'Terms & Conditions', href: '/terms' },
 ] as const
 

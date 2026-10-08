@@ -35,8 +35,11 @@ No WooCommerce or Stripe credentials belong in agent requests.
 
 ## Homepage and identity
 
-Added meaningful server-rendered equipment guidance without changing card/gallery
-fitting, fonts or commerce controls. The category carousel receives only products
+The original homepage layout is restored: the added equipment-guidance section
+was removed at the owner's request, along with documentation links in the footer
+and customer information pages. Existing hero, category, product and FAQ content
+remains server rendered. Markdown guidance, JSON-LD, llms.txt and agent endpoints
+remain available through machine-readable discovery. The category carousel receives only products
 it already displays, reducing unnecessary serialized client data. Organization
 and WebSite JSON-LD describe the verified storefront name, URL and equipment
 purpose. Published customer-service email, phone and PostalAddress are included.
@@ -47,10 +50,12 @@ Live pre-change observation: 5,736 visible/text characters divided by 136,114
 non-script HTML characters = 4.21%; raw HTML 219,787 bytes. The local regression
 production-mode fixture after changes produced 6,794 text characters
 and a 10.24% content ratio without scripts. These datasets differ; they are not a production before/after benchmark
-or a new Ora score. The test verifies meaningful content, semantic headings and
-an above 5% ratio for its representative fixture with JavaScript disabled.
+or a new Ora score. These measurements predate the owner's removal of the added
+homepage section. Tests verify at least 500 characters of existing content and
+semantic headings with JavaScript disabled; content ratio is reported without
+adding visible copy solely to meet a percentage target.
 
-Live verification after publication on 8 October 2026 measured 7,519 text
+Live verification before the homepage cleanup on 8 October 2026 measured 7,519 text
 characters and a 5.42% content ratio excluding scripts/styles. The sitemap had
 104 URLs including 90 products. Official MCP initialization/search/product calls
 and all new documentation resources worked against production. HTML Vary
