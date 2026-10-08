@@ -24,11 +24,16 @@ test('discovery file follows llms.txt H1, summary and linked-list format with jo
  assert.match(text,/do not.*(?:purchase|order|payment)/i)
  for(const section of text.split(/\n## /).slice(1))assert.match(section,/\n- \[[^\]]+\]\(https:\/\//)
 })
-test('identity schema uses confirmed name/URL without inventing contact/address',()=>{
+test('identity schema uses the published Meister business contact and postal address',()=>{
  const schemas=helpers.buildHomepageIdentity()
  const org=schemas.find(schema=>schema['@type']==='Organization')
  assert.equal(org.name,'Meister');assert.equal(org.url,'https://meister-storefront.vercel.app/')
- assert.equal(org.address,undefined);assert.equal(org.contactPoint,undefined)
+ assert.equal(org.contactPoint['@type'],'ContactPoint');assert.equal(org.contactPoint.contactType,'customer service')
+ assert.equal(org.contactPoint.email,'info@dive-meister.com');assert.equal(org.contactPoint.telephone,'+302105317549')
+ assert.deepEqual(org.address,{'@type':'PostalAddress',streetAddress:'Leoforos Athinon 387',addressLocality:'Aigaleo',postalCode:'12243',addressCountry:'GR'})
+ const contact=helpers.pageMarkdown(helpers.informationPages['/contact']);const privacy=helpers.pageMarkdown(helpers.informationPages['/privacy'])
+ assert.match(contact,/info@dive-meister\.com/);assert.match(contact,/12243/);assert.doesNotMatch(contact,/awaiting confirmation/i)
+ assert.match(privacy,/23876-2/);assert.match(privacy,/mm_cart/);assert.match(privacy,/info@dive-meister\.com/)
 })
 test('homepage server copy is substantial and category filtering preserves every displayed Meister product',()=>{
  assert.ok(helpers.HOME_PARAGRAPHS.join(' ').length>=1200)

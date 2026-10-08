@@ -7,8 +7,9 @@
   HTTP 404 and return useful Markdown errors for Markdown clients.
 - `/about`, `/contact`, `/privacy`, `/docs`, `/docs/agents`, `/docs/mcp`, `/docs/auth`
   provide server-rendered HTML and negotiated Markdown. All have substantial
-  factual content and are listed in the sitemap. Contact details are explicitly
-  pending; privacy is a technical summary, not an approved complete legal notice.
+  factual content and are listed in the sitemap. Contact details come from
+  dive-meister.com, whose published footer and privacy text identify dive-meister.gr.
+  Privacy combines that source with current storefront behavior.
 - `/llms.txt` follows the current llms.txt Markdown structure: one H1, a short
   blockquote, introductory guidance, then H2 linked lists. When-to-use guidance
   describes catalog research, comparison, variation review and product citations.
@@ -32,14 +33,14 @@ Added meaningful server-rendered equipment guidance without changing card/galler
 fitting, fonts or commerce controls. The category carousel receives only products
 it already displays, reducing unnecessary serialized client data. Organization
 and WebSite JSON-LD describe the verified storefront name, URL and equipment
-purpose. Phone, email, postal address and social profiles are omitted until
-confirmed. The existing brand metadata remains descriptive; search ranking is
+purpose. Published customer-service email, phone and PostalAddress are included.
+Social profiles are omitted. The existing brand metadata remains descriptive; search ranking is
 not guaranteed by schema, content changes or sitemap inclusion.
 
 Live pre-change observation: 5,736 visible/text characters divided by 136,114
 non-script HTML characters = 4.21%; raw HTML 219,787 bytes. The local regression
-production-mode fixture after changes produced 6,767 text characters
-and a 10.22% content ratio without scripts. These datasets differ; they are not a production before/after benchmark
+production-mode fixture after changes produced 6,794 text characters
+and a 10.24% content ratio without scripts. These datasets differ; they are not a production before/after benchmark
 or a new Ora score. The test verifies meaningful content, semantic headings and
 an above 5% ratio for its representative fixture with JavaScript disabled.
 
@@ -75,11 +76,19 @@ capability. A plain GET is not an MCP initialization handshake.
 
 ## Owner decisions and follow-up
 
-1. Confirm whether dive-meister.com's business contact/address and legal privacy
-   terms apply to this storefront. Publish approved details, then add real
-   contactPoint and PostalAddress schema; do not fill them from guesses.
-2. Replace the technical privacy summary with the approved complete notice,
-   including controller identity, privacy contact, retention and rights process.
+1. Business details currently use info@dive-meister.com, +30 210 5317549 and
+   Leoforos Athinon 387, Aigaleo 12243, Greece. The owner authorized sourcing
+   dive-meister.gr; that domain returned 403. The accessible dive-meister.com
+   explicitly identifies dive-meister.gr in its footer and policies, supplying
+   the corroborating first-party source. Keep these details current in
+   BUSINESS_CONTACT in lib/agents/content.ts.
+2. Review the full privacy notice. The source at
+   https://dive-meister.com/23876-2/ uses older legal references and describes a
+   cookie popup absent from this app. This release links that source and adapts
+   its business data-use information, adding accurate cart/account/Stripe/MCP
+   details rather than copying unsupported implementation claims. Controller
+   legal identity, legal bases, provider retention and current rights procedures
+   still merit an updated owner-approved notice.
 3. Choose the primary brand domain, verify it in Search Console, submit the
    sitemap and request indexing. Obtain relevant first-party/press links to that
    domain. Vercel hosting or a code change cannot guarantee a top-ten ranking.
