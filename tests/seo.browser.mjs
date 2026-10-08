@@ -129,7 +129,7 @@ try {
   assert.equal(sitemap.status, 200)
   assert.match(sitemap.headers.get('Content-Type'), /application\/xml/)
   const xml = await sitemap.text()
-  assert.equal((xml.match(/<loc>/g) || []).length, 32)
+  assert.equal((xml.match(/<loc>/g) || []).length, 39)
   assert.doesNotMatch(xml, /localhost|lastmod|cart|checkout/)
   console.log('PASS: rendered production metadata, Greek URLs, pagination, noindex headers, robots and real-only sitemap')
   await stop()

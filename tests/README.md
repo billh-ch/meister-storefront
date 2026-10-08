@@ -73,3 +73,12 @@ requests and verifies signed product update/deletion invalidation. No real
 backend writes or payments occur. See `docs/guides/cache-validation.md` for
 owner setup and limitations. Unit tests also cover raw-byte signatures, body
 limits, activation pings and private lookup cache boundaries.
+
+## Agent readiness
+
+`CHROMIUM_PATH=/usr/bin/chromium npm run test:agents` starts its own app on port 3004
+and a local WooCommerce fixture. Stop other Next dev servers first. It checks
+HTML/Markdown negotiation, meaningful no-JS HTML, 404 representations, every
+new documentation/discovery endpoint and official MCP client handshake/tools.
+See `docs/guides/agent-readiness.md` for deployed curl checks and owner decisions.
+Set `AGENTS_PRODUCTION=true` to build and test the production app instead of dev.

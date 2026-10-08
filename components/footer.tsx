@@ -1,11 +1,13 @@
 import Image from 'next/image'
 import Link from 'next/link'
+import { BUSINESS_CONTACT } from '@/lib/agents/content'
 
 const CUSTOMER_CARE_LINKS = [
   { label: 'Privacy Policy', href: '/privacy' },
   { label: 'Returns Policy', href: '/returns' },
   { label: 'Contact', href: '/contact' },
   { label: 'About', href: '/about' },
+  { label: 'Agent & Developer Docs', href: '/docs' },
   { label: 'Terms & Conditions', href: '/terms' },
 ] as const
 
@@ -186,13 +188,14 @@ export default function Footer() {
               className="flex flex-col items-center gap-2 text-base not-italic text-[#999999]"
               style={{ fontFamily: 'var(--font-space-mono), monospace' }}
             >
-              <p>Leoforos Athinon 387, Aigaleo</p>
+              <p>{BUSINESS_CONTACT.streetAddress}, {BUSINESS_CONTACT.addressLocality} {BUSINESS_CONTACT.postalCode}</p>
               <a
-                href="mailto:info@meister.gr"
+                href={`mailto:${BUSINESS_CONTACT.email}`}
                 className="transition-colors hover:text-[#FFD700]"
               >
-                info@meister.gr
+                {BUSINESS_CONTACT.email}
               </a>
+              <a href={`tel:${BUSINESS_CONTACT.telephone}`} className="transition-colors hover:text-[#FFD700]">{BUSINESS_CONTACT.displayTelephone}</a>
             </address>
           </div>
 

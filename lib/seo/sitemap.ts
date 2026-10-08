@@ -1,3 +1,4 @@
+import { informationPages } from '@/lib/agents/content'
 import { canonicalProductUrl, getPublicSiteUrl, isIndexingAllowed } from './site'
 type Environment = Parameters<typeof getPublicSiteUrl>[0]
 type SitemapProduct = { id: string; slug: string }
@@ -11,6 +12,7 @@ export function buildSitemapUrls(products: SitemapProduct[], categories: string[
   return [...new Set([
     site.href, new URL('/shop', site).href,
     ...categories.map(slug => new URL(`/${encodeURIComponent(slug)}`, site).href),
+    ...Object.keys(informationPages).map(path => new URL(path, site).href),
     ...products.map(product => canonicalProductUrl(product.slug, env)),
   ])]
 }

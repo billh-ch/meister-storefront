@@ -1,3 +1,4 @@
+import { prefersMarkdown, isPublicContentPath } from '@/lib/agents/content'
 import { NextResponse, type NextRequest } from 'next/server'
 import { getIronSession } from 'iron-session'
 import { SESSION_COOKIE_NAME, getSessionPassword, type SessionData } from '@/lib/auth/session-options'
@@ -18,6 +19,21 @@ import { SESSION_COOKIE_NAME, getSessionPassword, type SessionData } from '@/lib
  */
 export async function proxy(request: NextRequest) {
   const response = NextResponse.next()
+  if (!/^\/account(?:\/|$)/.test(request.nextUrl.pathname)) {
+    if (['GET', 'HEAD'].includes(request.method) && isPublicContentPath(request.nextUrl.pathname)) {
+      if (!request.headers.has('rsc') && prefersMarkdown(request.headers.get('accept') || '')) {
+        const target = new URL('/api/agent-content', request.url)
+        target.search = request.nextUrl.search
+        target.searchParams.set('__agent_path', request.nextUrl.pathname)
+        const rewritten = NextResponse.rewrite(target)
+        rewritten.headers.set('Vary', 'Accept')
+        rewritten.headers.set('Cache-Control', 'no-store')
+        return rewritten
+      }
+      response.headers.set('Vary', 'Accept')
+    }
+    return response
+  }
 
   const session = await getIronSession<SessionData>(request, response, {
     cookieName: SESSION_COOKIE_NAME,
@@ -34,5 +50,5 @@ export async function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/account/:path*'],
+  matcher: ['/((?!_next/static|_next/image).*)'],
 }
