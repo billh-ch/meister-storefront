@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
+import Image from 'next/image'
 import { CART_ADDED_EVENT, openCartDrawer, type CartAddedDetail } from '@/lib/cart/client-events'
 
 export default function CartAddedBanner() {
@@ -47,13 +48,23 @@ export default function CartAddedBanner() {
     <section aria-label="Cart confirmation"
       onMouseEnter={pause} onMouseLeave={resume} onFocusCapture={pause}
       onBlurCapture={event => { if (!event.currentTarget.contains(event.relatedTarget)) resume() }}
-      className={`fixed top-0 right-0 z-[60] flex items-center gap-3 border-b border-[#FFD700] bg-[#1B1B18] px-4 py-3 text-white shadow-lg ${dialog ? 'w-[90vw] max-w-md' : 'left-0'}`}
+      className={`fixed top-3 right-3 z-[60] border-2 border-[#FFD700] bg-[#1B1B18] p-4 text-white shadow-[0_12px_40px_rgba(0,0,0,0.65)] sm:top-6 sm:right-6 ${dialog ? 'w-[calc(90vw-1.5rem)] max-w-[400px]' : 'w-[calc(100vw-1.5rem)] max-w-[400px]'}`}
       style={{ fontFamily: 'var(--font-space-mono), monospace' }}>
-      <p role="status" className="min-w-0 flex-1 break-words text-xs sm:text-sm">
-        <span className="font-bold text-[#FFD700]">Added to cart</span> — {addition.quantity} × {addition.name}
+      <button type="button" onClick={dismiss} aria-label="Dismiss cart confirmation" className="absolute top-1 right-1 min-h-11 min-w-11 text-xl">×</button>
+      <p role="status" className="mb-4 pr-8 text-sm font-bold text-[#FFD700]">
+        <span aria-hidden="true">✓ </span>Added to cart
+        <span className="sr-only"> — {addition.quantity} × {addition.name}</span>
       </p>
-      <button type="button" onClick={() => { dismiss(); openCartDrawer() }} className="min-h-11 shrink-0 text-xs underline">View cart</button>
-      <button type="button" onClick={dismiss} aria-label="Dismiss cart confirmation" className="min-h-11 min-w-11 shrink-0 text-xl">×</button>
+      <div className="flex items-start gap-3">
+        <div className="relative h-20 w-20 shrink-0 overflow-hidden border border-white/20 bg-[#292925]">
+          {addition.image ? <Image src={addition.image} alt={addition.name} fill sizes="80px" className="object-contain" /> : <span className="flex h-full items-center justify-center px-2 text-center text-[10px] text-[#999999]">No image available</span>}
+        </div>
+        <div className="min-w-0 flex-1">
+          <p className="break-words text-sm font-bold">{addition.name}</p>
+          <p className="mt-2 text-xs text-[#CCCCCC]">Quantity: {addition.quantity}</p>
+        </div>
+      </div>
+      <button type="button" onClick={() => { dismiss(); openCartDrawer() }} className="btn-gold mt-4 min-h-11 w-full px-4 text-xs">View cart</button>
     </section>
   )
   return dialog ? createPortal(banner, dialog) : banner

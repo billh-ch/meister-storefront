@@ -3,7 +3,7 @@
 export const CART_UPDATED_EVENT = 'mm:cart-updated'
 export const CART_OPEN_EVENT = 'mm:cart-open'
 export const CART_ADDED_EVENT = 'mm:cart-added'
-export interface CartAddedDetail { name: string; quantity: number }
+export interface CartAddedDetail { name: string; quantity: number; image?: string | null }
 
 /** Returns false before the drawer mounts, retaining the header link fallback. */
 export function openCartDrawer(): boolean {
@@ -11,10 +11,10 @@ export function openCartDrawer(): boolean {
   return !window.dispatchEvent(new CustomEvent(CART_OPEN_EVENT, { cancelable: true }))
 }
 
-export function notifyCartAdded(name: string, quantity = 1): void {
+export function notifyCartAdded(name: string, quantity = 1, image?: string | null): void {
   notifyCartUpdated()
   if (typeof window === 'undefined') return
-  window.dispatchEvent(new CustomEvent<CartAddedDetail>(CART_ADDED_EVENT, { detail: { name, quantity } }))
+  window.dispatchEvent(new CustomEvent<CartAddedDetail>(CART_ADDED_EVENT, { detail: { name, quantity, image } }))
 }
 
 export function notifyCartUpdated(): void {
