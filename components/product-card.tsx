@@ -1,5 +1,6 @@
 'use client'
 
+import WishlistButton from './wishlist/button'
 import ProductCardImages from './product-card-images'
 import Link from 'next/link'
 import { useState, useTransition } from 'react'
@@ -75,6 +76,7 @@ export default function ProductCard({ product }: ProductCardProps) {
       aria-label={`${product.name}, ${formatPrice(product.price)}`}
     >
       <ProductCardImages product={product}>
+        <WishlistButton id={product.id} name={product.name} card />
         {/* Badges — SALE leads, since it's the one a shopper acts on */}
         {(product.onSale || stockBadge) && (
           <div className="pointer-events-none absolute top-3 left-3 flex flex-col items-start gap-1.5">

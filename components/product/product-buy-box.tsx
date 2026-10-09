@@ -9,6 +9,7 @@ import {
 } from '@/lib/mock-data'
 import { addToCartAction } from '@/lib/cart/actions'
 import { notifyCartAdded } from '@/lib/cart/client-events'
+import WishlistButton from '../wishlist/button'
 import ProductGallery from './product-gallery'
 import ProductTrustStrip from './product-trust-strip'
 import VariantSelector from './variant-selector'
@@ -393,6 +394,7 @@ export default function ProductBuyBox({ product }: ProductBuyBoxProps) {
             </p>
           </div>
 
+          <WishlistButton id={product.id} name={product.name} />
           <ProductTrustStrip />
         </div>
       </div>

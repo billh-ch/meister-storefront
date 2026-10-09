@@ -1,5 +1,6 @@
 'use client'
 
+import WishlistNavLink from './wishlist/nav-link'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
@@ -124,7 +125,7 @@ export default function Navbar() {
       style={{ backgroundColor: '#111111' }}
     >
       <nav
-        className="mx-auto flex max-w-[1400px] items-center justify-between px-6 py-4"
+        className="mx-auto flex max-w-[1400px] items-center justify-between px-3 py-3 sm:px-6 sm:py-4"
         aria-label="Main navigation"
       >
         {/* Logo */}
@@ -138,12 +139,13 @@ export default function Navbar() {
             alt="Meister"
             width={140}
             height={40}
+            className="w-[104px] sm:w-[140px]"
             preload
           />
         </Link>
 
         {/* Desktop nav links */}
-        <ul className="hidden items-center gap-8 md:flex" role="list">
+        <ul className="hidden items-center gap-5 lg:flex xl:gap-8" role="list">
           {NAV_LINKS.map(({ label, href }) => (
             <li key={label}>
               <Link
@@ -158,11 +160,11 @@ export default function Navbar() {
         </ul>
 
         {/* Right actions */}
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-0 sm:gap-1">
           {/* Search toggle */}
           <button
             type="button"
-            className="text-white transition-colors hover:text-[#FFD700]"
+            className="flex h-11 w-11 shrink-0 items-center justify-center text-white transition-colors hover:text-[#FFD700]"
             onClick={() => (searchOpen ? closeSearch() : setSearchOpen(true))}
             aria-expanded={searchOpen}
             aria-controls="search-bar"
@@ -171,6 +173,8 @@ export default function Navbar() {
             {searchOpen ? <CloseIcon /> : <SearchIcon />}
           </button>
 
+          <WishlistNavLink />
+
           {/* Cart icon */}
           <Link
             href="/cart"
@@ -178,12 +182,12 @@ export default function Navbar() {
               if (!event.metaKey && !event.ctrlKey && !event.shiftKey && !event.altKey && openCartDrawer()) event.preventDefault()
             }}
             aria-label={cartCount > 0 ? `Shopping cart, ${cartCount} items` : 'Shopping cart'}
-            className="relative text-white transition-colors hover:text-[#FFD700]"
+            className="relative flex h-11 w-11 shrink-0 items-center justify-center text-white transition-colors hover:text-[#FFD700]"
           >
             <CartIcon />
             {cartCount > 0 && (
               <span
-                className="absolute -top-2 -right-2 flex h-4 min-w-4 items-center justify-center px-1 text-[10px] font-bold"
+                className="absolute top-0 right-0 flex h-4 min-w-4 items-center justify-center px-1 text-[10px] font-bold"
                 style={{
                   backgroundColor: '#FFD700',
                   color: '#1B1B18',
@@ -201,14 +205,14 @@ export default function Navbar() {
           <Link
             href="/account"
             aria-label="My account"
-            className="text-white transition-colors hover:text-[#FFD700]"
+            className="hidden h-11 w-11 shrink-0 items-center justify-center text-white transition-colors hover:text-[#FFD700] sm:flex"
           >
             <AccountIcon />
           </Link>
 
           {/* Mobile menu button */}
           <button
-            className="text-white transition-colors hover:text-[#FFD700] md:hidden"
+            className="flex h-11 w-11 shrink-0 items-center justify-center text-white transition-colors hover:text-[#FFD700] lg:hidden"
             onClick={() => setMenuOpen((prev) => !prev)}
             aria-expanded={menuOpen}
             aria-controls="mobile-menu"
@@ -302,7 +306,7 @@ export default function Navbar() {
       {menuOpen && (
         <div
           id="mobile-menu"
-          className="border-t border-[#222222] md:hidden"
+          className="border-t border-[#222222] lg:hidden"
           style={{ backgroundColor: '#111111' }}
         >
           <ul className="flex flex-col px-6 py-4" role="list">
@@ -318,6 +322,7 @@ export default function Navbar() {
                 </Link>
               </li>
             ))}
+            <li><Link href="/account" onClick={() => setMenuOpen(false)} className="block py-3 text-sm font-bold text-white hover:text-[#FFD700]">MY ACCOUNT</Link></li>
           </ul>
         </div>
       )}
