@@ -36,17 +36,17 @@ export default async function CartPage() {
       <SimpleBreadcrumbs items={[{ label: 'HOME', href: '/' }, { label: 'CART' }]} />
 
       <div className="mx-auto max-w-[1400px] px-4 pb-16 sm:px-6 md:px-10">
-        <div className="mb-4 flex justify-end">
-          <Link href="/shop" className="flex min-h-11 items-center border border-white/30 px-4 text-xs text-white hover:border-[#FFD700] hover:text-[#FFD700]" style={{ fontFamily: MONO }}>
+        <div className="mb-6 flex items-center justify-between gap-3">
+          <h1
+            className="min-w-0 text-lg text-white sm:text-3xl md:text-4xl"
+            style={{ fontFamily: DISPLAY, fontWeight: 800 }}
+          >
+            YOUR CART
+          </h1>
+          <Link href="/shop" className="flex min-h-11 shrink-0 items-center whitespace-nowrap border border-white/30 px-2 text-[10px] text-white hover:border-[#FFD700] hover:text-[#FFD700] sm:px-4 sm:text-xs" style={{ fontFamily: MONO }}>
             Continue shopping
           </Link>
         </div>
-        <h1
-          className="mb-6 text-2xl text-white sm:text-3xl md:text-4xl"
-          style={{ fontFamily: DISPLAY, fontWeight: 800 }}
-        >
-          YOUR CART
-        </h1>
 
         {resolved.lines.length === 0 ? (
           <div
