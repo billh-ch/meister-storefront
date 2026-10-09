@@ -7,6 +7,13 @@ import { resolveImageUrl } from './resolve-image-url'
 import { toStockStatus } from './stock-status'
 
 export function mapProduct(product: WcProduct): Product {
+  const seen = new Set<string>()
+  const gallery = product.images.flatMap(image => {
+    const src = resolveImageUrl(image.src)
+    if (!src || seen.has(src)) return []
+    seen.add(src)
+    return [{ src, alt: image.alt?.trim() || product.name }]
+  })
   return {
     id: String(product.id),
     slug: product.slug,
@@ -17,7 +24,8 @@ export function mapProduct(product: WcProduct): Product {
     options: '',
     // Empty for the products with no photo in WooCommerce — ProductCard
     // renders its placeholder rather than handing an empty src to next/image.
-    image: resolveImageUrl(product.images[0]?.src ?? ''),
+    image: gallery[0]?.src ?? '',
+    gallery,
     swatches: [],
     category: mapCategorySlug(product.categories.map(c => c.id)),
     // Cheap `find` over the attribute list — safe on this ~50x listing path.

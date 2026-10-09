@@ -27,6 +27,8 @@ export default function ProductCarousel({
     loop: false,
     align: 'start',
     slidesToScroll: 1,
+    // A card's photo strip handles its own horizontal gestures.
+    watchDrag: (_api, event) => !(event.target instanceof Element && event.target.closest('[data-product-image-gallery="multiple"]')),
   })
 
   const [canScrollPrev, setCanScrollPrev] = useState(false)
