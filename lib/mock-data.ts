@@ -18,6 +18,8 @@ export interface Product {
   options: string
   /** Empty when the product has no photo in WooCommerce — 9 currently don't. */
   image: string
+  /** Listing photos, in the same order as the product's WooCommerce gallery. */
+  gallery?: ProductImage[]
   swatches: string[]
   category: string
   /**
@@ -494,6 +496,7 @@ export const products: Product[] = productSeeds.map((seed) => ({
   onSale: false,
   priceFrom: false,
   type: 'simple',
+  gallery: buildMockGallery(seed.image, seed.name),
   ...seed,
 }))
 

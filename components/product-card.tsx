@@ -1,6 +1,6 @@
 'use client'
 
-import Image from 'next/image'
+import ProductCardImages from './product-card-images'
 import Link from 'next/link'
 import { useState, useTransition } from 'react'
 import { type Product, type StockStatus, formatPrice } from '@/lib/mock-data'
@@ -19,25 +19,6 @@ interface ProductCardProps {
  * - Touch-friendly ADD button
  */
 const MONO = 'var(--font-space-mono), monospace'
-
-/**
- * Shown instead of `next/image` when WooCommerce has no photo for a product.
- * Matches the gallery's own empty state (`product/product-gallery.tsx`) so the
- * two read as one treatment, and names the product so the tile still says what
- * it is rather than looking like a failed image load.
- */
-function ImagePlaceholder({ productName }: { productName: string }) {
-  return (
-    <div className="hatching-bg absolute inset-0 flex flex-col items-center justify-center gap-2 px-4 text-center">
-      <span className="text-xs tracking-widest text-[#999999]" style={{ fontFamily: MONO }}>
-        NO IMAGE AVAILABLE
-      </span>
-      <span className="text-[10px] text-[#666666]" style={{ fontFamily: MONO }}>
-        {productName}
-      </span>
-    </div>
-  )
-}
 
 /** Only unavailable stock gets a card badge; backorders remain purchasable. */
 const STOCK_BADGES: Record<StockStatus, string | null> = {
@@ -93,31 +74,7 @@ export default function ProductCard({ product }: ProductCardProps) {
       style={{ border: '1px solid #FFFFFF' }}
       aria-label={`${product.name}, ${formatPrice(product.price)}`}
     >
-      {/* Square image area; crop photos to fill the card edge to edge. */}
-      <Link
-        href={`/products/${product.slug}`}
-        className="relative aspect-square overflow-hidden"
-        aria-label={`View ${product.name}`}
-      >
-        {product.image ? (
-          <Image
-            src={product.image}
-            alt={product.name}
-            fill
-            sizes="(max-width: 640px) 85vw, (max-width: 1024px) 50vw, 30vw"
-            className="object-cover"
-            preload={false}
-          />
-        ) : (
-          <ImagePlaceholder productName={product.name} />
-        )}
-        {/* Subtle overlay to keep text legible */}
-        <div
-          className="pointer-events-none absolute inset-0"
-          style={{ background: 'linear-gradient(to bottom, transparent 60%, rgba(27,27,24,0.6) 100%)' }}
-          aria-hidden="true"
-        />
-
+      <ProductCardImages product={product}>
         {/* Badges — SALE leads, since it's the one a shopper acts on */}
         {(product.onSale || stockBadge) && (
           <div className="pointer-events-none absolute top-3 left-3 flex flex-col items-start gap-1.5">
@@ -125,7 +82,7 @@ export default function ProductCard({ product }: ProductCardProps) {
             {stockBadge && <Badge label={stockBadge} tone="muted" />}
           </div>
         )}
-      </Link>
+      </ProductCardImages>
 
       {/* Footer row — responsive height */}
       <footer

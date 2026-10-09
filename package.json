@@ -9,7 +9,7 @@
     "lint": "eslint",
     "test": "node --test tests/*.test.mjs",
     "test:seo": "node tests/seo.browser.mjs",
-    "test:browser": "node tests/shopping.browser.mjs && node tests/cart-options.browser.mjs && node tests/cart-recommendations.browser.mjs && node tests/mobile-variants.browser.mjs && node tests/cart-flow.browser.mjs",
+    "test:browser": "node tests/shopping.browser.mjs && node tests/cart-options.browser.mjs && node tests/cart-recommendations.browser.mjs && node tests/mobile-variants.browser.mjs && node tests/cart-flow.browser.mjs && node tests/product-card-gallery.browser.mjs",
     "test:cache": "node tests/cache.browser.mjs",
     "test:agents": "node tests/agents.browser.mjs"
   },
