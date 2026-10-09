@@ -42,7 +42,7 @@ export default function CartRecommendations({ productIds, disabled = false, onPe
         const result = await addToCartAction({ productId: product.id, quantity: 1 })
         if (result.ok) {
           setProducts(current => current.filter(item => item.id !== product.id))
-          notifyCartAdded(product.name)
+          notifyCartAdded(product.name, 1, product.image)
           router.refresh()
         } else setError(result.error)
       } catch {
