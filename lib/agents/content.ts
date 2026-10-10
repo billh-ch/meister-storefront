@@ -39,6 +39,7 @@ export const informationPages: Record<string, InformationPage> = {
     ] }, { heading: 'Cart and account data', paragraphs: [
       'The storefront uses an mm_cart browser cookie to remember product identifiers, selected variations and quantities. The cart cookie is configured for up to 30 days. Signing in uses an encrypted mm_session cookie that identifies the WooCommerce customer account. Account pages retrieve the customer information associated with that account. You can browse the public product catalog without signing in.',
       'Guest wishlists store product identifiers in this browser’s local storage. Signed-in wishlists store product identifiers on the WooCommerce customer record for access across devices. Failed account changes may be kept locally in a customer-scoped retry queue; they are only displayed and synchronized after signing in to that same account. Guest saves merge into the account after sign-in. Clearing browser storage removes guest saves and unsynchronized changes.',
+      'Product comparison selections store public product identifiers, names and categories in this browser’s local storage. Clearing browser storage removes this selection; comparison selections do not synchronize to a customer account.',
     ] }, { heading: 'Checkout and public agent access', paragraphs: [
       'Checkout collects the email and address information needed to calculate available delivery options and prepare the purchase. Stripe handles the payment checkout, and WooCommerce holds customer and order records used by the storefront. An authenticated customer can have their checkout address saved to their customer record. This summary does not establish how long those providers or the business retain records.',
       'The public agent tools expose catalog information only. They do not expose customer accounts, addresses, carts, orders or payments, and do not accept account cookies or WooCommerce API keys as agent credentials. Avoid including personal information in public catalog search queries. This page does not promise a specific retention period, response deadline or cookie consent mechanism; the published business policy and the storefront-specific information should be reviewed together.',
@@ -75,7 +76,7 @@ export function prefersMarkdown(accept: string): boolean {
   return !html || markdown.q > html.q || (markdown.q === html.q && markdown.index < html.index)
 }
 export function isPublicContentPath(path: string): boolean {
-  return !/^\/(?:api|_next|\.well-known|images|account|wishlist|cart|checkout|search|sign-in|sign-up)(?:\/|$)/.test(path) &&
+  return !/^\/(?:api|_next|\.well-known|images|account|wishlist|compare|cart|checkout|search|sign-in|sign-up)(?:\/|$)/.test(path) &&
     !/^\/[^/]+\.(?:svg|ico|png|jpe?g|webp|avif|gif|css|js|map|woff2?|ttf|txt|xml|json)$/i.test(path)
 }
 export function markdownResponse(body: string, status = 200): Response {

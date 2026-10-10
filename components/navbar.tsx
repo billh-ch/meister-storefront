@@ -1,5 +1,6 @@
 'use client'
 
+import CompareNavLink from './compare/nav-link'
 import WishlistNavLink from './wishlist/nav-link'
 import Image from 'next/image'
 import Link from 'next/link'
@@ -174,6 +175,7 @@ export default function Navbar() {
           </button>
 
           <WishlistNavLink />
+          <CompareNavLink />
 
           {/* Cart icon */}
           <Link
@@ -322,6 +324,7 @@ export default function Navbar() {
                 </Link>
               </li>
             ))}
+            <li><Link href="/compare" scroll={false} onNavigate={() => window.scrollTo({ top: 0, left: 0, behavior: 'instant' })} onClick={() => setMenuOpen(false)} className="block py-3 text-sm font-bold text-white hover:text-[#FFD700]">COMPARE PRODUCTS</Link></li>
             <li><Link href="/account" onClick={() => setMenuOpen(false)} className="block py-3 text-sm font-bold text-white hover:text-[#FFD700]">MY ACCOUNT</Link></li>
           </ul>
         </div>

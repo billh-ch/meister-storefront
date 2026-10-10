@@ -1,5 +1,6 @@
 'use client'
 
+import CompareButton from './compare/button'
 import WishlistButton from './wishlist/button'
 import ProductCardImages from './product-card-images'
 import Link from 'next/link'
@@ -176,6 +177,7 @@ export default function ProductCard({ product }: ProductCardProps) {
             {isSoldOut ? 'OUT OF STOCK' : isPending ? 'ADDING…' : justAdded ? 'ADDED TO CART' : 'ADD TO CART'}
           </button>
         )}
+        <CompareButton product={product} card />
       </footer>
       <p className="sr-only" role="status">
         {error || (justAdded ? `${product.name} added to cart` : '')}
