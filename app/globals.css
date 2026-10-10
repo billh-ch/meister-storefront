@@ -283,3 +283,6 @@ body {
     transition: none;
   }
 }
+
+/* Native cart dialogs own the viewport while open. */
+body:has(dialog[open]) .compare-tray { display: none; }
