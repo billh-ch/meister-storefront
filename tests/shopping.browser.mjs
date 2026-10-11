@@ -72,7 +72,7 @@ try {
   assert.equal(await page.getByRole('radio', { name: /Store pickup/ }).isChecked(), true, 'Address typing must preserve available delivery choices')
   console.log('PASS: rapid address typing preserves the selected pickup method')
   let failNextRateRequest = true
-  await page.route('**/checkout', async route => {
+  await page.route('**/api/checkout/shipping', async route => {
     if (route.request().method() === 'POST' && failNextRateRequest) {
       failNextRateRequest = false
       await route.abort('failed')

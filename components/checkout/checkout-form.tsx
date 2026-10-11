@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useState, useTransition, type FormEvent } from 'react'
-import { createCheckoutSessionAction, getShippingMethodsAction } from '@/lib/checkout/actions'
+import type { CreateCheckoutSessionResult } from '@/lib/checkout/actions'
 import AddressFields from '@/components/address-fields'
 import DeliveryMethods from '@/components/checkout/delivery-methods'
 import OrderSummary from '@/components/checkout/order-summary'
@@ -11,6 +11,8 @@ import type { ResolvedCartLine } from '@/lib/cart/resolve'
 import type { ShippingMethod } from '@/lib/woocommerce'
 import { createRequestGuard } from '@/lib/checkout/request-guard'
 import { isCountryCode } from '@/lib/address/countries'
+import { checkoutCartSignature, normalizeShippingAddress, type ShippingQuote } from '@/lib/checkout/model'
+import CheckoutCartIssues from './cart-issues'
 
 const MONO = 'var(--font-space-mono), monospace'
 
@@ -24,14 +26,11 @@ interface CheckoutFormProps {
   isGuest?: boolean
   lines: ResolvedCartLine[]
   subtotal: number
-  /** Delivery methods for `initialAddress`'s country (or `'GR'`) — refetched
-   *  client-side (see `handleCountryChange`) whenever the shopper edits the
-   *  country field, since availability is country-scoped. */
-  initialMethods: ShippingMethod[]
+  /** Initial delivery quote keeps outages distinct from unavailable methods. */
+  initialQuote: ShippingQuote
 }
 
-/** Picks the sensible default selection: the cheapest non-pickup courier
- *  option if one exists, else whatever's first (e.g. pickup-only). Never
+/** Preserve WooCommerce's configured order, preferring delivery over pickup. Never
  *  defaults straight to pickup when a courier exists — most shoppers expect
  *  delivery to their address unless they deliberately choose otherwise. */
 function pickDefaultMethodId(methods: ShippingMethod[]): string {
@@ -44,20 +43,22 @@ export default function CheckoutForm({
   isGuest = false,
   lines,
   subtotal,
-  initialMethods,
+  initialQuote,
 }: CheckoutFormProps) {
   const [isPending, startTransition] = useTransition()
   const [error, setError] = useState('')
   const [isRedirecting, setIsRedirecting] = useState(false)
   const [shippingPending, setShippingPending] = useState(false)
-  const [shippingError, setShippingError] = useState('')
-
-  const [methods, setMethods] = useState(initialMethods)
-  const [selectedMethodId, setSelectedMethodId] = useState(() => pickDefaultMethodId(initialMethods))
+  const [quote, setQuote] = useState(initialQuote)
+  const methods = quote.status === 'ready' ? quote.methods : []
+  const [selectedMethodId, setSelectedMethodId] = useState(() => pickDefaultMethodId(initialQuote.status === 'ready' ? initialQuote.methods : []))
   const preferredMethodId = useRef(selectedMethodId)
   const debounceRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
   const requestGuard = useRef(createRequestGuard())
   const formRef = useRef<HTMLFormElement>(null)
+  const abortRef = useRef<AbortController | null>(null)
+  const lastAddressKey = useRef(initialQuote.status === 'ready' ? JSON.stringify(normalizeShippingAddress(initialAddress ?? {})) : '')
+  const cartSignature = checkoutCartSignature(lines)
 
   // Clears any pending debounced fetch on unmount so a slow response can't
   // try to set state on an unmounted component (same pattern as the navbar's
@@ -67,71 +68,98 @@ export default function CheckoutForm({
     return () => {
       clearTimeout(debounceRef.current)
       guard.invalidate()
+      abortRef.current?.abort()
     }
   }, [])
 
-  const refreshShipping = () => {
+  const refreshShipping = (force = false, submittedAddress?: AddressInput) => {
     if (!formRef.current) return
-    const values = addressFromFormData(new FormData(formRef.current))
-    const address = {
-      country: values.country.trim().toUpperCase(),
-      ...(values.city.trim() && { city: values.city.trim() }),
-      ...(values.postcode.trim() && { postcode: values.postcode.trim() }),
-      ...(values.address1.trim() && { address1: values.address1.trim() }),
-    }
+    const values = submittedAddress ?? addressFromFormData(new FormData(formRef.current))
+    const address = normalizeShippingAddress(values)
+    const key = JSON.stringify(address)
+    if (!force && key === lastAddressKey.current) return
+    lastAddressKey.current = key
     clearTimeout(debounceRef.current)
     const isCurrent = requestGuard.current.begin()
-    if (!isCountryCode(address.country)) return
+    abortRef.current?.abort()
+    if (!isCountryCode(address.country)) {
+      setQuote({ status: 'address', error: 'Please choose a valid delivery country.' })
+      setShippingPending(false)
+      setSelectedMethodId('')
+      return
+    }
     const previousMethodId = preferredMethodId.current
     setShippingPending(true)
-    setShippingError('')
-    setMethods([])
-    setSelectedMethodId('')
+    const controller = new AbortController()
+    abortRef.current = controller
 
     debounceRef.current = setTimeout(() => {
-      getShippingMethodsAction(address)
-        .then((next) => {
+      fetch('/api/checkout/shipping', {
+        method: 'POST', cache: 'no-store', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(address), signal: AbortSignal.any([controller.signal, AbortSignal.timeout(30_000)]),
+      })
+        .then(async response => {
+          const next: ShippingQuote = await response.json()
+          if (!['ready', 'cart', 'error', 'address'].includes(next.status)) throw new Error('Invalid shipping response')
           if (!isCurrent()) return
-          setMethods(next)
+          if (next.status === 'ready' && next.cartSignature !== cartSignature) {
+            setQuote({ status: 'cart', error: 'Your cart or product prices have changed. Please review your cart before paying.', issues: [] })
+            setSelectedMethodId('')
+            return
+          }
+          setQuote(next)
+          const nextMethods = next.status === 'ready' ? next.methods : []
           // Keep the current pick if it's still offered for the new country;
-          // otherwise fall back to the same "cheapest courier" default.
-          const nextMethodId = next.some(method => method.id === previousMethodId) ? previousMethodId : pickDefaultMethodId(next)
+          // otherwise use the first configured delivery method.
+          const nextMethodId = nextMethods.some(method => method.id === previousMethodId) ? previousMethodId : pickDefaultMethodId(nextMethods)
           preferredMethodId.current = nextMethodId
           setSelectedMethodId(nextMethodId)
         })
         .catch(() => {
           if (!isCurrent()) return
-          setShippingError('Could not calculate delivery. Please try again.')
+          lastAddressKey.current = ''
+          setQuote({ status: 'error', error: 'Could not calculate delivery. Please try again.' })
+          setSelectedMethodId('')
         })
         .finally(() => { if (isCurrent()) setShippingPending(false) })
     }, ADDRESS_DEBOUNCE_MS)
   }
 
   const selectedMethod = methods.find((method) => method.id === selectedMethodId)
+  const canPay = !shippingPending && quote.status === 'ready' && !!selectedMethod
 
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
+    if (!canPay || !selectedMethod || isPending || isRedirecting) return
     setError('')
     const formData = new FormData(event.currentTarget)
     const deliveryMethodId = String(formData.get('deliveryMethod') ?? '')
 
     startTransition(async () => {
-      const result = await createCheckoutSessionAction(addressFromFormData(formData), deliveryMethodId)
-
-      if ('error' in result) {
-        setError(result.error)
-      } else {
-        // Full browser navigation, not next/navigation — the destination
-        // is checkout.stripe.com, a different origin entirely.
-        setIsRedirecting(true)
-        window.location.href = result.url
+      try {
+        const response = await fetch('/api/checkout/session', {
+          method: 'POST', cache: 'no-store', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ address: addressFromFormData(formData), deliveryMethodId, expected: { cartSignature, shippingCost: selectedMethod.cost } }),
+          signal: AbortSignal.timeout(45_000),
+        })
+        const result: CreateCheckoutSessionResult = await response.json()
+        if ('error' in result) {
+          setError(result.error)
+          if (result.refreshShipping) refreshShipping(true, addressFromFormData(formData))
+        } else if (result.url) {
+          // Stripe Checkout requires navigation to its separate origin.
+          setIsRedirecting(true)
+          window.location.href = result.url
+        } else { throw new Error('Invalid checkout response') }
+      } catch {
+        setError('Could not prepare checkout. Please try again. Your details have been kept.')
       }
     })
   }
 
   return (
-    <div className="flex flex-col gap-6 lg:flex-row lg:items-start">
-      <form ref={formRef} onSubmit={handleSubmit} className="flex flex-1 flex-col gap-4">
+      <form ref={formRef} onSubmit={handleSubmit} className="grid min-w-0 gap-6 lg:grid-cols-[minmax(0,1fr)_20rem] lg:items-start">
+        <fieldset disabled={isPending || isRedirecting} className="flex min-w-0 flex-col gap-4 border-0 p-0 lg:col-start-1 lg:row-start-1">
         {isGuest && (
           <div className="flex flex-col gap-1">
             <label
@@ -153,22 +181,34 @@ export default function CheckoutForm({
           </div>
         )}
 
-        {shippingPending ? (
+        <AddressFields defaultValues={initialAddress} idPrefix="checkout" onCountryChange={() => refreshShipping()} onShippingAddressChange={() => refreshShipping()} />
+
+        <section aria-label="Delivery options" aria-busy={shippingPending} className="flex min-h-24 flex-col gap-3 border-t border-white/20 pt-4">
+        {shippingPending && (
           <p role="status" className="text-xs text-white" style={{ fontFamily: MONO }}>Updating delivery methods…</p>
-        ) : shippingError ? (
+        )}
+        {quote.status === 'cart' && !shippingPending ? (
+          <CheckoutCartIssues error={quote.error} issues={quote.issues} />
+        ) : (quote.status === 'error' || quote.status === 'address') && !shippingPending ? (
           <div>
-            <p role="alert" className="text-xs" style={{ fontFamily: MONO, color: '#FF6B6B' }}>{shippingError}</p>
-            <button type="button" onClick={refreshShipping} className="mt-2 text-xs text-white underline">Retry delivery calculation</button>
+            <p role="alert" className="text-xs" style={{ fontFamily: MONO, color: '#FF6B6B' }}>{quote.error}</p>
+            <button type="button" onClick={() => refreshShipping(true)} className="mt-2 min-h-11 text-xs text-white underline">Retry delivery calculation</button>
           </div>
-        ) : (
+        ) : quote.status === 'ready' ? (
+          <fieldset disabled={shippingPending} className="border-0 p-0">
           <DeliveryMethods methods={methods} selectedId={selectedMethodId} onSelect={id => {
             preferredMethodId.current = id
             setSelectedMethodId(id)
           }} />
-        )}
+          </fieldset>
+        ) : null}
+        </section>
+        </fieldset>
 
-        <AddressFields defaultValues={initialAddress} idPrefix="checkout" onCountryChange={refreshShipping} onShippingAddressChange={refreshShipping} />
-
+        <div className="min-w-0 lg:col-start-2 lg:row-start-1 lg:row-span-2">
+          <OrderSummary lines={lines} subtotal={subtotal} shippingCost={canPay ? selectedMethod?.cost : undefined} />
+        </div>
+        <div className="flex flex-col gap-3 lg:col-start-1 lg:row-start-2">
         {error && (
           <p aria-live="polite" className="text-xs" style={{ fontFamily: MONO, color: '#FF6B6B' }}>
             {error}
@@ -177,14 +217,12 @@ export default function CheckoutForm({
 
         <button
           type="submit"
-          disabled={isPending || isRedirecting || shippingPending || !!shippingError || !selectedMethodId}
+          disabled={isPending || isRedirecting || !canPay}
           className="btn-gold flex h-12 w-full items-center justify-center text-xs tracking-[0.1em] uppercase"
         >
           {isRedirecting ? 'Redirecting to Stripe…' : isPending ? 'Preparing payment…' : 'Continue to payment'}
         </button>
+        </div>
       </form>
-
-      <OrderSummary lines={lines} subtotal={subtotal} shippingCost={selectedMethod?.cost} />
-    </div>
   )
 }

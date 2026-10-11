@@ -1,11 +1,15 @@
 import { getProductById } from '@/lib/woocommerce'
-import type { ProductDetail, ProductVariant, StockStatus } from '@/lib/mock-data'
+import type { StockStatus } from '@/lib/mock-data'
 import type { CartItem } from './schema'
 import { cartLineKey } from './line-key'
+import { resolveCartSelection } from './selection'
 
 export interface ResolvedCartLine {
   productId: string
   variationId?: string
+  /** Current catalog variation; stored variationId remains the mutation key. */
+  resolvedVariationId?: string
+  checkoutIssue?: string
   /** The shopper's raw axis picks, carried through so the cart controls can
    *  address this exact line for quantity / remove. */
   selectedOptions?: Record<string, string>
@@ -28,7 +32,7 @@ export interface ResolvedCartLine {
 
 export interface ResolvedCart {
   lines: ResolvedCartLine[]
-  /** Cart lines whose product/variation no longer exists at all — shown as
+  /** Cart lines whose product no longer exists — shown as
    *  a banner rather than silently vanishing from the shopper's view. */
   unavailableCount: number
   /** Purchasable lines only. */
@@ -36,40 +40,11 @@ export interface ResolvedCart {
 }
 
 /**
- * The variation axes the shopper chose, ordered the way the product lists
- * them. Each axis takes the variation's own pinned value when it has one,
- * otherwise the shopper's pick from `selectedOptions` (WooCommerce omits
- * "Any …" axes from the variation). Falls back to the raw union when the
- * product has no attribute list at all (mock / incomplete data).
- */
-function lineAttributes(
-  product: ProductDetail,
-  variant: ProductVariant | null,
-  selectedOptions: Record<string, string> | undefined,
-): Record<string, string> {
-  const axisNames = product.attributes
-    .filter((attribute) => attribute.isVariationAxis)
-    .map((attribute) => attribute.name)
-
-  if (axisNames.length === 0) {
-    return { ...selectedOptions, ...variant?.attributes }
-  }
-
-  const attributes: Record<string, string> = {}
-  for (const name of axisNames) {
-    const value = variant?.attributes[name] ?? selectedOptions?.[name]
-    if (value) attributes[name] = value
-  }
-  return attributes
-}
-
-/**
  * Re-resolves every cart line against live WooCommerce data. Price, stock,
  * name, and image always come from here — never from the cookie, which only
- * ever stores an id and a quantity. A line whose product/variation no
- * longer resolves is dropped and counted in `unavailableCount`; a line
- * that's merely out of stock is kept and flagged `purchasable: false` so the
- * shopper sees it rather than having it disappear.
+ * ever stores identity, selections, and quantity. A missing product is
+ * counted in `unavailableCount`; outdated options and out-of-stock items
+ * stay visible and removable, with `purchasable: false`.
  */
 export async function resolveCartItems(cart: CartItem[]): Promise<ResolvedCart> {
   const deduped = new Map<string, CartItem>()
@@ -93,41 +68,24 @@ export async function resolveCartItems(cart: CartItem[]): Promise<ResolvedCart> 
       continue
     }
 
-    if (item.variationId) {
-      const variant = product.variants.find((candidate) => candidate.id === item.variationId)
-      if (!variant) {
-        unavailableCount++
-        continue
-      }
-      lines.push({
-        productId: item.productId,
-        variationId: item.variationId,
-        selectedOptions: item.selectedOptions,
-        quantity: item.quantity,
-        name: product.name,
-        slug: product.slug,
-        image: variant.image ?? product.image,
-        unitPrice: variant.price,
-        attributes: lineAttributes(product, variant, item.selectedOptions),
-        variantAttributes: variant.attributes,
-        stockStatus: variant.stockStatus,
-        purchasable: variant.stockStatus !== 'outofstock',
-      })
-    } else {
-      lines.push({
-        productId: item.productId,
-        selectedOptions: item.selectedOptions,
-        quantity: item.quantity,
-        name: product.name,
-        slug: product.slug,
-        image: product.image,
-        unitPrice: product.price,
-        attributes: lineAttributes(product, null, item.selectedOptions),
-        variantAttributes: {},
-        stockStatus: product.stockStatus,
-        purchasable: product.stockStatus !== 'outofstock',
-      })
-    }
+    const { variant, attributes, issue } = resolveCartSelection(product, item.variationId, item.selectedOptions)
+    const stockStatus = variant?.stockStatus ?? product.stockStatus
+    lines.push({
+      productId: item.productId,
+      variationId: item.variationId,
+      resolvedVariationId: variant?.id,
+      selectedOptions: item.selectedOptions,
+      quantity: item.quantity,
+      name: product.name,
+      slug: product.slug,
+      image: variant?.image ?? product.image,
+      unitPrice: variant?.price ?? product.price,
+      attributes,
+      variantAttributes: Object.fromEntries(Object.entries(variant?.attributes ?? {}).filter(([, value]) => value)),
+      stockStatus,
+      checkoutIssue: issue,
+      purchasable: !issue && stockStatus !== 'outofstock',
+    })
   }
 
   const subtotal = lines

@@ -35,6 +35,19 @@ interface StoreApiSession {
   cartToken: string
 }
 
+export class ShippingRateError extends Error {
+  status: number
+  code: string
+  productId?: number
+  constructor(status: number, code: string, productId?: number) {
+    super(`WooCommerce delivery request failed (${status}, ${code}).`)
+    this.name = 'ShippingRateError'
+    this.status = status
+    this.code = code
+    this.productId = productId
+  }
+}
+
 function storeApiUrl(path: string): string {
   const baseUrl = process.env.NEXT_PUBLIC_WC_URL
   if (!baseUrl) {
@@ -50,8 +63,12 @@ async function storeApiRequest<T>(
   path: string,
   session: StoreApiSession | null,
   body?: unknown,
+  productId?: number,
+  signal?: AbortSignal,
 ): Promise<{ data: T; session: StoreApiSession }> {
   const response = await fetch(storeApiUrl(path), {
+    cache: 'no-store',
+    signal: signal ? AbortSignal.any([signal, AbortSignal.timeout(15_000)]) : AbortSignal.timeout(15_000),
     method: body === undefined ? 'GET' : 'POST',
     headers: {
       ...(body !== undefined && { 'Content-Type': 'application/json' }),
@@ -61,7 +78,9 @@ async function storeApiRequest<T>(
   })
 
   if (!response.ok) {
-    throw new Error(`WooCommerce Store API request failed: ${response.status} ${response.statusText}`)
+    const error = await response.json().catch(() => null)
+    const code = typeof error?.code === 'string' && /^[a-zA-Z0-9_-]{1,120}$/.test(error.code) ? error.code : 'store_api_unavailable'
+    throw new ShippingRateError(response.status, code, productId)
   }
 
   return {
@@ -93,10 +112,12 @@ export async function fetchShippingRates(
   address: StoreApiAddress,
 ): Promise<StoreApiShippingRate[]> {
   if (items.length === 0) return []
+  // Bound the whole quote as well as each request, including larger carts.
+  const signal = AbortSignal.timeout(25_000)
 
   let session: StoreApiSession
   {
-    const initial = await storeApiRequest<unknown>('/cart', null)
+    const initial = await storeApiRequest<unknown>('/cart', null, undefined, undefined, signal)
     session = initial.session
   }
 
@@ -110,7 +131,7 @@ export async function fetchShippingRates(
       id: item.productId,
       quantity: item.quantity,
       ...(variation && { variation }),
-    })
+    }, item.productId, signal)
     session = added.session
   }
 
@@ -121,7 +142,7 @@ export async function fetchShippingRates(
       postcode: address.postcode ?? '',
       address_1: address.address1 ?? '',
     },
-  })
+  }, undefined, signal)
 
   return data.shipping_rates?.[0]?.shipping_rates ?? []
 }

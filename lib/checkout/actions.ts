@@ -9,35 +9,20 @@ import { getBaseUrl } from '@/lib/url'
 import { addressSchema, shippingAddressSchema, type AddressInput, type ShippingAddressInput } from '@/lib/address/schema'
 import { toWcAddress } from '@/lib/address/map-address'
 import { updateWcCustomerAddress } from '@/lib/woocommerce/queries/update-customer-address'
-import { getShippingMethods, type ShippingCartItem, type ShippingMethod } from '@/lib/woocommerce'
-import type { ResolvedCartLine } from '@/lib/cart/resolve'
+import type { ShippingMethod } from '@/lib/woocommerce'
+import { quoteResolvedCart } from './shipping'
+import { getShippingQuote } from './get-shipping-quote'
+import { checkoutCartSignature } from './model'
 
-export type CreateCheckoutSessionResult = { url: string } | { error: string }
+export type CreateCheckoutSessionResult = { url: string } | { error: string; refreshShipping?: boolean }
 
-/** `getShippingMethods` wants each line's full attribute picks (so the Store
- *  API can add a variation correctly — see `get-shipping-rates.ts`), which
- *  `ResolvedCartLine.attributes` already carries. */
-function toShippingCartItems(lines: ResolvedCartLine[]): ShippingCartItem[] {
-  return lines.map((line) => ({
-    productId: line.productId,
-    quantity: line.quantity,
-    attributes: line.attributes,
-  }))
-}
-
-/** Reads live WooCommerce shipping rates (via `getShippingMethods`'s Store
- *  API call) for the shopper's real cart and the given country — called
- *  both to render the checkout page's initial options and, client-side, to
- *  refresh them whenever the shopper edits the delivery country
- *  (`components/checkout/checkout-form.tsx`). The cart itself is always
- *  re-derived from the server-side cookie, never trusted from the caller —
- *  this only affects which options are *displayed*, but there's no reason
- *  to trust a client-supplied cart when the real one is one read away. */
+/** Compatibility entry point for existing callers. New checkout clients use
+ *  the stable shipping route; both read the shopper's server-side cart. */
 export async function getShippingMethodsAction(input: ShippingAddressInput): Promise<ShippingMethod[]> {
   const address = shippingAddressSchema.parse(input)
-  const cart = await getCart()
-  const resolved = await resolveCartItems(cart)
-  return getShippingMethods(toShippingCartItems(resolved.lines), address)
+  const quote = await getShippingQuote(address)
+  if (quote.status !== 'ready') throw new Error(quote.error)
+  return quote.methods
 }
 
 /**
@@ -58,6 +43,7 @@ export async function getShippingMethodsAction(input: ShippingAddressInput): Pro
 export async function createCheckoutSessionAction(
   input: AddressInput,
   deliveryMethodId: string,
+  expected?: { cartSignature: string; shippingCost: number },
 ): Promise<CreateCheckoutSessionResult> {
   if (process.env.NEXT_PUBLIC_USE_MOCK_DATA === 'true') {
     return { error: 'Payments are unavailable in mock-data mode. Connect WooCommerce to continue.' }
@@ -86,6 +72,9 @@ export async function createCheckoutSessionAction(
   if (resolved.unavailableCount > 0 || resolved.lines.some((line) => !line.purchasable)) {
     return { error: 'Your cart has changed — please review it before checking out.' }
   }
+  if (expected && expected.cartSignature !== checkoutCartSignature(resolved.lines)) {
+    return { error: 'Your cart or product prices have changed. Please review your cart before paying.', refreshShipping: true }
+  }
 
   // Best-effort — remembers the address for next time, but must never block
   // or fail checkout if the write itself fails. Guests have no customer
@@ -101,23 +90,21 @@ export async function createCheckoutSessionAction(
   // same principle already used for cart line pricing below. A WooCommerce
   // Store API failure here (the store unreachable, a plugin erroring) must
   // fail checkout cleanly rather than let a stale/tampered method through.
-  let availableMethods: ShippingMethod[]
-  try {
-    availableMethods = await getShippingMethods(toShippingCartItems(resolved.lines), {
+  const quote = await quoteResolvedCart(resolved, {
       country: parsed.data.country,
       city: parsed.data.city,
       postcode: parsed.data.postcode,
       address1: parsed.data.address1,
-    })
-  } catch (error) {
-    console.error('[checkout] Failed to resolve shipping methods:', error)
-    return { error: 'Could not calculate shipping. Please try again.' }
-  }
-  const method = availableMethods.find((candidate) => candidate.id === deliveryMethodId)
+  })
+  if (quote.status !== 'ready') return { error: quote.error, refreshShipping: true }
+  const method = quote.methods.find((candidate) => candidate.id === deliveryMethodId)
   if (!method) {
-    return { error: 'Please choose a delivery method.' }
+    return { error: 'Please choose a delivery method.', refreshShipping: true }
   }
   const shipping = method.cost
+  if (expected && Math.round(expected.shippingCost * 100) !== Math.round(shipping * 100)) {
+    return { error: 'The delivery price has changed. Please review the updated total and continue.', refreshShipping: true }
+  }
 
   // Metadata carries only *identity* — product/variation ids, quantities,
   // the shopper's axis picks, and the shipping address — never a price.
@@ -135,7 +122,7 @@ export async function createCheckoutSessionAction(
     )
     return {
       p: line.productId,
-      v: line.variationId,
+      v: line.resolvedVariationId ?? line.variationId,
       q: line.quantity,
       ...(Object.keys(extraOptions).length > 0 ? { a: extraOptions } : {}),
     }
