@@ -130,7 +130,7 @@ export default function CartDrawer() {
                               <Link href={`/products/${line.slug}`} onClick={close} className="text-sm font-bold">{line.name}</Link>
                               {Object.entries(line.attributes).map(([name, value]) => <p key={name} className="text-xs">{name}: {value}</p>)}
                               <p className="text-sm">{formatPrice(line.unitPrice)} × {line.quantity}</p>
-                              {!line.purchasable && <p className="text-xs">Out of stock</p>}
+                              {line.checkoutIssue ? <p className="text-xs text-[#FF6B6B]">{line.checkoutIssue}</p> : !line.purchasable && <p className="text-xs">Out of stock</p>}
                             </div>
                           </div>
                           {!onCheckoutPage && <CartLineControls productId={line.productId} variationId={line.variationId} selectedOptions={line.selectedOptions} quantity={line.quantity} onPendingChange={setMutationPending} />}

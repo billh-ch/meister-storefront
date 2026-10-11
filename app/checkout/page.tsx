@@ -7,8 +7,11 @@ import CheckoutForm from '@/components/checkout/checkout-form'
 import { getCart } from '@/lib/cart/cookie'
 import { resolveCartItems } from '@/lib/cart/resolve'
 import { getSession } from '@/lib/auth/session'
-import { getWcCustomerById, getShippingMethods } from '@/lib/woocommerce'
+import { getWcCustomerById } from '@/lib/woocommerce'
 import { toAddressInput } from '@/lib/address/map-address'
+import { quoteResolvedCart } from '@/lib/checkout/shipping'
+import { checkoutCartIssues, checkoutCartSignature, type ShippingQuote } from '@/lib/checkout/model'
+import CheckoutCartIssues from '@/components/checkout/cart-issues'
 
 const MONO = 'var(--font-space-mono), monospace'
 const DISPLAY = 'var(--font-dela-gothic), sans-serif'
@@ -29,7 +32,9 @@ export const metadata: Metadata = {
 export default async function CheckoutPage() {
   const [cart, session] = await Promise.all([getCart(), getSession()])
   const isGuest = !session.wcCustomerId
-  const resolved = await resolveCartItems(cart)
+  const resolvedCart = await resolveCartItems(cart).catch(() => null)
+  const cartUnavailable = resolvedCart === null
+  const resolved = resolvedCart ?? { lines: [], unavailableCount: 0, subtotal: 0 }
 
   // Best-effort — a WooCommerce read failure here must never block checkout,
   // only skip the prefill.
@@ -45,21 +50,17 @@ export default async function CheckoutPage() {
   // Best-effort here too — a shipping lookup failure shouldn't block
   // rendering the page; the form's own country-change refetch (and the
   // server action's re-validation at submit time) can recover from it.
-  const initialMethods = isEmpty || hasChanged
-    ? []
-    : await getShippingMethods(
-        resolved.lines.map((line) => ({
-          productId: line.productId,
-          quantity: line.quantity,
-          attributes: line.attributes,
-        })),
+  const initialQuote: ShippingQuote = cartUnavailable || isEmpty || hasChanged
+    ? { status: 'cart', error: 'Your saved cart needs attention before delivery can be calculated.', issues: checkoutCartIssues(resolved) }
+    : await quoteResolvedCart(
+        resolved,
         {
           country: initialAddress?.country ?? 'GR',
           city: initialAddress?.city,
           postcode: initialAddress?.postcode,
           address1: initialAddress?.address1,
         },
-      ).catch(() => [])
+      )
 
   return (
     <main style={{ backgroundColor: '#1B1B18' }}>
@@ -76,7 +77,14 @@ export default async function CheckoutPage() {
           CHECKOUT
         </h1>
 
-        {isEmpty ? (
+        {cartUnavailable ? (
+          <div role="alert" className="flex flex-col gap-3 border border-[#FF6B6B]/50 p-4 text-sm text-white">
+            <p>Could not verify your cart. Your saved items are still there. Please try again.</p>
+            {/* A full reload rechecks WooCommerce and replaces any stale checkout client. */}
+            {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
+            <a href="/checkout" className="inline-flex min-h-11 items-center text-[#FFD700] underline">Retry checkout</a>
+          </div>
+        ) : isEmpty ? (
           <div
             className="hatching-bg flex flex-col items-center justify-center gap-4 py-24 text-center"
             style={{ border: '1px solid #444444' }}
@@ -93,12 +101,7 @@ export default async function CheckoutPage() {
             className="flex flex-col items-center justify-center gap-4 py-24 text-center"
             style={{ border: '1px solid #444444' }}
           >
-            <p className="text-sm" style={{ fontFamily: MONO, color: '#FF6B6B' }}>
-              Your cart has changed since you last viewed it — please review it before checking out.
-            </p>
-            <Link href="/cart" className="btn-gold px-6 py-3 text-xs tracking-[0.1em] uppercase">
-              REVIEW CART
-            </Link>
+            <CheckoutCartIssues error="Your saved cart needs attention before delivery can be calculated." issues={checkoutCartIssues(resolved)} />
           </div>
         ) : (
           <div className="flex flex-col gap-4">
@@ -112,11 +115,12 @@ export default async function CheckoutPage() {
               </p>
             )}
             <CheckoutForm
+              key={checkoutCartSignature(resolved.lines)}
               initialAddress={initialAddress}
               isGuest={isGuest}
               lines={resolved.lines}
               subtotal={resolved.subtotal}
-              initialMethods={initialMethods}
+              initialQuote={initialQuote}
             />
           </div>
         )}

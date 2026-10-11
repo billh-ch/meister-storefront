@@ -28,7 +28,7 @@ export const metadata: Metadata = {
 export default async function CartPage() {
   const cart = await getCart()
   const resolved = await resolveCartItems(cart)
-  const hasPurchasableLines = resolved.lines.some((line) => line.purchasable)
+  const hasPurchasableLines = resolved.lines.length > 0 && resolved.unavailableCount === 0 && resolved.lines.every((line) => line.purchasable)
 
   return (
     <main style={{ backgroundColor: '#1B1B18' }}>
@@ -84,6 +84,7 @@ export default async function CartPage() {
               {resolved.lines.map((line) => (
                 <div
                   key={cartLineKey(line)}
+                  data-cart-line
                   className="flex gap-4 p-4"
                   style={{ borderBottom: '1px solid #222222' }}
                 >
@@ -111,7 +112,13 @@ export default async function CartPage() {
                             {formatVariationLabel(line.attributes)}
                           </p>
                         )}
-                        {!line.purchasable && (
+                        {line.checkoutIssue ? (
+                          <div className="mt-1 text-xs text-[#FF6B6B]">
+                            <p>{line.checkoutIssue}</p>
+                            <Link href={`/products/${line.slug}`} className="inline-flex min-h-11 items-center text-[#FFD700] underline">Choose options</Link>
+                            <p>Remove this saved item, then add it with your chosen options.</p>
+                          </div>
+                        ) : !line.purchasable && (
                           <p
                             className="mt-1 text-xs font-bold tracking-wide"
                             style={{ fontFamily: MONO, color: '#FF6B6B' }}

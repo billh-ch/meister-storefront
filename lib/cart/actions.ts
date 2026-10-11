@@ -7,6 +7,7 @@ import type { ProductDetail } from '@/lib/mock-data'
 import { getCart, setCart } from './cookie'
 import { cartItemSchema, type CartItem } from './schema'
 import { cartLineKey } from './line-key'
+import { resolveCartSelection } from './selection'
 
 // Same id constraints as `cartItemSchema`, but `quantity` allows `<= 0` — that's
 // how a line gets removed (see `removeFromCartAction`) — which `cartItemSchema`
@@ -94,6 +95,9 @@ export async function addToCartAction(input: {
     ...parsed.data,
     selectedOptions: sanitizeSelectedOptions(validation.product, parsed.data.selectedOptions),
   }
+  const selection = resolveCartSelection(validation.product, newItem.variationId, newItem.selectedOptions)
+  if (selection.issue) return { ok: false, error: selection.issue }
+  if (selection.variant?.stockStatus === 'outofstock') return { ok: false, error: 'That option is out of stock.' }
 
   const cart = await getCart()
   const key = cartLineKey(newItem)

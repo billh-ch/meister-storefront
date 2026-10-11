@@ -61,7 +61,7 @@ export default function OrderSummary({ lines, subtotal, shippingCost }: OrderSum
           style={{ fontFamily: MONO, borderTop: '1px solid #444444' }}
         >
           <span className="text-white">TOTAL</span>
-          <span className="text-[#FFD700]">{formatPrice(total)}</span>
+          <span className="text-[#FFD700]">{shippingCost === undefined ? 'Pending delivery' : formatPrice(total)}</span>
         </div>
       </div>
     </div>

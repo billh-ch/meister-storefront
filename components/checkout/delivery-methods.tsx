@@ -19,8 +19,8 @@ export default function DeliveryMethods({ methods, selectedId, onSelect }: Deliv
   if (methods.length === 0) {
     return (
       <p className="text-xs" style={{ fontFamily: MONO, color: '#FF6B6B' }}>
-        No delivery method is available for this country yet — try a different
-        address or contact us.
+        No delivery options are available for this cart and address. Complete
+        your address or contact us for help.
       </p>
     )
   }
@@ -33,7 +33,7 @@ export default function DeliveryMethods({ methods, selectedId, onSelect }: Deliv
       {methods.map((method) => (
         <label
           key={method.id}
-          className="flex cursor-pointer items-center justify-between gap-3 px-3 py-2 text-sm text-white"
+          className="flex min-h-11 cursor-pointer items-center justify-between gap-3 px-3 py-2 text-sm text-white"
           style={{
             border: `1px solid ${selectedId === method.id ? '#FFD700' : '#444444'}`,
             fontFamily: MONO,
