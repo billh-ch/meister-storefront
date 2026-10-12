@@ -10,6 +10,13 @@ const nextConfig: NextConfig = {
     remotePatterns: [
       {
         protocol: "https",
+        hostname: "rpiwordpress.kudu-ulmer.ts.net",
+        port: "8443",
+        pathname: "/wp-content/uploads/**",
+        search: "",
+      },
+      {
+        protocol: "https",
         hostname: "images.unsplash.com",
       },
       {

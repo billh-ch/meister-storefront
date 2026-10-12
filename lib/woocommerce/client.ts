@@ -1,3 +1,5 @@
+import { wcProxyHeaders } from './proxy-auth'
+
 type NextFetchRequestConfig = {
   revalidate?: number | false
   tags?: string[]
@@ -112,6 +114,7 @@ async function wcRequest<T>(
     // and mutations must not inherit a future route-level cache default.
     ...(!cacheOptions || cacheOptions.revalidate === 0 ? { cache: 'no-store' as const } : {}),
     headers: {
+      ...wcProxyHeaders(),
       Authorization: `Basic ${basicAuth}`,
       ...(options?.body !== undefined && { 'Content-Type': 'application/json' }),
     },
