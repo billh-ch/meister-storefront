@@ -3,9 +3,13 @@ import type Stripe from 'stripe'
 import { getStripe } from '@/lib/stripe'
 import { getRedis } from '@/lib/redis'
 import { createOrder, type WcAddress } from '@/lib/woocommerce/queries/create-order'
+import { findOrderByPayment } from '@/lib/woocommerce/queries/find-order-by-payment'
+import { randomUUID } from 'node:crypto'
+import type { Redis } from '@upstash/redis'
 
 // Stripe's SDK needs Node crypto for signature verification, not Edge.
 export const runtime = 'nodejs'
+export const maxDuration = 60
 
 interface CartLineMeta {
   p: string
@@ -80,19 +84,23 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'missing payment intent' }, { status: 400 })
   }
 
-  const redis = getRedis()
   const lockKey = `stripe:pi:${paymentIntentId}`
-
-  // Idempotency guard — Stripe's webhook delivery is at-least-once, so the
-  // same event can arrive more than once. This is the only thing Redis is
-  // used for anywhere in this app.
-  const acquired = await redis.set(lockKey, 'processing', { nx: true, ex: 60 * 10 })
-  if (!acquired) {
-    const state = await redis.get(lockKey)
-    return NextResponse.json({ received: true, note: state === 'done' ? 'duplicate' : 'in-flight' })
-  }
+  const owner = randomUUID()
+  let redis: Redis | undefined
+  let acquired = false
+  let stage = 'lock'
 
   try {
+    redis = getRedis()
+    acquired = Boolean(await redis.set(lockKey, owner, { nx: true, ex: 60 * 10 }))
+    if (!acquired) {
+      const state = await redis.get(lockKey)
+      if (state === 'done') return NextResponse.json({ received: true, note: 'duplicate' })
+      // Acknowledging an unfinished attempt would stop Stripe's retry even
+      // if that attempt subsequently crashes without creating an order.
+      return NextResponse.json({ error: 'Order is still processing' }, { status: 503 })
+    }
+    stage = 'metadata'
     const metadata = checkoutSession.metadata ?? {}
     // Blank / absent for a guest checkout → 0 → a real WooCommerce guest
     // order keyed off the billing email.
@@ -106,8 +114,11 @@ export async function POST(request: Request) {
     if (!wcCustomerId && !address.email) {
       throw new Error('Guest checkout Session metadata is missing the billing email')
     }
+    if (!Array.isArray(lines) || lines.some(line => !/^\d+$/.test(line.p) || Number(line.p) <= 0 || (line.v && (!/^\d+$/.test(line.v) || Number(line.v) <= 0)) || !Number.isInteger(line.q) || line.q <= 0)) {
+      throw new Error('Checkout Session cart contents are invalid')
+    }
 
-    const order = await createOrder({
+    const input = {
       customerId: wcCustomerId || undefined,
       lineItems: lines.map((line) => ({
         productId: Number(line.p),
@@ -128,11 +139,16 @@ export async function POST(request: Request) {
             total: metadata.shippingCost ?? '0',
           }
         : undefined,
-    })
+    }
+    stage = 'woo-reconcile'
+    const existing = await findOrderByPayment(input, checkoutSession.created)
+    stage = 'woo-create'
+    const order = existing ?? await createOrder(input)
 
     // Lets the confirmation page resolve a guest's order — it has no session
     // to scope `getOrdersByCustomer` by. Short TTL: only needed for the
     // minute or two the confirmation page polls.
+    stage = 'order-receipt'
     await redis.set(
       `stripe:order:${paymentIntentId}`,
       JSON.stringify({ id: order.id, number: order.number }),
@@ -141,12 +157,23 @@ export async function POST(request: Request) {
 
     // Marked 'done' only after real success — a failed attempt below
     // releases the lock instead, so Stripe's own retry can attempt again.
-    await redis.set(lockKey, 'done', { ex: 60 * 60 * 24 * 7 })
+    stage = 'complete'
+    const completed = await redis.eval(
+      "if redis.call('GET', KEYS[1]) == ARGV[1] then return redis.call('SET', KEYS[1], 'done', 'EX', 604800) else return nil end",
+      [lockKey], [owner],
+    )
+    if (!completed) throw new Error('Order processing lease changed')
+    console.info('[stripe webhook]', { eventId: event.id, paymentIntentId, orderId: order.id, stage: 'complete', recovered: Boolean(existing) })
     return NextResponse.json({ received: true, orderId: order.id })
   } catch (error) {
-    await redis.del(lockKey)
-    console.error('[stripe webhook] order creation failed:', error)
+    // A timed-out POST may still commit at WooCommerce. Keep its lease until
+    // expiry so a retry cannot race that in-progress write; the next owner
+    // reconciles WooCommerce before attempting another creation.
+    if (acquired && redis && stage !== 'woo-create') {
+      await redis.eval("if redis.call('GET', KEYS[1]) == ARGV[1] then return redis.call('DEL', KEYS[1]) else return 0 end", [lockKey], [owner]).catch(() => undefined)
+    }
+    console.error('[stripe webhook]', { eventId: event.id, paymentIntentId, stage, error: error instanceof Error ? error.name : 'UnknownError' })
     // Non-2xx tells Stripe to retry per its own backoff schedule.
-    return NextResponse.json({ error: 'order creation failed' }, { status: 500 })
+    return NextResponse.json({ error: 'order creation failed' }, { status: 503 })
   }
 }
