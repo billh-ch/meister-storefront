@@ -174,6 +174,6 @@ export async function POST(request: Request) {
     }
     console.error('[stripe webhook]', { eventId: event.id, paymentIntentId, stage, error: error instanceof Error ? error.name : 'UnknownError' })
     // Non-2xx tells Stripe to retry per its own backoff schedule.
-    return NextResponse.json({ error: 'order creation failed' }, { status: 503 })
+    return NextResponse.json({ error: 'order creation failed', stage }, { status: 503 })
   }
 }

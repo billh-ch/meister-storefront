@@ -92,6 +92,7 @@ test('Redis failure returns a retryable response instead of escaping the handler
   db.redisDown = true
   const response = await POST(paidRequest('pi_fixture_redis'))
   assert.equal(response.status, 503)
+  assert.equal((await response.json()).stage, 'lock')
   assert.equal(db.orders.length, 0)
 }))
 test('a retry after Woo success and Redis failure reuses the original order', async () => withBackend(async db => {
