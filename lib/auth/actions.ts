@@ -8,6 +8,7 @@ import {
 } from '@/lib/woocommerce/queries/create-customer'
 import { login as startSession, logout as endSession } from './session'
 import { loginSchema, registerSchema } from './schema'
+import { requestCustomerToken } from './backend-login'
 
 export type AuthActionResult = { ok: true } | { ok: false; error: string }
 
@@ -65,11 +66,7 @@ export async function loginAction(input: {
 
   let response: Response
   try {
-    response = await fetch(`${baseUrl.replace(/\/$/, '')}/wp-json/jwt-auth/v1/token`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ username: parsed.data.email, password: parsed.data.password }),
-    })
+    response = await requestCustomerToken(baseUrl, parsed.data.email, parsed.data.password)
   } catch {
     return { ok: false, error: 'Could not reach the store right now. Please try again shortly.' }
   }

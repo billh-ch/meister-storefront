@@ -1,3 +1,5 @@
+import { wcProxyHeaders } from '../proxy-auth'
+
 export interface StoreApiCartItemInput {
   productId: number
   quantity: number
@@ -71,6 +73,7 @@ async function storeApiRequest<T>(
     signal: signal ? AbortSignal.any([signal, AbortSignal.timeout(15_000)]) : AbortSignal.timeout(15_000),
     method: body === undefined ? 'GET' : 'POST',
     headers: {
+      ...wcProxyHeaders(),
       ...(body !== undefined && { 'Content-Type': 'application/json' }),
       ...(session && { Nonce: session.nonce, 'Cart-Token': session.cartToken }),
     },
