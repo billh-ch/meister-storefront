@@ -115,6 +115,7 @@ export default async function CheckoutPage() {
               </p>
             )}
             <CheckoutForm
+              boxNowPartnerId={process.env.BOX_NOW_PARTNER_ID}
               key={checkoutCartSignature(resolved.lines)}
               initialAddress={initialAddress}
               isGuest={isGuest}

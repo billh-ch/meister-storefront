@@ -50,7 +50,7 @@ const backend = createServer(async (req, res) => {
     const country = input.shipping_address.country
     const rate = (rate_id, method_id, name, price) => ({ rate_id, method_id, name, price, currency_minor_unit: 2 })
     const rates = country === 'GR'
-      ? [rate('flat_rate:1', 'flat_rate', 'Greece courier', deliveryPrice), rate('local_pickup:2', 'local_pickup', 'Local pickup', '0'), rate('locker:3', 'locker', 'Greece locker delivery', '200')]
+      ? [rate('flat_rate:1', 'flat_rate', 'Greece courier', deliveryPrice), rate('local_pickup:2', 'local_pickup', 'Local pickup', '0'), rate('box_now_delivery:3', 'box_now_delivery', 'BOX NOW', '200')]
       : country === 'CY' ? [rate('flat_rate:4', 'flat_rate', 'Cyprus courier', '900')] : []
     return json({ shipping_rates: [{ shipping_rates: rates }] }, 200, { 'Cart-Token': token })
   }
@@ -94,6 +94,70 @@ try {
   console.log('PASS real route → cart resolution → Store API sessions → three Greece rates / one Cyprus rate, outage retry and request boundaries')
   for (const [label, value] of [['Email for order confirmation', 'qa@fixture.invalid'], ['First name', 'Test'], ['Last name', 'Customer'], ['Address', 'Ermou 1'], ['City', 'Athens'], ['Postcode', '10558'], ['Phone', '+302100000000']]) await page.getByLabel(label, { exact: true }).fill(value)
   await page.waitForFunction(() => !document.querySelector('button[type="submit"]').disabled)
+  const lockerMessage = { boxnowLockerId: '3', boxnowLockerName: 'BOX NOW Fixture locker', boxnowLockerAddressLine1: 'Fixture Street 144', boxnowLockerPostalCode: '18545', boxnowCountry: 'GR' }
+  await page.route('https://widget-v5.boxnow.gr/**', route => route.fulfill({ contentType: 'text/html', body: `<!doctype html><html><body><button id="foreign">Foreign locker</button><button id="select">Select fixture locker</button><script>
+    const locker = ${JSON.stringify(lockerMessage)};
+    document.querySelector('#foreign').onclick = () => parent.postMessage({...locker, boxnowCountry: 'CY'}, '*');
+    document.querySelector('#select').onclick = () => parent.postMessage(locker, '*');
+  </script></body></html>` }))
+  const pay = page.getByRole('button', { name: 'Continue to payment', exact: true })
+  for (const width of [320, 390, 1440]) {
+    await page.setViewportSize({ width, height: 900 })
+    await page.getByRole('radio', { name: /BOX NOW/ }).check()
+    const frame = page.frameLocator('iframe[title="BOX NOW locker map for Greece"]')
+    await frame.getByRole('button', { name: 'Select fixture locker' }).waitFor()
+    assert.equal(await pay.isDisabled(), true, 'A locker must be selected before payment')
+    const iframeUrl = new URL(await page.locator('iframe[title="BOX NOW locker map for Greece"]').getAttribute('src'))
+    assert.equal(iframeUrl.searchParams.get('countryCode'), 'gr')
+    assert.equal(iframeUrl.searchParams.get('zip'), '10558')
+    assert.equal(iframeUrl.searchParams.has('partnerId'), false)
+    assert.equal(await page.getByText('Pending delivery', { exact: true }).count(), 0, 'Known shipping price remains visible while choosing a locker')
+    assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), `No map overflow at ${width}px`)
+    const box = await page.locator('iframe[title="BOX NOW locker map for Greece"]').boundingBox()
+    assert.ok(box.width > 200 && box.x + box.width <= width, `Map fits at ${width}px`)
+    await page.evaluate(data => window.dispatchEvent(new MessageEvent('message', { origin: 'https://widget-v5.boxnow.gr', data, source: window })), lockerMessage)
+    assert.equal(await pay.isDisabled(), true, 'Correct origin with the wrong source cannot choose a locker')
+    await frame.getByRole('button', { name: 'Foreign locker' }).click()
+    assert.equal(await pay.isDisabled(), true, 'A foreign-country message cannot choose a Greek locker')
+    await frame.getByRole('button', { name: 'Select fixture locker' }).click()
+    await page.getByText(lockerMessage.boxnowLockerName, { exact: true }).waitFor()
+    assert.equal(await pay.isDisabled(), false)
+    assert.equal(await page.locator('iframe[title="BOX NOW locker map for Greece"]').count(), 0, 'Selected locker collapses the map')
+    await page.getByRole('button', { name: 'Change locker', exact: true }).click()
+    await frame.getByRole('button', { name: 'Select fixture locker' }).click()
+    await page.getByText(lockerMessage.boxnowLockerName, { exact: true }).waitFor()
+    const unavailable = await page.evaluate(async () => {
+      const form = document.querySelector('form')
+      const values = new FormData(form)
+      const address = Object.fromEntries(['email', 'firstName', 'lastName', 'address1', 'city', 'postcode', 'country', 'phone'].map(key => [key, values.get(key)]))
+      const quote = await (await fetch('/api/checkout/shipping', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(address) })).json()
+      const response = await fetch('/api/checkout/session', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ address, deliveryMethodId: String(values.get('deliveryMethod')), expected: { cartSignature: quote.cartSignature, shippingCost: 2 } }) })
+      return response.json()
+    })
+    assert.match(unavailable.error, /select.*BOX NOW locker/i, 'The actual session route rejects missing locker selection')
+    let submitted
+    await page.route('**/api/checkout/session', route => { submitted = route.request().postDataJSON(); return route.abort('failed') })
+    await pay.click()
+    await page.getByText('Could not prepare checkout. Please try again. Your details have been kept.', { exact: true }).waitFor()
+    assert.deepEqual(submitted.boxNowLocker, { id: '3' }, 'Checkout submits only the locker identity')
+    assert.equal(await page.getByText(lockerMessage.boxnowLockerName, { exact: true }).count(), 1, 'A payment failure keeps the locker selection')
+    assert.equal(await page.getByLabel('Address', { exact: true }).inputValue(), 'Ermou 1')
+    await page.unroute('**/api/checkout/session')
+    await page.getByRole('radio', { name: /Greece courier/ }).check()
+    assert.equal(await page.getByRole('heading', { name: 'Choose your BOX NOW locker' }).count(), 0)
+    assert.equal(await pay.isDisabled(), false)
+    console.log(`PASS BOX NOW conditional map, message boundaries, required selection, price, change and payment retry at ${width}px`)
+  }
+  await page.getByRole('radio', { name: /BOX NOW/ }).check()
+  await page.frameLocator('iframe[title="BOX NOW locker map for Greece"]').getByRole('button', { name: 'Select fixture locker' }).click()
+  await page.getByLabel('Country', { exact: true }).selectOption('CY')
+  assert.equal(await page.getByRole('heading', { name: 'Choose your BOX NOW locker' }).count(), 0, 'The map disappears immediately when leaving Greece')
+  await page.getByRole('radio', { name: /Cyprus courier/ }).waitFor()
+  await page.getByLabel('Country', { exact: true }).selectOption('GR')
+  await page.getByRole('radio', { name: /Greece courier/ }).waitFor()
+  await page.getByRole('radio', { name: /BOX NOW/ }).check()
+  assert.equal(await pay.isDisabled(), true, 'Changing country clears the old locker')
+  await page.getByRole('radio', { name: /Greece courier/ }).check()
   deliveryPrice = '350'
   await page.getByRole('button', { name: 'Continue to payment', exact: true }).click()
   await page.getByText('The delivery price has changed. Please review the updated total and continue.', { exact: true }).waitFor()

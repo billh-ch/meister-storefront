@@ -1,4 +1,5 @@
 import { wcMutate } from '../client'
+import { lockerOrderMetaData, requiresBoxNowLocker, type BoxNowLocker } from '@/lib/checkout/box-now'
 
 export interface WcAddress {
   first_name: string
@@ -49,6 +50,7 @@ export interface CreateOrderInput {
    *  the order then simply has no shipping_lines, same as before this field
    *  existed. */
   shippingLine?: CreateOrderShippingLine
+  boxNowLocker?: BoxNowLocker
 }
 
 export interface WcCreatedOrder {
@@ -91,6 +93,9 @@ export async function createOrder(input: CreateOrderInput): Promise<WcCreatedOrd
       : {}),
     billing: input.billing,
     shipping: input.shipping,
+    ...(input.boxNowLocker && requiresBoxNowLocker(input.shipping.country, input.shippingLine?.methodId)
+      ? { meta_data: lockerOrderMetaData(input.boxNowLocker) }
+      : {}),
     payment_method: 'stripe',
     payment_method_title: 'Credit Card (Stripe)',
     set_paid: true,

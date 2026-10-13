@@ -121,6 +121,25 @@ test('a verified paid webhook creates a paid guest order with delivery and all c
   assert.equal((await POST(paidRequest('pi_fixture_success'))).status, 200)
   assert.equal(db.orders.length, 1)
 }))
+test('a paid BOX NOW session saves the selected locker on its WooCommerce order', async () => withBackend(async db => {
+  const { lockerToStripeMetadata } = await import('../lib/checkout/box-now.ts')
+  const locker = { id: '3', name: 'BOX NOW Test locker', address: 'Test Street 144', postcode: '18545', country: 'GR' }
+  const request = paidRequest('pi_fixture_boxnow')
+  const event = await request.json()
+  Object.assign(event.data.object.metadata, { shippingMethodId: 'box_now_delivery', shippingMethodTitle: 'BOX NOW', ...lockerToStripeMetadata(locker) })
+  const body = JSON.stringify(event)
+  const response = await POST(new Request(request.url, { method: 'POST', body, headers: { 'stripe-signature': stripe.webhooks.generateTestHeaderString({ payload: body, secret: 'whsec_fixture' }) } }))
+  assert.equal(response.status, 200)
+  const order = db.orders[0]
+  assert.equal(order.shipping_lines[0].method_id, 'box_now_delivery')
+  assert.deepEqual(order.meta_data, [
+    { key: '_boxnow_locker_id', value: '3' },
+    { key: '_boxnow_locker_name', value: locker.name },
+    { key: '_boxnow_locker_address', value: locker.address },
+    { key: '_boxnow_locker_postal_code', value: locker.postcode },
+  ])
+  assert.equal(order.billing.address_1, 'Test 1', 'Locker selection keeps customer billing details')
+}))
 test('an ambiguous Woo write keeps retries waiting until the original order can be reconciled', async () => withBackend(async db => {
   db.ambiguousWrite = true
   assert.equal((await POST(paidRequest('pi_fixture_timeout'))).status, 503)

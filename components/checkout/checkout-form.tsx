@@ -13,6 +13,8 @@ import { createRequestGuard } from '@/lib/checkout/request-guard'
 import { isCountryCode } from '@/lib/address/countries'
 import { checkoutCartSignature, normalizeShippingAddress, type ShippingQuote } from '@/lib/checkout/model'
 import CheckoutCartIssues from './cart-issues'
+import BoxNowLockerPicker from './box-now-locker-picker'
+import { requiresBoxNowLocker, type BoxNowLocker } from '@/lib/checkout/box-now'
 
 const MONO = 'var(--font-space-mono), monospace'
 
@@ -28,6 +30,7 @@ interface CheckoutFormProps {
   subtotal: number
   /** Initial delivery quote keeps outages distinct from unavailable methods. */
   initialQuote: ShippingQuote
+  boxNowPartnerId?: string
 }
 
 /** Preserve WooCommerce's configured order, preferring delivery over pickup. Never
@@ -44,12 +47,16 @@ export default function CheckoutForm({
   lines,
   subtotal,
   initialQuote,
+  boxNowPartnerId,
 }: CheckoutFormProps) {
   const [isPending, startTransition] = useTransition()
   const [error, setError] = useState('')
   const [isRedirecting, setIsRedirecting] = useState(false)
   const [shippingPending, setShippingPending] = useState(false)
   const [quote, setQuote] = useState(initialQuote)
+  const [country, setCountry] = useState(initialAddress?.country ?? 'GR')
+  const [postcode, setPostcode] = useState(initialAddress?.postcode ?? '')
+  const [boxNowLocker, setBoxNowLocker] = useState<BoxNowLocker | null>(null)
   const methods = quote.status === 'ready' ? quote.methods : []
   const [selectedMethodId, setSelectedMethodId] = useState(() => pickDefaultMethodId(initialQuote.status === 'ready' ? initialQuote.methods : []))
   const preferredMethodId = useRef(selectedMethodId)
@@ -76,6 +83,8 @@ export default function CheckoutForm({
     if (!formRef.current) return
     const values = submittedAddress ?? addressFromFormData(new FormData(formRef.current))
     const address = normalizeShippingAddress(values)
+    setCountry(address.country)
+    setPostcode(address.postcode ?? '')
     const key = JSON.stringify(address)
     if (!force && key === lastAddressKey.current) return
     lastAddressKey.current = key
@@ -114,6 +123,8 @@ export default function CheckoutForm({
           const nextMethodId = nextMethods.some(method => method.id === previousMethodId) ? previousMethodId : pickDefaultMethodId(nextMethods)
           preferredMethodId.current = nextMethodId
           setSelectedMethodId(nextMethodId)
+          const nextMethod = nextMethods.find(method => method.id === nextMethodId)
+          if (next.status === 'ready' && !requiresBoxNowLocker(address.country, nextMethod?.wcMethodId)) setBoxNowLocker(null)
         })
         .catch(() => {
           if (!isCurrent()) return
@@ -126,7 +137,9 @@ export default function CheckoutForm({
   }
 
   const selectedMethod = methods.find((method) => method.id === selectedMethodId)
-  const canPay = !shippingPending && quote.status === 'ready' && !!selectedMethod
+  const deliveryReady = !shippingPending && quote.status === 'ready' && !!selectedMethod
+  const needsLocker = requiresBoxNowLocker(country, selectedMethod?.wcMethodId)
+  const canPay = deliveryReady && (!needsLocker || !!boxNowLocker)
 
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
@@ -139,7 +152,7 @@ export default function CheckoutForm({
       try {
         const response = await fetch('/api/checkout/session', {
           method: 'POST', cache: 'no-store', headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ address: addressFromFormData(formData), deliveryMethodId, expected: { cartSignature, shippingCost: selectedMethod.cost } }),
+          body: JSON.stringify({ address: addressFromFormData(formData), deliveryMethodId, expected: { cartSignature, shippingCost: selectedMethod.cost }, ...(needsLocker && boxNowLocker ? { boxNowLocker: { id: boxNowLocker.id } } : {}) }),
           signal: AbortSignal.timeout(45_000),
         })
         const result: CreateCheckoutSessionResult = await response.json()
@@ -181,7 +194,7 @@ export default function CheckoutForm({
           </div>
         )}
 
-        <AddressFields defaultValues={initialAddress} idPrefix="checkout" onCountryChange={() => refreshShipping()} onShippingAddressChange={() => refreshShipping()} />
+        <AddressFields defaultValues={initialAddress} idPrefix="checkout" onCountryChange={() => { setBoxNowLocker(null); refreshShipping() }} onShippingAddressChange={() => refreshShipping()} />
 
         <section aria-label="Delivery options" aria-busy={shippingPending} className="flex min-h-24 flex-col gap-3 border-t border-white/20 pt-4">
         {shippingPending && (
@@ -197,16 +210,18 @@ export default function CheckoutForm({
         ) : quote.status === 'ready' ? (
           <fieldset disabled={shippingPending} className="border-0 p-0">
           <DeliveryMethods methods={methods} selectedId={selectedMethodId} onSelect={id => {
+            if (id !== selectedMethodId) setBoxNowLocker(null)
             preferredMethodId.current = id
             setSelectedMethodId(id)
           }} />
           </fieldset>
         ) : null}
+        {needsLocker ? <BoxNowLockerPicker postcode={postcode} partnerId={boxNowPartnerId} locker={boxNowLocker} disabled={!deliveryReady || isPending || isRedirecting} onSelect={setBoxNowLocker} /> : null}
         </section>
         </fieldset>
 
         <div className="min-w-0 lg:col-start-2 lg:row-start-1 lg:row-span-2">
-          <OrderSummary lines={lines} subtotal={subtotal} shippingCost={canPay ? selectedMethod?.cost : undefined} />
+          <OrderSummary lines={lines} subtotal={subtotal} shippingCost={deliveryReady ? selectedMethod?.cost : undefined} />
         </div>
         <div className="flex flex-col gap-3 lg:col-start-1 lg:row-start-2">
         {error && (

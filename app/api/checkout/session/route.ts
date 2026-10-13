@@ -1,12 +1,14 @@
 import { z } from 'zod'
 import { addressSchema } from '@/lib/address/schema'
 import { createCheckoutSessionAction } from '@/lib/checkout/actions'
+import { boxNowLockerSelectionSchema } from '@/lib/checkout/box-now'
 
 const headers = { 'Cache-Control': 'private, no-store' }
 const schema = z.object({
   address: addressSchema,
   deliveryMethodId: z.string().min(1).max(150),
   expected: z.object({ cartSignature: z.string().min(1).max(16000), shippingCost: z.number().finite().nonnegative() }),
+  boxNowLocker: boxNowLockerSelectionSchema.optional(),
 })
 
 export async function POST(request: Request) {
@@ -20,8 +22,8 @@ export async function POST(request: Request) {
   const parsed = schema.safeParse(input)
   if (!parsed.success) return Response.json({ error: 'Please fill in every required field.' }, { status: 400, headers })
   try {
-    const { address, deliveryMethodId, expected } = parsed.data
-    return Response.json(await createCheckoutSessionAction(address, deliveryMethodId, expected), { headers })
+    const { address, deliveryMethodId, expected, boxNowLocker } = parsed.data
+    return Response.json(await createCheckoutSessionAction(address, deliveryMethodId, expected, boxNowLocker), { headers })
   } catch {
     return Response.json({ error: 'Could not prepare checkout. Please try again.' }, { status: 503, headers })
   }
