@@ -13,6 +13,8 @@ import type { ShippingMethod } from '@/lib/woocommerce'
 import { quoteResolvedCart } from './shipping'
 import { getShippingQuote } from './get-shipping-quote'
 import { checkoutCartSignature } from './model'
+import { lockerToStripeMetadata, type BoxNowLocker, type BoxNowLockerSelection } from './box-now'
+import { resolveCheckoutLocker } from './get-box-now-locker'
 
 export type CreateCheckoutSessionResult = { url: string } | { error: string; refreshShipping?: boolean }
 
@@ -44,6 +46,7 @@ export async function createCheckoutSessionAction(
   input: AddressInput,
   deliveryMethodId: string,
   expected?: { cartSignature: string; shippingCost: number },
+  boxNowLocker?: BoxNowLockerSelection,
 ): Promise<CreateCheckoutSessionResult> {
   if (process.env.NEXT_PUBLIC_USE_MOCK_DATA === 'true') {
     return { error: 'Payments are unavailable in mock-data mode. Connect WooCommerce to continue.' }
@@ -105,6 +108,10 @@ export async function createCheckoutSessionAction(
   if (expected && Math.round(expected.shippingCost * 100) !== Math.round(shipping * 100)) {
     return { error: 'The delivery price has changed. Please review the updated total and continue.', refreshShipping: true }
   }
+
+  let locker: BoxNowLocker | undefined
+  try { locker = await resolveCheckoutLocker(parsed.data.country, method.wcMethodId, boxNowLocker) }
+  catch (error) { return { error: error instanceof Error ? error.message : 'Could not verify your BOX NOW locker. Please try again.' } }
 
   // Metadata carries only *identity* — product/variation ids, quantities,
   // the shopper's axis picks, and the shipping address — never a price.
@@ -193,6 +200,7 @@ export async function createCheckoutSessionAction(
         ship_postcode: parsed.data.postcode,
         ship_country: parsed.data.country,
         ship_phone: parsed.data.phone,
+        ...(locker ? lockerToStripeMetadata(locker) : {}),
       },
     })
 

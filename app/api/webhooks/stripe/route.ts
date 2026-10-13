@@ -6,6 +6,7 @@ import { createOrder, type WcAddress } from '@/lib/woocommerce/queries/create-or
 import { findOrderByPayment } from '@/lib/woocommerce/queries/find-order-by-payment'
 import { randomUUID } from 'node:crypto'
 import type { Redis } from '@upstash/redis'
+import { lockerFromStripeMetadata, requiresBoxNowLocker } from '@/lib/checkout/box-now'
 
 // Stripe's SDK needs Node crypto for signature verification, not Edge.
 export const runtime = 'nodejs'
@@ -132,6 +133,9 @@ export async function POST(request: Request) {
       billing: address,
       shipping: address,
       transactionId: paymentIntentId,
+      boxNowLocker: requiresBoxNowLocker(address.country, metadata.shippingMethodId)
+        ? lockerFromStripeMetadata(metadata)
+        : undefined,
       shippingLine: metadata.shippingMethodId
         ? {
             methodId: metadata.shippingMethodId,
