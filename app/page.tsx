@@ -5,6 +5,7 @@ import HeroSection from '@/components/hero-section'
 import ProductCarousel from '@/components/product-carousel'
 import TestimonialsSection from '@/components/testimonials-section'
 import FaqSection from '@/components/faq-section'
+import AboutSection from '@/components/about-section'
 import Footer from '@/components/footer'
 import CategoriesSection from '@/components/categories-section'
 import { getProducts } from '@/lib/woocommerce'
@@ -23,7 +24,7 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 /**
- * Meister homepage — assembles all 8 sections in order.
+ * Meister homepage — assembles the shopping and brand sections in order.
  *
  * Products: fetched from WooCommerce (or mock data when NEXT_PUBLIC_USE_MOCK_DATA=true).
  * Category UI content (taglines, marquee, accordions): lives in mock-data.ts — it's
@@ -48,6 +49,7 @@ export default async function HomePage() {
       <CategoriesSection categoryDetails={categoryDetails} products={showcaseProducts(products, categoryDetails.map(category => category.slug))} />
       <TestimonialsSection />
       <FaqSection />
+      <AboutSection />
       <Footer />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: serializeStructuredData(buildHomepageIdentity()) }} />
     </main>
