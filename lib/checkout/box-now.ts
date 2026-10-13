@@ -24,7 +24,9 @@ export function requiresBoxNowLocker(country: string, methodId?: string): boolea
  * script is needed, which also allows React to cleanly mount/unmount it. */
 export function boxNowWidgetUrl(postcode: string, partnerId?: string): string {
   const url = new URL('/iframe.html', BOX_NOW_WIDGET_ORIGIN)
-  url.search = new URLSearchParams({ countryCode: 'gr', language: 'en', gps: 'no', autoselect: 'no', autoclose: 'no', zip: postcode }).toString()
+  // The current iframe sends selection on marker/list taps. Its explicit
+  // Select button path emits only in popup mode, so use the iframe default.
+  url.search = new URLSearchParams({ countryCode: 'gr', language: 'en', gps: 'no', autoselect: 'yes', autoclose: 'no', zip: postcode }).toString()
   if (partnerId && /^\d+$/.test(partnerId)) url.searchParams.set('partnerId', partnerId)
   return url.href
 }

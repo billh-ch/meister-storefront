@@ -17,7 +17,7 @@ test('the embedded map works without credentials and is restricted to Greece', (
   assert.equal(url.pathname, '/iframe.html')
   assert.equal(url.searchParams.get('countryCode'), 'gr')
   assert.equal(url.searchParams.get('gps'), 'no')
-  assert.equal(url.searchParams.get('autoselect'), 'no')
+  assert.equal(url.searchParams.get('autoselect'), 'yes')
   assert.equal(url.searchParams.get('zip'), '10558')
   assert.equal(url.searchParams.has('partnerId'), false)
   assert.equal(new URL(boxNowWidgetUrl('10558', '123')).searchParams.get('partnerId'), '123')
