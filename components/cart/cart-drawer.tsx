@@ -1,5 +1,5 @@
 'use client'
-import { useTranslation } from '@/components/i18n/locale-provider'
+import { useTranslation, useLocale } from '@/components/i18n/locale-provider'
 
 import Link from '@/components/i18n/localized-link'
 import Image from 'next/image'
@@ -18,6 +18,7 @@ const MONO = 'var(--font-space-mono), monospace'
 /** Native dialog provides modal focus trapping, Escape and focus restoration. */
 export default function CartDrawer() {
   const t = useTranslation()
+  const locale = useLocale()
 
   const dialogRef = useRef<HTMLDialogElement>(null)
   const abortRef = useRef<AbortController | null>(null)
@@ -48,7 +49,7 @@ export default function CartDrawer() {
     setLoading(true)
     setError('')
     try {
-      const response = await fetch('/api/cart', { cache: 'no-store', signal: controller.signal })
+      const response = await fetch(`/api/cart?locale=${locale}`, { cache: 'no-store', signal: controller.signal })
       if (!response.ok) throw new Error('Cart unavailable')
       const next: ResolvedCart = await response.json()
       if (!controller.signal.aborted) setCart(next)
@@ -57,7 +58,7 @@ export default function CartDrawer() {
     } finally {
       if (!controller.signal.aborted) setLoading(false)
     }
-  }, [])
+  }, [locale])
 
   useEffect(() => {
     const open = (event: Event) => {

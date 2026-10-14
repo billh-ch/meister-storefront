@@ -1,5 +1,5 @@
 'use client'
-import { useTranslation } from '@/components/i18n/locale-provider'
+import { useTranslation, useLocale } from '@/components/i18n/locale-provider'
 
 import { useEffect, useRef, useState, useTransition, type FormEvent } from 'react'
 import type { CreateCheckoutSessionResult } from '@/lib/checkout/actions'
@@ -51,6 +51,7 @@ export default function CheckoutForm({
   boxNowPartnerId,
 }: CheckoutFormProps) {
   const t = useTranslation()
+  const locale = useLocale()
 
   const [isPending, startTransition] = useTransition()
   const [error, setError] = useState('')
@@ -88,7 +89,7 @@ export default function CheckoutForm({
     const address = normalizeShippingAddress(values)
     setCountry(address.country)
     setPostcode(address.postcode ?? '')
-    const key = JSON.stringify(address)
+    const key = JSON.stringify({ ...address, locale })
     if (!force && key === lastAddressKey.current) return
     lastAddressKey.current = key
     clearTimeout(debounceRef.current)
@@ -108,7 +109,7 @@ export default function CheckoutForm({
     debounceRef.current = setTimeout(() => {
       fetch('/api/checkout/shipping', {
         method: 'POST', cache: 'no-store', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(address), signal: AbortSignal.any([controller.signal, AbortSignal.timeout(30_000)]),
+        body: JSON.stringify({ ...address, locale }), signal: AbortSignal.any([controller.signal, AbortSignal.timeout(30_000)]),
       })
         .then(async response => {
           const next: ShippingQuote = await response.json()
@@ -155,7 +156,7 @@ export default function CheckoutForm({
       try {
         const response = await fetch('/api/checkout/session', {
           method: 'POST', cache: 'no-store', headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ address: addressFromFormData(formData), deliveryMethodId, expected: { cartSignature, shippingCost: selectedMethod.cost }, ...(needsLocker && boxNowLocker ? { boxNowLocker: { id: boxNowLocker.id } } : {}) }),
+          body: JSON.stringify({ locale, address: addressFromFormData(formData), deliveryMethodId, expected: { cartSignature, shippingCost: selectedMethod.cost }, ...(needsLocker && boxNowLocker ? { boxNowLocker: { id: boxNowLocker.id } } : {}) }),
           signal: AbortSignal.timeout(45_000),
         })
         const result: CreateCheckoutSessionResult = await response.json()

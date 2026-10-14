@@ -1,6 +1,6 @@
 import { getTranslator } from '@/lib/i18n/server'
 import { getLocale } from '@/lib/i18n/server'
-import { translate } from '@/lib/i18n'
+import { translate, localePath } from '@/lib/i18n'
 import type { Metadata } from 'next'
 import { redirect } from 'next/navigation'
 import Navbar from '@/components/navbar'
@@ -30,10 +30,11 @@ export async function generateMetadata(): Promise<Metadata> { return {
  */
 export default async function AccountPage() {
   const t = await getTranslator()
+  const locale = await getLocale()
 
   const session = await getSession()
   const wcCustomerId = session.wcCustomerId
-  if (!wcCustomerId) redirect('/sign-in?redirect_url=/account')
+  if (!wcCustomerId) redirect(`${localePath('/sign-in', locale)}?redirect_url=${encodeURIComponent(localePath('/account', locale))}`)
 
   const [orders, customer] = await Promise.all([
     getOrdersByCustomer(wcCustomerId),
@@ -93,7 +94,7 @@ export default async function AccountPage() {
                     {t("Order #")}{order.number}
                   </span>
                   <span className="text-xs text-[#999999]" style={{ fontFamily: MONO }}>
-                    {new Date(order.dateCreated).toLocaleDateString("el-GR")}
+                    {new Date(order.dateCreated).toLocaleDateString(locale === 'el' ? 'el-GR' : 'en-GB')}
                   </span>
                   <span
                     className="text-xs font-bold tracking-wide uppercase"

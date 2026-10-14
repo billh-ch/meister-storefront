@@ -1,5 +1,5 @@
 'use client'
-import { useTranslation } from '@/components/i18n/locale-provider'
+import { useTranslation, useLocale } from '@/components/i18n/locale-provider'
 
 import Image from 'next/image'
 import Link from '@/components/i18n/localized-link'
@@ -9,6 +9,7 @@ import { useCompare } from './provider'
 
 export default function ComparisonContent() {
   const t = useTranslation()
+  const locale = useLocale()
 
   const { items, ready, remove, clear, error: storageError, reconcile, retry } = useCompare()
   const [catalog, setCatalog] = useState<{ key: string; products: CompareProduct[]; units: MeasurementUnits; error: boolean }>({ key: '', products: [], units: {}, error: false })
@@ -18,13 +19,13 @@ export default function ComparisonContent() {
   useEffect(() => {
     if (!ready || !key) return
     const controller = new AbortController()
-    void fetch(`/api/compare?ids=${key}`, { cache: 'no-store', signal: controller.signal }).then(async response => {
+    void fetch(`/api/compare?ids=${key}&locale=${locale}`, { cache: 'no-store', signal: controller.signal }).then(async response => {
       if (!response.ok) throw Error('Comparison unavailable')
       return response.json() as Promise<{ products: CompareProduct[]; units: MeasurementUnits }>
     }).then(data => { if (!controller.signal.aborted) { reconcile(data.products); setCatalog({ ...data, key, error: false }) } })
       .catch(() => { if (!controller.signal.aborted) setCatalog({ key, products: [], units: {}, error: true }) })
     return () => controller.abort()
-  }, [key, ready, attempt, reconcile])
+  }, [key, ready, attempt, reconcile, locale])
   if (!ready) return <p role="status" className="py-12 text-sm text-[#999999]">{t("Loading your comparison…")}</p>
   const storageWarning = storageError && <div role="status" className="mb-4 text-xs text-[#FFD700]"><p>{t(storageError)}</p><button type="button" onClick={retry} className="min-h-11 underline">{t("Retry comparison save")}</button></div>
   if (!items.length) return <>{storageWarning}<div className="flex flex-col items-center gap-4 border border-[#444444] px-4 py-20 text-center"><p className="text-lg">{t("No products selected for comparison")}</p><p className="text-sm text-[#999999]">{t("Add two to four products from the same category.")}</p><Link href="/shop" className="btn-gold min-h-11 px-6 py-3 text-xs uppercase">{t("Continue shopping")}</Link></div></>

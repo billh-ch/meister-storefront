@@ -1,6 +1,6 @@
 'use client'
 
-import { useTranslation } from '@/components/i18n/locale-provider'
+import { useTranslation, useLocale } from '@/components/i18n/locale-provider'
 import { createContext, useContext, useEffect, useState, useSyncExternalStore, type ReactNode } from 'react'
 import { usePathname } from 'next/navigation'
 import { WishlistStore, type AccountWishlist } from '@/lib/wishlist/store'
@@ -11,13 +11,14 @@ async function responseData(response: Response): Promise<AccountWishlist> {
   return response.json()
 }
 export default function WishlistProvider({ children }: { children: ReactNode }) {
+  const locale = useLocale()
   const [store] = useState(() => new WishlistStore({
     read: key => window.localStorage.getItem(key),
     write: (key, value) => window.localStorage.setItem(key, value),
-    load: () => fetch('/api/wishlist', { cache: 'no-store' }).then(responseData),
+    load: () => fetch(`/api/wishlist?locale=${locale}`, { cache: 'no-store' }).then(responseData),
     change: (customerId, additions, removals) => fetch('/api/wishlist', {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ customerId, additions, removals }),
+      body: JSON.stringify({ customerId, additions, removals, locale }),
     }).then(responseData),
   }))
   const pathname = usePathname()

@@ -1,5 +1,5 @@
 'use client'
-import { useTranslation } from '@/components/i18n/locale-provider'
+import { useTranslation, useLocale } from '@/components/i18n/locale-provider'
 
 import Link from '@/components/i18n/localized-link'
 import { useEffect, useState } from 'react'
@@ -10,6 +10,7 @@ import { useWishlist } from './provider'
 
 export default function WishlistContent() {
   const t = useTranslation()
+  const locale = useLocale()
 
   const { ids, ready, customerId, error, syncing } = useWishlist()
   const [catalog, setCatalog] = useState<{ key: string; products: Product[]; error: boolean }>({ key: '', products: [], error: false })
@@ -21,14 +22,14 @@ export default function WishlistContent() {
     const productIds = key.split(',')
     const batches = Array.from({ length: Math.ceil(productIds.length / 40) }, (_, index) => productIds.slice(index * 40, index * 40 + 40))
     void Promise.all(batches.map(async batch => {
-      const response = await fetch(`/api/wishlist/products?ids=${batch.join(',')}`, { cache: 'no-store', signal: controller.signal })
+      const response = await fetch(`/api/wishlist/products?ids=${batch.join(',')}&locale=${locale}`, { cache: 'no-store', signal: controller.signal })
       if (!response.ok) throw Error('Catalog unavailable')
       const data = await response.json() as { products: Product[] }
       return data.products
     })).then(products => setCatalog({ key, products: products.flat(), error: false }))
       .catch(() => { if (!controller.signal.aborted) setCatalog({ key, products: [], error: true }) })
     return () => controller.abort()
-  }, [ready, key, attempt])
+  }, [ready, key, attempt, locale])
 
   if (!ready) return <p role="status" className="py-12 text-sm text-[#999999]">{t("Loading your wishlist…")}</p>
   if (!ids.length) return <div className="flex flex-col items-center gap-4 border border-[#444444] px-4 py-20 text-center">

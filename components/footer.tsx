@@ -1,4 +1,4 @@
-import { getTranslator } from '@/lib/i18n/server'
+import { getTranslator, getLocale } from '@/lib/i18n/server'
 import Image from 'next/image'
 import Link from '@/components/i18n/localized-link'
 import { BUSINESS_CONTACT } from '@/lib/agents/content'
@@ -22,6 +22,7 @@ const MARQUEE_TEXT = 'PREMIUM EQUIPMENT FOR PREMIUM DIVES'
 
 export default async function Footer() {
   const t = await getTranslator()
+  const locale = await getLocale()
 
   const marqueeContent = Array.from({ length: 8 }, (_, i) => (
     <span
@@ -206,7 +207,7 @@ export default async function Footer() {
             <div className="w-full max-w-[280px] overflow-hidden" style={{ height: '230px' }}>
               <iframe
                 title={t("Meister Dive store location — Aigaleo, Athens")}
-                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3145.5!2d23.6822!3d37.9927!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x14a1bb8c4f6f0001%3A0x0!2sLeoforos%20Athinon%20387%2C%20Aigaleo!5e0!3m2!1sen!2sgr!4v1710000000000!5m2!1sen!2sgr"
+                src={`https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3145.5!2d23.6822!3d37.9927!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x14a1bb8c4f6f0001%3A0x0!2sLeoforos%20Athinon%20387%2C%20Aigaleo!5e0!3m2!1s${locale}!2sgr!4v1710000000000!5m2!1s${locale}!2sgr`}
                 width="280"
                 height="230"
                 style={{ width: '100%', border: 0, filter: 'grayscale(0.8) brightness(0.8)' }}

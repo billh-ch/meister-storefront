@@ -1,5 +1,5 @@
 'use client'
-import { useTranslation } from '@/components/i18n/locale-provider'
+import { useTranslation, useLocale } from '@/components/i18n/locale-provider'
 
 import { useEffect, useEffectEvent, useRef, useState } from 'react'
 import { boxNowWidgetUrl, lockerFromWidgetMessage, type BoxNowLocker } from '@/lib/checkout/box-now'
@@ -14,6 +14,7 @@ interface BoxNowLockerPickerProps {
 
 export default function BoxNowLockerPicker({ postcode, partnerId, locker, disabled, onSelect }: BoxNowLockerPickerProps) {
   const t = useTranslation()
+  const locale = useLocale()
 
   const iframeRef = useRef<HTMLIFrameElement>(null)
   // Seed once when BOX NOW is selected; editing the address must not reload
@@ -67,7 +68,7 @@ export default function BoxNowLockerPicker({ postcode, partnerId, locker, disabl
               key={attempt}
               ref={iframeRef}
               title={t("BOX NOW locker map for Greece")}
-              src={boxNowWidgetUrl(initialPostcode, partnerId)}
+              src={boxNowWidgetUrl(initialPostcode, partnerId, locale)}
               className="h-full w-full border-0"
               allow="geolocation"
               onLoad={() => { setLoading(false); setLoadError(false) }}

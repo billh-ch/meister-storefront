@@ -1,5 +1,7 @@
 'use server'
 
+import { getTranslator } from '@/lib/i18n/server'
+
 import { z } from 'zod'
 import { revalidatePath } from 'next/cache'
 import { getProductById } from '@/lib/woocommerce'
@@ -35,20 +37,21 @@ async function assertPurchasable(
   productId: string,
   variationId?: string,
 ): Promise<PurchasableResult> {
+  const t = await getTranslator()
   const product = await getProductById(productId)
-  if (!product) return { ok: false, error: 'This product is no longer available.' }
+  if (!product) return { ok: false, error: t('This product is no longer available.') }
 
   if (variationId) {
     const variant = product.variants.find((candidate) => candidate.id === variationId)
-    if (!variant) return { ok: false, error: 'That option is no longer available.' }
+    if (!variant) return { ok: false, error: t('That option is no longer available.') }
     if (variant.stockStatus === 'outofstock') {
-      return { ok: false, error: 'That option is out of stock.' }
+      return { ok: false, error: t('That option is out of stock.') }
     }
     return { ok: true, product }
   }
 
   if (product.stockStatus === 'outofstock') {
-    return { ok: false, error: 'This product is out of stock.' }
+    return { ok: false, error: t('This product is out of stock.') }
   }
   return { ok: true, product }
 }
@@ -85,8 +88,9 @@ export async function addToCartAction(input: {
   quantity: number
   selectedOptions?: Record<string, string>
 }): Promise<CartActionResult> {
+  const t = await getTranslator()
   const parsed = cartItemSchema.safeParse(input)
-  if (!parsed.success) return { ok: false, error: 'Invalid request.' }
+  if (!parsed.success) return { ok: false, error: t('Invalid request.') }
 
   const validation = await assertPurchasable(parsed.data.productId, parsed.data.variationId)
   if (!validation.ok) return validation
@@ -96,8 +100,8 @@ export async function addToCartAction(input: {
     selectedOptions: sanitizeSelectedOptions(validation.product, parsed.data.selectedOptions),
   }
   const selection = resolveCartSelection(validation.product, newItem.variationId, newItem.selectedOptions)
-  if (selection.issue) return { ok: false, error: selection.issue }
-  if (selection.variant?.stockStatus === 'outofstock') return { ok: false, error: 'That option is out of stock.' }
+  if (selection.issue) return { ok: false, error: t(selection.issue) }
+  if (selection.variant?.stockStatus === 'outofstock') return { ok: false, error: t('That option is out of stock.') }
 
   const cart = await getCart()
   const key = cartLineKey(newItem)
@@ -123,8 +127,9 @@ export async function updateQuantityAction(input: {
   selectedOptions?: Record<string, string>
   quantity: number
 }): Promise<CartActionResult> {
+  const t = await getTranslator()
   const parsed = updateQuantityInputSchema.safeParse(input)
-  if (!parsed.success) return { ok: false, error: 'Invalid request.' }
+  if (!parsed.success) return { ok: false, error: t('Invalid request.') }
 
   const cart = await getCart()
   const key = cartLineKey(parsed.data)

@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict'
 import { chromium } from 'playwright'
-import { products } from '../lib/mock-data.ts'
+import './helpers/typescript-imports.mjs'
+const { products } = await import('../lib/mock-data.ts')
 
 const baseURL = process.env.TEST_BASE_URL || 'http://127.0.0.1:3001'
 const browser = await chromium.launch({

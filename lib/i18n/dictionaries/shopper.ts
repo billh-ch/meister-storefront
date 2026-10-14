@@ -1,5 +1,8 @@
 /** Customer interface copy; catalog names, descriptions and option values stay verbatim. */
 export const shopperGreek: Record<string, string> = {
+  "Invalid language selection.": "Μη έγκυρη επιλογή γλώσσας.",
+  "Choose up to four unique products.": "Επιλέξτε έως τέσσερα διαφορετικά προϊόντα.",
+  "Could not load products for comparison. Please retry.": "Δεν ήταν δυνατή η φόρτωση προϊόντων για σύγκριση. Δοκιμάστε ξανά.",
   "404 — PAGE NOT FOUND": "404 — Η ΣΕΛΙΔΑ ΔΕΝ ΒΡΕΘΗΚΕ",
   "A confirmation email is on its way.": "Θα λάβετε email επιβεβαίωσης.",
   "ADD TO CART": "ΠΡΟΣΘΗΚΗ ΣΤΟ ΚΑΛΑΘΙ",
