@@ -1,5 +1,7 @@
+import { getLocale } from '@/lib/i18n/server'
+import { LocaleProvider } from '@/components/i18n/locale-provider'
 import type { Metadata } from 'next'
-import { Space_Mono, Zalando_Sans_Expanded } from 'next/font/google'
+import { Cascadia_Mono, Space_Mono, Zalando_Sans_Expanded } from 'next/font/google'
 import './globals.css'
 import CompareProvider from '@/components/compare/provider'
 import WishlistProvider from '@/components/wishlist/provider'
@@ -17,7 +19,7 @@ import { getPublicSiteUrl } from '@/lib/seo/site'
 const zalandoSansExpanded = Zalando_Sans_Expanded({
   style: 'normal',
   subsets: ['latin'],
-  variable: '--font-dela-gothic',
+  variable: '--font-english-display',
   display: 'swap',
 })
 
@@ -26,31 +28,44 @@ const spaceMono = Space_Mono({
   weight: ['400', '700'],
   style: ['normal', 'italic'],
   subsets: ['latin'],
-  variable: '--font-space-mono',
+  variable: '--font-english-mono',
   display: 'swap',
 })
 
-export const metadata: Metadata = {
+const cascadiaMono = Cascadia_Mono({
+  style: 'normal', subsets: ['latin', 'greek'], variable: '--font-cascadia-mono', display: 'swap',
+})
+
+export async function generateMetadata(): Promise<Metadata> {
+  return {
   metadataBase: getPublicSiteUrl(),
   ...buildPageMetadata({
     title: 'Meister — Freediving & Spearfishing Equipment',
     description: 'Explore freediving and spearfishing equipment at Meister: fins, wetsuits, spearguns and diving accessories. Browse product specifications and available options.',
-    path: '/',
+    path: '/', locale: await getLocale(),
   }),
+  }
 }
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode
 }>) {
+  const locale = await getLocale()
   return (
     <html
-      lang="el"
+      lang={locale}
       dir="ltr"
-      className={`${zalandoSansExpanded.variable} ${spaceMono.variable}`}
+      className={`${zalandoSansExpanded.variable} ${spaceMono.variable} ${cascadiaMono.variable}`}
     >
-      <body className="min-h-screen antialiased"><WishlistProvider><CompareProvider>{children}<CartDrawer /><CartAddedBanner /></CompareProvider></WishlistProvider></body>
+      <body className="min-h-screen antialiased">
+        <LocaleProvider locale={locale}>
+          <WishlistProvider>
+            <CompareProvider>{children}<CartDrawer /><CartAddedBanner /></CompareProvider>
+          </WishlistProvider>
+        </LocaleProvider>
+      </body>
     </html>
   )
 }

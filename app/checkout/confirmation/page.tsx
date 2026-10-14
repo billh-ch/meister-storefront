@@ -1,3 +1,5 @@
+import { getLocale } from '@/lib/i18n/server'
+import { translate } from '@/lib/i18n'
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import Navbar from '@/components/navbar'
@@ -9,11 +11,11 @@ import { getSession } from '@/lib/auth/session'
 const MONO = 'var(--font-space-mono), monospace'
 const DISPLAY = 'var(--font-dela-gothic), sans-serif'
 
-export const metadata: Metadata = {
+export async function generateMetadata(): Promise<Metadata> { return {
   robots: { index: false, follow: false },
   alternates: { canonical: null },
-  title: 'Order Confirmation — Meister',
-}
+  title: translate(await getLocale(), 'Order Confirmation — Meister'),
+} }
 
 interface ConfirmationPageProps {
   searchParams: Promise<{ session_id?: string }>

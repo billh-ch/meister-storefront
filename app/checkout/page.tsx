@@ -1,3 +1,5 @@
+import { getLocale } from '@/lib/i18n/server'
+import { translate } from '@/lib/i18n'
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import Navbar from '@/components/navbar'
@@ -16,11 +18,11 @@ import CheckoutCartIssues from '@/components/checkout/cart-issues'
 const MONO = 'var(--font-space-mono), monospace'
 const DISPLAY = 'var(--font-dela-gothic), sans-serif'
 
-export const metadata: Metadata = {
+export async function generateMetadata(): Promise<Metadata> { return {
   robots: { index: false, follow: false },
   alternates: { canonical: null },
-  title: 'Checkout — Meister',
-}
+  title: translate(await getLocale(), 'Checkout — Meister'),
+} }
 
 /**
  * Open to guests — no sign-in gate. A logged-in shopper gets their saved

@@ -1,3 +1,4 @@
+import { getLocale } from '@/lib/i18n/server'
 import type { Metadata } from 'next'
 import { buildCollectionMetadata } from '@/lib/seo/metadata'
 import Navbar from '@/components/navbar'
@@ -23,6 +24,7 @@ export async function generateMetadata({ searchParams }: ShopPageProps): Promise
   const products = await getProducts()
   const collection = paginateProducts(products, { page: sp.page, sort: sp.sort, filters: parseFilters(sp) })
   return buildCollectionMetadata({
+    locale: await getLocale(),
     title: 'Shop Diving & Spearfishing Equipment — Meister',
     description: 'Browse the Meister catalog of freediving and spearfishing equipment. Explore fins, wetsuits, spearguns, accessories and merchandise.',
     path: '/shop', currentPage: collection.currentPage, searchParams: sp,

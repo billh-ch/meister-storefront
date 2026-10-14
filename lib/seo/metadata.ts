@@ -1,3 +1,4 @@
+import { localePath, isShopperPath, translate, type Locale } from '@/lib/i18n'
 import type { Metadata, MetadataRoute } from 'next'
 import sanitizeHtml from 'sanitize-html'
 import { decodeHTML } from 'entities'
@@ -19,19 +20,30 @@ interface PageMetadataInput {
   path: string
   image?: string
   noindex?: boolean
+  locale?: Locale
 }
 
 export function buildPageMetadata(input: PageMetadataInput, env: Environment = process.env): Metadata {
-  const url = new URL(input.path, getPublicSiteUrl(env)).href
+  const locale = input.locale ?? 'en'
+  const site = getPublicSiteUrl(env)
+  const plainPath = new URL(input.path, site).pathname + new URL(input.path, site).search
+  const url = new URL(localePath(plainPath, locale), site).href
+  const title = translate(locale, input.title)
+  const description = translate(locale, input.description)
+  const languages = !input.noindex && isShopperPath(plainPath) ? {
+    en: new URL(localePath(plainPath, 'en'), site).href,
+    el: new URL(localePath(plainPath, 'el'), site).href,
+    'x-default': new URL(localePath(plainPath, 'en'), site).href,
+  } : undefined
   const image = new URL(input.image || SOCIAL_IMAGE, getPublicSiteUrl(env)).href
   const index = isIndexingAllowed(env) && !input.noindex
   return {
-    title: input.title,
-    description: input.description,
-    alternates: { canonical: url },
+    title,
+    description,
+    alternates: { canonical: url, ...(languages ? { languages } : {}) },
     robots: { index, follow: true },
-    openGraph: { title: input.title, description: input.description, type: 'website', siteName: 'Meister', url, images: [{ url: image }] },
-    twitter: { card: 'summary_large_image', title: input.title, description: input.description, images: [image] },
+    openGraph: { title, description, type: 'website', locale: locale === 'el' ? 'el_GR' : 'en_US', siteName: 'Meister', url, images: [{ url: image }] },
+    twitter: { card: 'summary_large_image', title, description, images: [image] },
   }
 }
 
@@ -47,7 +59,7 @@ export function buildCollectionMetadata(input: CollectionMetadataInput, env: Env
   const paginated = !filtered && page > 1
   return buildPageMetadata({
     ...input,
-    title: paginated ? input.title.replace(' — Meister', ` — Page ${page} — Meister`) : input.title,
+    title: paginated ? translate(input.locale ?? 'en', input.title).replace(' — Meister', ` — ${translate(input.locale ?? 'en', 'Page {page}', { page })} — Meister`) : input.title,
     path: paginated ? `${input.path}?page=${page}` : input.path,
     noindex: input.noindex || filtered,
   }, env)
@@ -62,10 +74,11 @@ interface ProductMetadataInput {
   gallery: { src: string }[]
 }
 
-export function buildProductMetadata(product: ProductMetadataInput, env: Environment = process.env): Metadata {
+export function buildProductMetadata(product: ProductMetadataInput, env: Environment = process.env, locale: Locale = 'en'): Metadata {
   const description = plainTextDescription(product.shortDescriptionHtml || product.descriptionHtml, 160) ||
-    `${product.name} — diving and spearfishing equipment from Meister.`
+    translate(locale, '{name} — diving and spearfishing equipment from Meister.', { name: product.name })
   return buildPageMetadata({
+    locale,
     title: `${product.name} — Meister`,
     description,
     path: canonicalProductUrl(product.slug, env),

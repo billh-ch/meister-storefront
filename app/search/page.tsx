@@ -1,3 +1,5 @@
+import { getLocale } from '@/lib/i18n/server'
+import { translate } from '@/lib/i18n'
 import type { Metadata } from 'next'
 import { buildPageMetadata } from '@/lib/seo/metadata'
 import Navbar from '@/components/navbar'
@@ -27,7 +29,8 @@ export async function generateMetadata({ searchParams }: SearchPageProps): Promi
   const query = q?.trim()
 
   return buildPageMetadata({
-    title: query ? `Search: "${query}" — Meister` : 'Search — Meister',
+    locale: await getLocale(),
+    title: query ? translate(await getLocale(), 'Search: "{query}" — Meister', { query }) : 'Search — Meister',
     description: 'Search Meister’s diving equipment catalogue.',
     path: '/search', noindex: true,
   })

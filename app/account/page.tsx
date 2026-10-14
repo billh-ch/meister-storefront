@@ -1,3 +1,5 @@
+import { getLocale } from '@/lib/i18n/server'
+import { translate } from '@/lib/i18n'
 import type { Metadata } from 'next'
 import { redirect } from 'next/navigation'
 import Navbar from '@/components/navbar'
@@ -13,11 +15,11 @@ import { toAddressInput } from '@/lib/address/map-address'
 const MONO = 'var(--font-space-mono), monospace'
 const DISPLAY = 'var(--font-dela-gothic), sans-serif'
 
-export const metadata: Metadata = {
+export async function generateMetadata(): Promise<Metadata> { return {
   robots: { index: false, follow: false },
   alternates: { canonical: null },
-  title: 'Your Account — Meister',
-}
+  title: translate(await getLocale(), 'Your Account — Meister'),
+} }
 
 /**
  * `proxy.ts` already gates this route, but that's the *only* mechanism —

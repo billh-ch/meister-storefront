@@ -1,3 +1,5 @@
+import { getLocale } from '@/lib/i18n/server'
+import { translate } from '@/lib/i18n'
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import Navbar from '@/components/navbar'
@@ -7,11 +9,11 @@ import SignUpForm from '@/components/auth/sign-up-form'
 const MONO = 'var(--font-space-mono), monospace'
 const DISPLAY = 'var(--font-dela-gothic), sans-serif'
 
-export const metadata: Metadata = {
+export async function generateMetadata(): Promise<Metadata> { return {
   robots: { index: false, follow: false },
   alternates: { canonical: null },
-  title: 'Create Account — Meister',
-}
+  title: translate(await getLocale(), 'Create Account — Meister'),
+} }
 
 interface SignUpPageProps {
   searchParams: Promise<{

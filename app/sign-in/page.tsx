@@ -1,3 +1,5 @@
+import { getLocale } from '@/lib/i18n/server'
+import { translate } from '@/lib/i18n'
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import Navbar from '@/components/navbar'
@@ -7,11 +9,11 @@ import SignInForm from '@/components/auth/sign-in-form'
 const MONO = 'var(--font-space-mono), monospace'
 const DISPLAY = 'var(--font-dela-gothic), sans-serif'
 
-export const metadata: Metadata = {
+export async function generateMetadata(): Promise<Metadata> { return {
   robots: { index: false, follow: false },
   alternates: { canonical: null },
-  title: 'Sign In — Meister',
-}
+  title: translate(await getLocale(), 'Sign In — Meister'),
+} }
 
 interface SignInPageProps {
   searchParams: Promise<{ redirect_url?: string }>

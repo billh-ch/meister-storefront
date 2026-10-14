@@ -1,3 +1,5 @@
+import { getLocale } from '@/lib/i18n/server'
+import { localePath, translate } from '@/lib/i18n'
 import type { Metadata } from 'next'
 import { buildProductMetadata } from '@/lib/seo/metadata'
 import { notFound } from 'next/navigation'
@@ -96,10 +98,10 @@ export async function generateMetadata({
   const product = await getProductBySlug(decodeSlug(slug))
 
   if (!product) {
-    return { title: 'Product not found — Meister', alternates: { canonical: null }, robots: { index: false, follow: true } }
+    return { title: translate(await getLocale(), 'Product not found — Meister'), alternates: { canonical: null }, robots: { index: false, follow: true } }
   }
 
-  return buildProductMetadata(product)
+  return buildProductMetadata(product, process.env, await getLocale())
 }
 
 const RELATED_LIMIT = 8
@@ -120,14 +122,15 @@ export default async function ProductPage({ params }: ProductPageProps) {
     .slice(0, RELATED_LIMIT)
 
   const specs = <ProductSpecsTable product={product} />
-  const canonicalUrl = canonicalProductUrl(product.slug)
+  const locale = await getLocale()
+  const canonicalUrl = canonicalProductUrl(product.slug, process.env, locale)
   const category = findCategory(product.category)
   const structuredData = [
     ...(process.env.NEXT_PUBLIC_USE_MOCK_DATA !== 'true' && /^\d+$/.test(product.id)
       ? [buildProductStructuredData(product, canonicalUrl)] : []),
     buildBreadcrumbStructuredData([
-      { name: 'Home', url: getPublicSiteUrl().href },
-      ...(category ? [{ name: category.name, url: new URL(`/${category.slug}`, getPublicSiteUrl()).href }] : []),
+      { name: locale === 'el' ? 'Αρχική' : 'Home', url: new URL(localePath('/', locale), getPublicSiteUrl()).href },
+      ...(category ? [{ name: category.name, url: new URL(localePath(`/${category.slug}`, locale), getPublicSiteUrl()).href }] : []),
       { name: product.name, url: canonicalUrl },
     ]),
   ]

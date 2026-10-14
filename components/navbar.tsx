@@ -3,7 +3,9 @@
 import CompareNavLink from './compare/nav-link'
 import WishlistNavLink from './wishlist/nav-link'
 import Image from 'next/image'
-import Link from 'next/link'
+import Link from '@/components/i18n/localized-link'
+import LanguageSwitch from '@/components/i18n/language-switch'
+import { useLocalePath } from '@/components/i18n/locale-provider'
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { formatPrice } from '@/lib/mock-data'
 import type { SearchSuggestion } from '@/app/api/search-suggestions/route'
@@ -23,6 +25,7 @@ const NAV_LINKS = [
 
 /** Sticky navigation bar with logo, nav links, search, and cart/account icons. */
 export default function Navbar() {
+  const localePath = useLocalePath()
   const [menuOpen, setMenuOpen] = useState(false)
   const [searchOpen, setSearchOpen] = useState(false)
   const [query, setQuery] = useState('')
@@ -160,6 +163,8 @@ export default function Navbar() {
           ))}
         </ul>
 
+        <div className="hidden lg:block"><LanguageSwitch /></div>
+
         {/* Right actions */}
         <div className="flex items-center gap-0 sm:gap-1">
           {/* Search toggle */}
@@ -236,7 +241,7 @@ export default function Navbar() {
           style={{ backgroundColor: '#111111' }}
         >
           <div className="relative mx-auto max-w-[1400px]">
-            <form action="/search" method="GET" className="flex items-center gap-3">
+            <form action={localePath("/search")} method="GET" className="flex items-center gap-3">
               <label htmlFor="navbar-search-input" className="sr-only">
                 Search products
               </label>
@@ -311,6 +316,7 @@ export default function Navbar() {
           className="border-t border-[#222222] lg:hidden"
           style={{ backgroundColor: '#111111' }}
         >
+          <div className="px-4 pt-2"><LanguageSwitch /></div>
           <ul className="flex flex-col px-6 py-4" role="list">
             {NAV_LINKS.map(({ label, href }) => (
               <li key={label}>
