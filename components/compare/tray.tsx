@@ -18,8 +18,7 @@ export default function CompareTray() {
       <section aria-label={t("Product comparison tray")} data-compare-tray
         className={`compare-tray fixed right-3 left-3 z-30 border border-[#666666] bg-[#1B1B18] px-3 py-2 text-xs text-white shadow-xl sm:right-6 sm:left-auto sm:w-[520px] ${pathname.startsWith('/products/') ? 'bottom-[88px] lg:bottom-6' : 'bottom-3 sm:bottom-6'}`}>
         <div className="flex items-center justify-between gap-2">
-          <p className="font-bold">{t("Compare")}
-            {items.length}/4</p>
+          <p className="font-bold">{t('Compare {count}/4', { count: items.length })}</p>
           <div className="flex items-center gap-2"><button type="button" onClick={clear} aria-label={t("Clear comparison")} className="min-h-11 px-2 text-[#999999] hover:text-white">{t("Clear")}</button>
             {items.length >= 2 ? <Link href="/compare" aria-label={t("Compare selected products")} scroll={false} onNavigate={() => window.scrollTo({ top: 0, left: 0, behavior: 'instant' })} className="btn-gold flex min-h-11 items-center px-3 text-[11px]">{t("COMPARE")}</Link> : <button type="button" disabled className="btn-gold min-h-11 px-3 text-[11px]">{t("COMPARE")}</button>}
           </div>

@@ -38,9 +38,9 @@ export default function WishlistContent() {
   </div>
   const current = catalog.key === key
   return <>
-    <p className="mb-6 text-xs text-[#999999]">{customerId ? (syncing ? t("Syncing your wishlist…") : error ? t("Some changes may not be saved yet. Retry to sync them.") : t("Saved to your account. Available on your other devices.")) : <>{t("Your wishlist on this browser.")}
-<Link href="/sign-in?redirect_url=/wishlist" className="text-[#FFD700] underline">{t("Sign in")}</Link>
-{t("to keep your wishlist across devices.")}</>}</p>
+    <p className="mb-6 text-xs text-[#999999]">{customerId ? (syncing ? t("Syncing your wishlist…") : error ? t("Some changes may not be saved yet. Retry to sync them.") : t("Saved to your account. Available on your other devices.")) : <>{t("Your wishlist on this browser.")}{' '}
+      <Link href="/sign-in?redirect_url=/wishlist" className="text-[#FFD700] underline">{t("Sign in")}</Link>{' '}
+      {t("to keep your wishlist across devices.")}</>}</p>
     {!current ? <p role="status" className="py-12 text-sm text-[#999999]">{t("Loading saved products…")}</p>
       : catalog.error ? <div className="border border-[#444444] p-6"><p role="status" className="text-sm">{t("Could not load saved products. Your wishlist is still saved.")}</p><button type="button" onClick={() => setAttempt(value => value + 1)} className="btn-gold mt-4 min-h-11 px-4 text-xs">{t("Retry products")}</button></div>
       : <div className="grid grid-cols-2 gap-3 sm:gap-6 lg:grid-cols-3 xl:grid-cols-4">

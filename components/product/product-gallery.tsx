@@ -149,10 +149,7 @@ export default function ProductGallery({
       {/* Position announcement for screen readers — the tiles carry this
           visually, but nothing announces a swipe otherwise. */}
       <p className="sr-only" aria-live="polite">
-        {t("Image")}
-        {selectedIndex + 1}
-        {t("of")}
-        {displayImages.length}
+        {t('Image {number} of {total}', { number: selectedIndex + 1, total: displayImages.length })}
       </p>
 
       {/* Tile grid — every shot visible at once, no discovery required */}

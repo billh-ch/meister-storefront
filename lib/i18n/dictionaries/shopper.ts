@@ -462,5 +462,12 @@ export const shopperGreek: Record<string, string> = {
   "Could not add this item. Please try again.": "Δεν ήταν δυνατή η προσθήκη του προϊόντος. Δοκιμάστε ξανά.",
   "On sale only": "Μόνο προσφορές",
   "Leoforos Athinon 387": "Λεωφ. Αθηνών 387",
-  "Aigaleo": "Αιγάλεω"
+  "Aigaleo": "Αιγάλεω",
+  "Image {number} of {total}": "Εικόνα {number} από {total}",
+  "Photo {number} of {total}": "Φωτογραφία {number} από {total}",
+  "{name} is no longer available for comparison.": "Το {name} δεν είναι πλέον διαθέσιμο για σύγκριση.",
+  "Remove {name}": "Αφαίρεση του {name}",
+  "Compare {count}/4": "Σύγκριση {count}/4",
+  "Choose {attribute}…": "Επιλέξτε {attribute}…",
+  "Quantity: {quantity}": "Ποσότητα: {quantity}"
 }

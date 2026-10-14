@@ -53,3 +53,23 @@ test('composed notifications translate complete sentences and preserve catalog i
   assert.equal(translate('el','Please choose valid options for Size, Πάχος.'),'Επιλέξτε έγκυρα χαρακτηριστικά για Μέγεθος, Πάχος.')
   assert.equal(translate('en','Carbon X added to comparison.'),'Carbon X added to comparison.')
 })
+test('display-only attribute translation preserves raw formatting and selection identity', async () => {
+  const { formatVariationLabel } = await import('../lib/cart/variation-label.ts')
+  const { translate } = await import('../lib/i18n/index.ts')
+  const attributes={Options:'S',Size:'M',Colour:'Carbon Black'}
+  const before=JSON.stringify(attributes)
+  assert.equal(formatVariationLabel(attributes,' · ',name=>translate('el',name)), 'Χαρακτηριστικά: S · Μέγεθος: M · Χρώμα: Carbon Black')
+  assert.equal(formatVariationLabel(attributes,', '),'Options: S, Size: M, Colour: Carbon Black')
+  assert.equal(JSON.stringify(attributes),before)
+})
+test('language switch localizes equivalent unknown404 URLs without widening technical paths', async () => {
+  const { localeSwitchPath } = await import('../lib/i18n/navigation.ts')
+  assert.equal(typeof localeSwitchPath,'function')
+  const path='/missing-store-page?ref=a%20b#detail'
+  assert.equal(localeSwitchPath(path,'el'),'/el'+path)
+  assert.equal(localeSwitchPath('/el'+path,'en'),path)
+  const unsafe='/'+String.fromCharCode(92)+'missing-store-page'
+  assert.equal(localeSwitchPath(unsafe,'el'),unsafe)
+  assert.equal(localeSwitchPath('/products/%cf%80?q=2#options','el'),'/el/products/%cf%80?q=2#options')
+  for (const path of ['/api/cart','/docs','/images/a.jpg','/_next/image','/.well-known/mcp','/%61pi/cart','/%2561pi/cart','/foo%2f..%2fapi/cart','/\\api/cart','/foo\\..\\api/cart','/logo%2esvg','//other.test/shop','https://other.test/shop','mailto:info@example.test','#detail']) assert.equal(localeSwitchPath(path,'el'),path,path)
+})

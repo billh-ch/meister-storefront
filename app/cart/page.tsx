@@ -114,7 +114,7 @@ export default async function CartPage() {
                         </Link>
                         {Object.keys(line.attributes).length > 0 && (
                           <p className="mt-1 text-xs text-[#999999]" style={{ fontFamily: MONO }}>
-                            {formatVariationLabel(line.attributes)}
+                            {formatVariationLabel(line.attributes, ' · ', t)}
                           </p>
                         )}
                         {line.checkoutIssue ? (

@@ -36,10 +36,8 @@ export default function ComparisonContent() {
   const rows = buildComparisonRows(products, catalog.units)
   return <>
     {storageWarning}
-    {missing.map(item => <div key={item.id} className="mb-4 flex items-center justify-between gap-3 border border-[#444444] p-3 text-xs"><p>{item.name}
-      {t("is no longer available for comparison.")}</p><button type="button" aria-label={t("Remove unavailable {value0} from comparison", { value0: item.name })} onClick={() => remove(item.id)} className="min-h-11 shrink-0 px-3 text-[#FFD700] underline">{t("Remove")}</button></div>)}
-    {mixedCategories ? <div className="border border-[#444444] p-4"><p className="text-sm">{t("These products are now in different categories. Remove products to keep one category.")}</p>{products.map(product => <button key={product.id} type="button" onClick={() => remove(product.id)} className="block min-h-11 text-xs text-[#FFD700] underline">{t("Remove")}
-      {product.name}</button>)}</div> : <>
+    {missing.map(item => <div key={item.id} className="mb-4 flex items-center justify-between gap-3 border border-[#444444] p-3 text-xs"><p>{t('{name} is no longer available for comparison.', { name: item.name })}</p><button type="button" aria-label={t("Remove unavailable {value0} from comparison", { value0: item.name })} onClick={() => remove(item.id)} className="min-h-11 shrink-0 px-3 text-[#FFD700] underline">{t("Remove")}</button></div>)}
+    {mixedCategories ? <div className="border border-[#444444] p-4"><p className="text-sm">{t("These products are now in different categories. Remove products to keep one category.")}</p>{products.map(product => <button key={product.id} type="button" onClick={() => remove(product.id)} className="block min-h-11 text-xs text-[#FFD700] underline">{t('Remove {name}', { name: product.name })}</button>)}</div> : <>
       {products.length < 2 && <p className="mb-4 text-sm text-[#FFD700]">{t("Add one more product to compare.")}</p>}
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3 text-xs">
         <label className="flex min-h-11 cursor-pointer items-center gap-2"><input type="checkbox" checked={highlight} onChange={event => setHighlight(event.target.checked)} className="h-4 w-4 accent-[#FFD700]" />{t("Highlight differences")}</label>

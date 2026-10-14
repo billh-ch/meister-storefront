@@ -40,7 +40,7 @@ export default function OrderSummary({ lines, subtotal, shippingCost }: OrderSum
                 {line.quantity} × {line.name}
               </span>
               {Object.keys(line.attributes).length > 0 && (
-                <span className="mt-0.5 text-[#999999]">{formatVariationLabel(line.attributes)}</span>
+                <span className="mt-0.5 text-[#999999]">{formatVariationLabel(line.attributes, ' · ', t)}</span>
               )}
             </span>
             <span className="whitespace-nowrap text-white">{formatPrice(line.unitPrice * line.quantity)}</span>

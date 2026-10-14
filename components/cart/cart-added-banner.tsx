@@ -64,8 +64,7 @@ export default function CartAddedBanner() {
         </div>
         <div className="min-w-0 flex-1">
           <p className="break-words text-sm font-bold">{addition.name}</p>
-          <p className="mt-2 text-xs text-[#CCCCCC]">{t("Quantity:")}
-            {addition.quantity}</p>
+          <p className="mt-2 text-xs text-[#CCCCCC]">{t('Quantity: {quantity}', { quantity: addition.quantity })}</p>
         </div>
       </div>
       <button type="button" onClick={() => { dismiss(); openCartDrawer() }} className="btn-gold mt-4 min-h-11 w-full px-4 text-xs">{t("View cart")}</button>

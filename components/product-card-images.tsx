@@ -69,10 +69,7 @@ export default function ProductCardImages({ product, children }: { product: Prod
         </div>
         <button type="button" aria-label={t("Previous photo")} disabled={selected === 0} onClick={() => goTo(selected - 1)} className="absolute top-1/2 left-2 hidden h-11 w-11 -translate-y-1/2 items-center justify-center border border-white/40 bg-black/60 text-xl text-white disabled:opacity-30 md:flex">‹</button>
         <button type="button" aria-label={t("Next photo")} disabled={selected === images.length - 1} onClick={() => goTo(selected + 1)} className="absolute top-1/2 right-2 hidden h-11 w-11 -translate-y-1/2 items-center justify-center border border-white/40 bg-black/60 text-xl text-white disabled:opacity-30 md:flex">›</button>
-        <p className="sr-only" aria-live="polite">{t("Photo")}
-          {selected + 1}
-          {t("of")}
-          {images.length}</p>
+        <p className="sr-only" aria-live="polite">{t('Photo {number} of {total}', { number: selected + 1, total: images.length })}</p>
       </>}
     </div>
   )

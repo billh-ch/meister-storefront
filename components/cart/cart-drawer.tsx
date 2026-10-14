@@ -132,7 +132,7 @@ export default function CartDrawer() {
                             )}
                             <div className="flex min-w-0 flex-1 flex-col gap-2 break-words">
                               <Link href={`/products/${line.slug}`} onClick={close} className="text-sm font-bold">{line.name}</Link>
-                              {Object.entries(line.attributes).map(([name, value]) => <p key={name} className="text-xs">{name}: {value}</p>)}
+                              {Object.entries(line.attributes).map(([name, value]) => <p key={name} className="text-xs">{t(name)}: {value}</p>)}
                               <p className="text-sm">{formatPrice(line.unitPrice)} × {line.quantity}</p>
                               {line.checkoutIssue ? <p className="text-xs text-[#FF6B6B]">{t(line.checkoutIssue)}</p> : !line.purchasable && <p className="text-xs">{t("Out of stock")}</p>}
                             </div>

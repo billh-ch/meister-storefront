@@ -82,8 +82,7 @@ export default function VariantSelector({
                   }}
                 >
                   <option value="" disabled>
-                    {t("Choose")}
-                    {t(attribute.name)}…
+                    {t('Choose {attribute}…', { attribute: t(attribute.name) })}
                   </option>
                   {attribute.values.map((value) => (
                     <option

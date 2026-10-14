@@ -57,3 +57,13 @@ raw bytes remain unchanged in rewritten product paths. Decoded technical/asset
 prefixes are blocked, and encoded account paths use the same session guard.
 `lib/business-contact.ts` is the shared leaf source for the published business
 contact; `lib/agents/content.ts` keeps its existing BUSINESS_CONTACT export.
+
+
+`localeSwitchPath(current, locale)` in `navigation.ts` transforms the current
+nontechnical shopper URL, including unknown URLs that render404, while normal
+`localePath`/LocalizedLink destinations keep their explicit allowlist. The
+switch classifier decodes/normalizes only for technical-path exclusion and
+preserves original query/hash and encoded catalog bytes in the generated URL.
+The cart variation formatter accepts an optional third `displayName` callback;
+UI callers pass their translator, while the default/raw integration behavior
+and stored attribute keys/values remain unchanged.
