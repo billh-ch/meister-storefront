@@ -133,7 +133,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
       ? [buildProductStructuredData(product, canonicalUrl)] : []),
     buildBreadcrumbStructuredData([
       { name: locale === 'el' ? 'Αρχική' : 'Home', url: new URL(localePath('/', locale), getPublicSiteUrl()).href },
-      ...(category ? [{ name: category.name, url: new URL(localePath(`/${category.slug}`, locale), getPublicSiteUrl()).href }] : []),
+      ...(category ? [{ name: t(category.name), url: new URL(localePath(`/${category.slug}`, locale), getPublicSiteUrl()).href }] : []),
       { name: product.name, url: canonicalUrl },
     ]),
   ]

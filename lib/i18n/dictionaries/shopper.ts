@@ -338,6 +338,8 @@ export const shopperGreek: Record<string, string> = {
   "RESULTS FOR \"{value0}\"": "ΑΠΟΤΕΛΕΣΜΑΤΑ ΓΙΑ «{value0}»",
   "Remove {name} from comparison": "Αφαίρεση του {name} από τη σύγκριση",
   "Add {name} to comparison": "Προσθήκη του {name} στη σύγκριση",
+  // Synthetic unavailable-product name follows "του" in wishlist labels.
+  "product {id}": "προϊόντος {id}",
   "Remove {name} from wishlist": "Αφαίρεση του {name} από τα αγαπημένα",
   "Add {name} to wishlist": "Προσθήκη του {name} στα αγαπημένα",
   "{name} is out of stock": "Το {name} δεν είναι διαθέσιμο",

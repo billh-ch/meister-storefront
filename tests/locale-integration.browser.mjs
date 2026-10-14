@@ -90,9 +90,41 @@ try {
   const locales = process.env.LOCALE_TEST_LOCALE ? [process.env.LOCALE_TEST_LOCALE] : ['en', 'el']
   assert.ok(locales.every(locale => ['en', 'el'].includes(locale)))
   for (const locale of locales) {
-    const prefix = locale === 'el' ? '/el' : '', t = source => translate(locale, source)
+    const prefix = locale === 'el' ? '/el' : '', t = (source, values) => translate(locale, source, values)
     const context = await browser.newContext({ viewport: { width: 390, height: 900 } }); await seed(context)
     const page = await context.newPage(); page.on('pageerror', error => errors.push(error.message))
+    // Whole-branch review regressions exercise rendered schema and the real
+    // guest wishlist store against this local catalog, including a deleted ID.
+    if (!process.env.LOCALE_REVIEW_CASE || process.env.LOCALE_REVIEW_CASE === 'm1') {
+      await page.goto(base + prefix + '/products/' + catalog[0].slug)
+      const schemas = await page.locator('script[type="application/ld+json"]').evaluateAll(nodes => nodes.flatMap(node => JSON.parse(node.textContent)))
+      const breadcrumb = schemas.find(schema => schema['@type'] === 'BreadcrumbList')
+      assert.deepEqual(breadcrumb.itemListElement.map(item => item.name), [locale === 'el' ? 'Αρχική' : 'Home', locale === 'el' ? 'ΠΕΔΙΛΑ' : 'FINS', catalog[0].name])
+      assert.equal(schemas.find(schema => schema['@type'] === 'Product').name, catalog[0].name, 'Authored product name stays raw in Product schema')
+      assert.equal(breadcrumb.itemListElement[1].item, `https://fixture.invalid${prefix}/fins`)
+      assert.equal(breadcrumb.itemListElement.at(-1).item, `https://fixture.invalid${prefix}/products/${catalog[0].slug}`)
+      console.log(`PASS REVIEW M1 ${locale}: rendered category breadcrumb names/URLs and raw authored product names`)
+    }
+    if (!process.env.LOCALE_REVIEW_CASE || process.env.LOCALE_REVIEW_CASE === 'm2') {
+      await page.goto(base + prefix + '/wishlist')
+      await page.evaluate(() => localStorage.setItem('mm_wishlist_guest', '["502","999999"]'))
+      await page.reload()
+      const unavailable = page.getByText(t('This saved product is no longer available.'), { exact: true })
+      await unavailable.waitFor()
+      const tombstone = unavailable.locator('..').getByRole('button')
+      assert.equal(await tombstone.getAttribute('aria-label'), locale === 'el' ? 'Αφαίρεση του προϊόντος 999999 από τα αγαπημένα' : 'Remove product 999999 from wishlist')
+      const realName = t('Remove {name} from wishlist', { name: catalog[1].name })
+      assert.equal(await page.getByRole('button', { name: realName, exact: true }).count(), 1, 'Real catalog name remains untouched')
+      await tombstone.click()
+      await page.waitForFunction(() => !JSON.parse(localStorage.getItem('mm_wishlist_guest')).includes('999999'))
+      assert.deepEqual(await page.evaluate(() => JSON.parse(localStorage.getItem('mm_wishlist_guest'))), ['502'], 'Removal targets only the original deleted ID')
+      // Removing a saved ID triggers a fresh catalog key and asynchronous read.
+      await page.getByRole('button', { name: realName, exact: true }).waitFor()
+      assert.equal(await page.getByRole('button', { name: realName, exact: true }).count(), 1)
+      await page.evaluate(() => localStorage.setItem('mm_wishlist_guest', '[]'))
+      console.log(`PASS REVIEW M2 ${locale}: natural tombstone accessible label, raw ID removal and preserved real product name/ID`)
+    }
+    if (process.env.LOCALE_REVIEW_FIXES_ONLY === '1') { await context.close(); continue }
     for (const width of [320, 390, 768, 1440]) {
       await page.setViewportSize({ width, height: 900 })
       for (const path of ['', '/products/' + catalog[0].slug, '/cart', '/checkout', '/checkout/confirmation', '/sign-in', '/wishlist', '/compare', '/fixture-missing-page']) {
@@ -189,7 +221,7 @@ try {
     console.log(`PASS ${locale}: authored catalog/Greek slug, all shopper states and widths, state continuity, account boundary/auth failure, delivery recovery, BOX NOW contract, locale payload/payment retry, signed account/address failure/checkout/logout`)
   }
   assert.deepEqual(errors, [])
-  assert.equal(addressWrites, locales.length, 'Only deliberately failing local-fixture address saves occurred')
+  assert.equal(addressWrites, process.env.LOCALE_REVIEW_FIXES_ONLY === '1' ? 0 : locales.length, 'Only deliberately failing local-fixture address saves occurred')
   assert.equal(prohibitedWrites, 0, 'No fixture customer/order/Redis mutation was attempted')
 } finally {
   await browser?.close()

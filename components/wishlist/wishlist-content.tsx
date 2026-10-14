@@ -47,7 +47,7 @@ export default function WishlistContent() {
       : <div className="grid grid-cols-2 gap-3 sm:gap-6 lg:grid-cols-3 xl:grid-cols-4">
         {ids.map(id => {
           const product = catalog.products.find(product => product.id === id)
-          return product ? <ProductCard key={id} product={product} /> : <div key={id} className="flex flex-col justify-center gap-4 border border-[#444444] p-4"><p className="text-xs text-[#999999]">{t("This saved product is no longer available.")}</p><WishlistButton id={id} name={`product ${id}`} /></div>
+          return product ? <ProductCard key={id} product={product} /> : <div key={id} className="flex flex-col justify-center gap-4 border border-[#444444] p-4"><p className="text-xs text-[#999999]">{t("This saved product is no longer available.")}</p><WishlistButton id={id} name={t('product {id}', { id })} /></div>
         })}
       </div>}
   </>
