@@ -13,7 +13,7 @@ export function localeFromPath(path: string): Locale { return localPath(path) &&
 export function isShopperPath(path: string): boolean {
   if (!localPath(path)) return false
   const pathname = stripLocale(path).split(/[?#]/, 1)[0]
-  return pathname === '/' || /^\/(?:shop|fins|suits|guns|accessories|merch|search|cart|wishlist|compare|about|contact|privacy|sign-in|sign-up)\/?$/.test(pathname) ||
+  return pathname === '/' || /^\/(?:shop|fins|suits|guns|accessories|merch|search|cart|wishlist|compare|about|contact|privacy|returns|terms|sign-in|sign-up)\/?$/.test(pathname) ||
     /^\/(?:account|checkout)(?:\/|$)/.test(pathname) || /^\/products\/[^/]+\/?$/.test(pathname)
 }
 export function localePath(path: string, locale: Locale): string {

@@ -1,11 +1,11 @@
 'use client'
 import Link from 'next/link'
 import { forwardRef, type ComponentProps } from 'react'
-import { useLocalePath } from './locale-provider'
+import { useLocale } from './locale-provider'
+import { localizedDestination } from '@/lib/i18n/navigation'
 /** Matches Next Link including UrlObject hrefs and anchor refs. */
-export const LocalizedLink = forwardRef<HTMLAnchorElement, ComponentProps<typeof Link>>(function LocalizedLink({ href, ...props }, ref) {
-  const path = useLocalePath()
-  const localized = typeof href === 'string' ? path(href) : href.pathname && !href.host && !href.hostname && !href.protocol ? { ...href, pathname: path(href.pathname) } : href
-  return <Link ref={ref} {...props} href={localized} />
+export const LocalizedLink = forwardRef<HTMLAnchorElement, ComponentProps<typeof Link>>(function LocalizedLink({ href, as, ...props }, ref) {
+  const locale = useLocale()
+  return <Link ref={ref} {...props} href={localizedDestination(href, locale)} as={as === undefined ? undefined : localizedDestination(as, locale)} />
 })
 export default LocalizedLink

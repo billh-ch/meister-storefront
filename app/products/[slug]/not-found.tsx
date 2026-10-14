@@ -1,11 +1,14 @@
-import Link from 'next/link'
+import { getTranslator } from '@/lib/i18n/server'
+import Link from '@/components/i18n/localized-link'
 import Navbar from '@/components/navbar'
 import Footer from '@/components/footer'
 
 const MONO = 'var(--font-space-mono), monospace'
 const DISPLAY = 'var(--font-dela-gothic), sans-serif'
 
-export default function ProductNotFound() {
+export default async function ProductNotFound() {
+  const t = await getTranslator()
+
   return (
     <main style={{ backgroundColor: '#1B1B18' }}>
       <Navbar />
@@ -15,15 +18,14 @@ export default function ProductNotFound() {
           className="text-2xl text-white sm:text-3xl md:text-4xl"
           style={{ fontFamily: DISPLAY, fontWeight: 800 }}
         >
-          PRODUCT NOT FOUND
+          {t("PRODUCT NOT FOUND")}
         </h1>
 
         <p
           className="max-w-lg text-sm text-[#CCCCCC]"
           style={{ fontFamily: MONO }}
         >
-          This product may have been discontinued, or the link you followed
-          might be out of date. Have a look at what we currently carry.
+          {t("This product may have been discontinued, or the link you followed might be out of date. Have a look at what we currently carry.")}
         </p>
 
         <Link
@@ -35,7 +37,7 @@ export default function ProductNotFound() {
             fontFamily: MONO,
           }}
         >
-          Back to shop
+          {t("Back to shop")}
         </Link>
       </div>
 

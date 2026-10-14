@@ -1,3 +1,5 @@
+'use client'
+import { useTranslation } from '@/components/i18n/locale-provider'
 import { trustItems } from '@/lib/mock-data'
 
 const MONO = 'var(--font-space-mono), monospace'
@@ -8,6 +10,8 @@ const MONO = 'var(--font-space-mono), monospace'
  * guesswork for anyone who hasn't learned the icon vocabulary.
  */
 export default function ProductTrustStrip() {
+  const t = useTranslation()
+
   return (
     <ul
       className="grid grid-cols-1 gap-px sm:grid-cols-2"
@@ -22,13 +26,13 @@ export default function ProductTrustStrip() {
                 className="block text-xs font-bold tracking-wide text-white"
                 style={{ fontFamily: MONO }}
               >
-                {item.title}
+                {t(item.title)}
               </span>
               <span
                 className="mt-0.5 block text-xs text-[#CCCCCC]"
                 style={{ fontFamily: MONO }}
               >
-                {item.detail}
+                {t(item.detail)}
               </span>
             </span>
           </>

@@ -1,9 +1,12 @@
+import { getTranslator } from '@/lib/i18n/server'
 import { testimonials, type Testimonial } from '@/lib/mock-data'
 
 /** Renders a row of filled gold stars for a given rating (1–5). */
-function StarRating({ rating }: { rating: number }) {
+async function StarRating({ rating }: { rating: number }) {
+  const t = await getTranslator()
+
   return (
-    <div className="flex gap-1" aria-label={`${rating} out of 5 stars`} role="img">
+    <div className="flex gap-1" aria-label={t("{value0} out of 5 stars", { value0: rating })} role="img">
       {Array.from({ length: 5 }).map((_, i) => (
         <span
           key={i}
@@ -39,7 +42,9 @@ function VerifiedIcon() {
 }
 
 /** Single testimonial card */
-function TestimonialCard({ testimonial }: { testimonial: Testimonial }) {
+async function TestimonialCard({ testimonial }: { testimonial: Testimonial }) {
+  const t = await getTranslator()
+
   return (
     <article
       className="flex flex-col gap-4 border border-[#222222] p-6"
@@ -52,7 +57,7 @@ function TestimonialCard({ testimonial }: { testimonial: Testimonial }) {
           className="text-sm italic leading-relaxed text-[#cccccc]"
           style={{ fontFamily: 'var(--font-space-mono), monospace' }}
         >
-          &ldquo;{testimonial.quote}&rdquo;
+          &ldquo;{t(testimonial.quote)}&rdquo;
         </p>
       </blockquote>
 
@@ -70,11 +75,11 @@ function TestimonialCard({ testimonial }: { testimonial: Testimonial }) {
           rel="noopener noreferrer"
           className="inline-flex shrink-0 items-center gap-1.5 text-xs text-[#cccccc] transition-colors hover:text-[#FFD700]"
           style={{ fontFamily: 'var(--font-space-mono), monospace' }}
-          aria-label={`Read the verified review from ${testimonial.name} on Google`}
-          title="Verified review. Opens the original on Google."
+          aria-label={t("Read the verified review from {value0} on Google", { value0: testimonial.name })}
+          title={t("Verified review. Opens the original on Google.")}
         >
           <VerifiedIcon />
-          <span>Verified</span>
+          <span>{t("Verified")}</span>
         </a>
       </footer>
     </article>
@@ -89,19 +94,21 @@ function TestimonialCard({ testimonial }: { testimonial: Testimonial }) {
  *
  * Server Component — pure rendering, no interactivity.
  */
-export default function TestimonialsSection() {
+export default async function TestimonialsSection() {
+  const t = await getTranslator()
+
   return (
     <section
       className="w-full px-6 py-20 md:px-10"
       style={{ backgroundColor: '#1B1B18' }}
-      aria-label="Customer testimonials"
+      aria-label={t("Customer testimonials")}
     >
       {/* Heading */}
       <h2
         className="mb-12 text-center text-3xl text-white md:text-5xl"
         style={{ fontFamily: 'var(--font-dela-gothic), sans-serif', fontWeight: 800 }}
       >
-        WHAT DIVERS SAY
+        {t("WHAT DIVERS SAY")}
       </h2>
 
       {/* Grid */}

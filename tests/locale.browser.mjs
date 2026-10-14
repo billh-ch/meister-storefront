@@ -24,14 +24,14 @@ try {
   assert.match(typography.family, /Cascadia/)
   assert.equal(typography.weight, '700')
   // A regular Next Link navigation must retain the Greek provider and URL.
-  await Promise.all([page.waitForURL('**/el/fins'), page.getByRole('link', { name: 'FINS', exact: true }).first().click()])
+  await Promise.all([page.waitForURL('**/el/fins'), page.getByRole('link', { name: 'ΠΕΔΙΛΑ', exact: true }).first().click()])
   await page.waitForLoadState('networkidle')
   assert.equal(new URL(page.url()).pathname, '/el/fins')
   assert.equal(await page.locator('html').getAttribute('lang'), 'el')
   for (const width of [320, 390, 768]) {
     await page.setViewportSize({ width, height: 850 })
     await page.goto(`${origin}/el/contact?ref=mobile#address`)
-    await page.getByRole('button', { name: 'Open menu', exact: true }).click()
+    await page.getByRole('button', { name: 'Άνοιγμα μενού', exact: true }).click()
     const mobileSwitch = page.locator('#mobile-menu').getByRole('link', { name: 'Switch language to English' })
     assert.equal(await mobileSwitch.getAttribute('href'), '/contact?ref=mobile#address')
     await mobileSwitch.click()

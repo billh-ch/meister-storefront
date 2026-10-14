@@ -1,7 +1,8 @@
+import { getTranslator } from '@/lib/i18n/server'
 import { getLocale } from '@/lib/i18n/server'
 import { translate } from '@/lib/i18n'
 import type { Metadata } from 'next'
-import Link from 'next/link'
+import Link from '@/components/i18n/localized-link'
 import Navbar from '@/components/navbar'
 import Footer from '@/components/footer'
 import SignInForm from '@/components/auth/sign-in-form'
@@ -20,6 +21,8 @@ interface SignInPageProps {
 }
 
 export default async function SignInPage({ searchParams }: SignInPageProps) {
+  const t = await getTranslator()
+
   const { redirect_url } = await searchParams
 
   return (
@@ -30,18 +33,18 @@ export default async function SignInPage({ searchParams }: SignInPageProps) {
           className="text-2xl text-white sm:text-3xl"
           style={{ fontFamily: DISPLAY, fontWeight: 800 }}
         >
-          SIGN IN
+          {t("SIGN IN")}
         </h1>
 
         <SignInForm redirectUrl={redirect_url ?? '/account'} />
 
         <p className="text-sm text-[#999999]" style={{ fontFamily: MONO }}>
-          Don&apos;t have an account?{' '}
+          {t("Don't have an account?")}{' '}
           <Link
             href={`/sign-up${redirect_url ? `?redirect_url=${encodeURIComponent(redirect_url)}` : ''}`}
             className="text-[#FFD700] hover:underline"
           >
-            Sign up
+            {t("Sign up")}
           </Link>
         </p>
       </div>

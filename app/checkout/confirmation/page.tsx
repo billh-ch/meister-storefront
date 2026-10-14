@@ -1,7 +1,8 @@
+import { getTranslator } from '@/lib/i18n/server'
 import { getLocale } from '@/lib/i18n/server'
 import { translate } from '@/lib/i18n'
 import type { Metadata } from 'next'
-import Link from 'next/link'
+import Link from '@/components/i18n/localized-link'
 import Navbar from '@/components/navbar'
 import Footer from '@/components/footer'
 import ConfirmationStatus from '@/components/checkout/confirmation-status'
@@ -31,6 +32,8 @@ interface ConfirmationPageProps {
  * migration (only how that id is obtained changed).
  */
 export default async function ConfirmationPage({ searchParams }: ConfirmationPageProps) {
+  const t = await getTranslator()
+
   const { session_id: sessionId } = await searchParams
 
   const isGuest = !(await getSession()).wcCustomerId
@@ -77,43 +80,42 @@ export default async function ConfirmationPage({ searchParams }: ConfirmationPag
       <Navbar />
 
       <div className="mx-auto max-w-xl px-4 py-24 text-center sm:px-6">
-        {status === 'succeeded' && paymentIntentId ? (
+        {status === "succeeded" && paymentIntentId ? (
           <ConfirmationStatus
             paymentIntentId={paymentIntentId}
             guestSignup={guestName}
           />
-        ) : status === 'processing' ? (
+        ) : status === "processing" ? (
           <>
             <h1 className="text-2xl text-white sm:text-3xl" style={{ fontFamily: DISPLAY, fontWeight: 800 }}>
-              PAYMENT PROCESSING
+              {t("PAYMENT PROCESSING")}
             </h1>
             <p className="mt-3 text-sm text-[#999999]" style={{ fontFamily: MONO }}>
-              Your payment is still being processed — we&apos;ll email your order confirmation as soon as it clears.
+              {t("Your payment is still being processed — we'll email your order confirmation as soon as it clears.")}
             </p>
           </>
-        ) : status === 'failed' ? (
+        ) : status === "failed" ? (
           <>
             <h1 className="text-2xl text-white sm:text-3xl" style={{ fontFamily: DISPLAY, fontWeight: 800 }}>
-              PAYMENT FAILED
+              {t("PAYMENT FAILED")}
             </h1>
             <p className="mt-3 text-sm" style={{ fontFamily: MONO, color: '#FF6B6B' }}>
-              Your payment could not be completed. Please try again.
+              {t("Your payment could not be completed. Please try again.")}
             </p>
             <Link href="/checkout" className="btn-gold mt-6 inline-flex px-6 py-3 text-xs tracking-[0.1em] uppercase">
-              TRY AGAIN
+              {t("TRY AGAIN")}
             </Link>
           </>
         ) : (
           <>
             <h1 className="text-2xl text-white sm:text-3xl" style={{ fontFamily: DISPLAY, fontWeight: 800 }}>
-              SOMETHING WENT WRONG
+              {t("SOMETHING WENT WRONG")}
             </h1>
             <p className="mt-3 text-sm text-[#999999]" style={{ fontFamily: MONO }}>
-              We couldn&apos;t confirm your payment status. If you were charged, check your email or your account
-              shortly.
+              {t("We couldn't confirm your payment status. If you were charged, check your email or your account shortly.")}
             </p>
             <Link href="/account" className="btn-gold mt-6 inline-flex px-6 py-3 text-xs tracking-[0.1em] uppercase">
-              GO TO YOUR ACCOUNT
+              {t("GO TO YOUR ACCOUNT")}
             </Link>
           </>
         )}

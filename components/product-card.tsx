@@ -1,9 +1,10 @@
 'use client'
+import { useTranslation } from '@/components/i18n/locale-provider'
 
 import CompareButton from './compare/button'
 import WishlistButton from './wishlist/button'
 import ProductCardImages from './product-card-images'
-import Link from 'next/link'
+import Link from '@/components/i18n/localized-link'
 import { useState, useTransition } from 'react'
 import { type Product, type StockStatus, formatPrice } from '@/lib/mock-data'
 import { addToCartAction } from '@/lib/cart/actions'
@@ -30,6 +31,8 @@ const STOCK_BADGES: Record<StockStatus, string | null> = {
 }
 
 function Badge({ label, tone }: { label: string; tone: 'gold' | 'muted' }) {
+  const t = useTranslation()
+
   return (
     <span
       className="px-2 py-1 text-[10px] font-bold tracking-widest uppercase"
@@ -40,12 +43,14 @@ function Badge({ label, tone }: { label: string; tone: 'gold' | 'muted' }) {
         border: tone === 'gold' ? 'none' : '1px solid var(--color-foreground)',
       }}
     >
-      {label}
+      {t(label)}
     </span>
   )
 }
 
 export default function ProductCard({ product }: ProductCardProps) {
+  const t = useTranslation()
+
   const [isPending, startTransition] = useTransition()
   const [justAdded, setJustAdded] = useState(false)
   const [error, setError] = useState('')
@@ -74,7 +79,7 @@ export default function ProductCard({ product }: ProductCardProps) {
     <article
       className="hatching-bg relative flex h-full w-full flex-col overflow-hidden"
       style={{ border: '1px solid #FFFFFF' }}
-      aria-label={`${product.name}, ${formatPrice(product.price)}`}
+      aria-label={t("{value0}, {value1}", { value0: product.name, value1: formatPrice(product.price) })}
     >
       <ProductCardImages product={product}>
         <WishlistButton id={product.id} name={product.name} card />
@@ -119,7 +124,7 @@ export default function ProductCard({ product }: ProductCardProps) {
                   backgroundColor: color,
                   borderRadius: '200px',
                 }}
-                aria-label={`Colour ${color}`}
+                aria-label={t("Colour {value0}", { value0: color })}
               />
             ))}
             <span
@@ -135,7 +140,7 @@ export default function ProductCard({ product }: ProductCardProps) {
             className="text-xs font-bold text-white sm:text-sm"
             style={{ fontFamily: 'var(--font-space-mono), monospace' }}
           >
-            {product.priceFrom ? `From ${formatPrice(product.price)}` : formatPrice(product.price)}
+            {product.priceFrom ? t('From ') + formatPrice(product.price) : formatPrice(product.price)}
           </p>
         </Link>
 
@@ -143,16 +148,16 @@ export default function ProductCard({ product }: ProductCardProps) {
             Variable products (real size/attribute choices) have no room for
             a picker here — the PDP already owns that selector, so the card
             just routes there instead of pretending to add anything. */}
-        {product.type === 'variable' ? (
+        {product.type === "variable" ? (
           <Link
             href={`/products/${product.slug}`}
             className="btn-gold flex min-h-11 w-full items-center justify-center px-3 py-2 text-center text-xs font-bold tracking-wider uppercase"
             style={{
               borderTop: '1px solid #FFFFFF',
             }}
-            aria-label={`Choose options for ${product.name}`}
+            aria-label={t("Choose options for {value0}", { value0: product.name })}
           >
-            SELECT OPTIONS
+            {t("SELECT OPTIONS")}
           </Link>
         ) : (
           <button
@@ -166,25 +171,25 @@ export default function ProductCard({ product }: ProductCardProps) {
             disabled={isSoldOut || isPending}
             aria-label={
               isSoldOut
-                ? `${product.name} is out of stock`
+                ? t('{name} is out of stock', { name: product.name })
                 : error
-                  ? error
+                  ? t(error)
                   : justAdded
-                    ? `${product.name} added to cart`
-                    : `Add ${product.name} to cart`
+                    ? t('{name} added to cart', { name: product.name })
+                    : t('Add {name} to cart', { name: product.name })
             }
           >
-            {isSoldOut ? 'OUT OF STOCK' : isPending ? 'ADDING…' : justAdded ? 'ADDED TO CART' : 'ADD TO CART'}
+            {isSoldOut ? t("OUT OF STOCK") : isPending ? t("ADDING…") : justAdded ? t("ADDED TO CART") : t("ADD TO CART")}
           </button>
         )}
         <CompareButton product={product} card />
       </footer>
       <p className="sr-only" role="status">
-        {error || (justAdded ? `${product.name} added to cart` : '')}
+        {t(error) || (justAdded ? t('{name} added to cart', { name: product.name }) : '')}
       </p>
       {error && (
         <p className="px-3 py-2 text-xs" style={{ color: 'var(--color-gold)', fontFamily: MONO }}>
-          {error}
+          {t(error)}
         </p>
       )}
     </article>

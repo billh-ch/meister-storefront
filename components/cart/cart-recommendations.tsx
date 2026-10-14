@@ -1,7 +1,8 @@
 'use client'
+import { useTranslation } from '@/components/i18n/locale-provider'
 
 import Image from 'next/image'
-import Link from 'next/link'
+import Link from '@/components/i18n/localized-link'
 import { useEffect, useId, useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import { addToCartAction } from '@/lib/cart/actions'
@@ -16,6 +17,8 @@ interface CartRecommendationsProps {
 }
 
 export default function CartRecommendations({ productIds, disabled = false, onPendingChange, onNavigate }: CartRecommendationsProps) {
+  const t = useTranslation()
+
   const [products, setProducts] = useState<Product[]>([])
   const [error, setError] = useState('')
   const [pendingId, setPendingId] = useState('')
@@ -58,29 +61,29 @@ export default function CartRecommendations({ productIds, disabled = false, onPe
   if (visible.length === 0) return null
 
   return (
-    <section aria-label="Cart recommendations" className="mt-6 min-w-0 border-t border-white/20 pt-5" style={{ fontFamily: 'var(--font-space-mono), monospace' }}>
-      <h2 id={headingId} className="mb-3 text-sm font-bold text-white">YOU MAY ALSO LIKE</h2>
-      <div role="group" aria-label="Suggested products" tabIndex={0} className="flex gap-3 overflow-x-auto pb-3 snap-x snap-mandatory" aria-describedby={headingId}>
+    <section aria-label={t("Cart recommendations")} className="mt-6 min-w-0 border-t border-white/20 pt-5" style={{ fontFamily: 'var(--font-space-mono), monospace' }}>
+      <h2 id={headingId} className="mb-3 text-sm font-bold text-white">{t("YOU MAY ALSO LIKE")}</h2>
+      <div role="group" aria-label={t("Suggested products")} tabIndex={0} className="flex gap-3 overflow-x-auto pb-3 snap-x snap-mandatory" aria-describedby={headingId}>
         {visible.map(product => (
           <article key={product.id} className="flex w-40 shrink-0 snap-start flex-col border border-white/20 bg-[#1B1B18]">
-            <Link href={`/products/${product.slug}`} onClick={onNavigate} className="relative block aspect-square bg-[#222222]" aria-label={`View ${product.name}`}>
-              {product.image ? <Image src={product.image} alt={product.name} fill sizes="160px" className="object-cover" /> : <span className="absolute inset-0 flex items-center justify-center text-[10px] text-[#999999]">NO IMAGE AVAILABLE</span>}
+            <Link href={`/products/${product.slug}`} onClick={onNavigate} className="relative block aspect-square bg-[#222222]" aria-label={t("View {value0}", { value0: product.name })}>
+              {product.image ? <Image src={product.image} alt={product.name} fill sizes="160px" className="object-cover" /> : <span className="absolute inset-0 flex items-center justify-center text-[10px] text-[#999999]">{t("NO IMAGE AVAILABLE")}</span>}
             </Link>
             <div className="flex flex-1 flex-col gap-2 p-3">
               <Link href={`/products/${product.slug}`} onClick={onNavigate} className="text-xs font-bold text-white">{product.name}</Link>
-              <p className="mt-auto text-xs text-[#FFD700]">{product.priceFrom ? 'From ' : ''}{formatPrice(product.price)}</p>
+              <p className="mt-auto text-xs text-[#FFD700]">{product.priceFrom ? t("From ") : ''}{formatPrice(product.price)}</p>
             </div>
-            {product.type === 'variable' ? (
-              <Link href={`/products/${product.slug}`} onClick={onNavigate} className="btn-gold flex min-h-11 items-center justify-center px-2 text-center text-[10px]" aria-label={`Choose options for ${product.name}`}>SELECT OPTIONS</Link>
+            {product.type === "variable" ? (
+              <Link href={`/products/${product.slug}`} onClick={onNavigate} className="btn-gold flex min-h-11 items-center justify-center px-2 text-center text-[10px]" aria-label={t("Choose options for {value0}", { value0: product.name })}>{t("SELECT OPTIONS")}</Link>
             ) : (
-              <button type="button" onClick={() => add(product)} disabled={disabled || isPending} className="btn-gold min-h-11 px-2 text-[10px]" aria-label={`Add ${product.name} to cart`}>
-                {pendingId === product.id ? 'ADDING…' : 'ADD TO CART'}
+              <button type="button" onClick={() => add(product)} disabled={disabled || isPending} className="btn-gold min-h-11 px-2 text-[10px]" aria-label={t("Add {value0} to cart", { value0: product.name })}>
+                {pendingId === product.id ? t("ADDING…") : t("ADD TO CART")}
               </button>
             )}
           </article>
         ))}
       </div>
-      {error && <p role="alert" className="mt-2 text-xs text-[#FFD700]">{error}</p>}
+      {error && <p role="alert" className="mt-2 text-xs text-[#FFD700]">{t(error)}</p>}
     </section>
   )
 }

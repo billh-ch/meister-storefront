@@ -1,7 +1,8 @@
 'use client'
+import { useTranslation } from '@/components/i18n/locale-provider'
 
 import Image from 'next/image'
-import Link from 'next/link'
+import Link from '@/components/i18n/localized-link'
 import useEmblaCarousel from 'embla-carousel-react'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import ProductCard from './product-card'
@@ -25,6 +26,8 @@ export default function CategoriesSection({
   categoryDetails,
   products,
 }: CategoriesSectionProps) {
+  const t = useTranslation()
+
   const [activeIndex, setActiveIndex] = useState(0)
   const [openAccordion, setOpenAccordion] = useState<number | null>(null)
   const active = categoryDetails[activeIndex]
@@ -80,7 +83,7 @@ export default function CategoriesSection({
     <section
       className="w-full py-10 md:py-16"
       style={{ backgroundColor: '#1B1B18' }}
-      aria-label="Category showcase"
+      aria-label={t("Category showcase")}
     >
       {/* ── TABS ── */}
       <div className="px-4 md:px-10">
@@ -93,10 +96,10 @@ export default function CategoriesSection({
               type="button"
               aria-pressed={i === activeIndex}
               onClick={() => selectTab(i)}
-              className="category-tab whitespace-nowrap px-2 py-2.5 text-sm sm:shrink-0 sm:px-8 sm:py-4 sm:text-base md:px-10 md:py-5 md:text-xl lg:text-2xl"
+              className="category-tab break-words px-2 py-2.5 text-sm sm:shrink-0 sm:px-8 sm:py-4 sm:text-base md:px-10 md:py-5 md:text-xl lg:text-2xl"
               data-active={i === activeIndex ? 'true' : 'false'}
             >
-              {tab.name}
+              {t(tab.name)}
             </button>
           ))}
         </div>
@@ -120,7 +123,7 @@ export default function CategoriesSection({
             >
               <Image
                 src={tab.image}
-                alt={tab.name}
+                alt={t(tab.name)}
                 fill
                 sizes="(max-width: 1024px) 100vw, 50vw"
                 className="object-cover"
@@ -150,7 +153,7 @@ export default function CategoriesSection({
                       className="pr-6 text-xs font-bold tracking-[0.2em] text-[#FFD700] uppercase sm:pr-8 sm:text-sm"
                       style={{ fontFamily: 'var(--font-space-mono), monospace' }}
                     >
-                      {active.marqueeText} •{' '}
+                      {t(active.marqueeText)} •{' '}
                     </span>
                   ))}
                 </span>
@@ -163,7 +166,7 @@ export default function CategoriesSection({
             className="mt-4 text-xl leading-tight text-white sm:text-2xl md:text-3xl lg:text-4xl"
             style={{ fontFamily: 'var(--font-dela-gothic), sans-serif', fontWeight: 800 }}
           >
-            {active.tagline}
+            {t(active.tagline)}
           </h2>
 
           {/* Accordions */}
@@ -182,7 +185,7 @@ export default function CategoriesSection({
                     }}
                     aria-expanded={isOpen}
                   >
-                    <span className="pr-4">{item.headline}</span>
+                    <span className="pr-4">{t(item.headline)}</span>
                     <span
                       className="accordion-chevron flex-shrink-0 text-lg text-[#FFD700]"
                       data-open={isOpen ? 'true' : 'false'}
@@ -200,7 +203,7 @@ export default function CategoriesSection({
                         className="pb-5 text-xs leading-relaxed text-[#999999] sm:text-sm"
                         style={{ fontFamily: 'var(--font-space-mono), monospace' }}
                       >
-                        {item.body}
+                        {t(item.body)}
                       </p>
                     </div>
                   </div>
@@ -221,7 +224,7 @@ export default function CategoriesSection({
                 className="text-lg text-white sm:text-xl md:text-2xl"
                 style={{ fontFamily: 'var(--font-dela-gothic), sans-serif', fontWeight: 700 }}
               >
-                FROM THIS CATEGORY
+                {t("FROM THIS CATEGORY")}
               </h3>
               <span
                 className="px-2 py-1 text-[10px] font-bold tracking-widest uppercase"
@@ -231,7 +234,7 @@ export default function CategoriesSection({
                   color: 'var(--color-dark)',
                 }}
               >
-                MEISTER MADE
+                {t("MEISTER MADE")}
               </span>
             </div>
             <Link
@@ -243,7 +246,7 @@ export default function CategoriesSection({
                 fontFamily: 'var(--font-space-mono), monospace',
               }}
             >
-              VIEW ALL
+              {t("VIEW ALL")}
             </Link>
           </div>
 
@@ -268,7 +271,7 @@ export default function CategoriesSection({
               type="button"
               onClick={scrollPrev}
               className="absolute left-2 top-1/2 flex h-10 w-10 -translate-y-1/2 items-center justify-center border border-[#444444] bg-[#1B1B18]/80 text-white backdrop-blur-sm transition-colors hover:border-[#FFD700] hover:text-[#FFD700] disabled:opacity-30 sm:left-3 sm:h-11 sm:w-11"
-              aria-label="Show previous products"
+              aria-label={t("Show previous products")}
               disabled={!canScrollPrev}
             >
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
@@ -279,7 +282,7 @@ export default function CategoriesSection({
               type="button"
               onClick={scrollNext}
               className="absolute right-2 top-1/2 flex h-10 w-10 -translate-y-1/2 items-center justify-center border border-[#444444] bg-[#1B1B18]/80 text-white backdrop-blur-sm transition-colors hover:border-[#FFD700] hover:text-[#FFD700] disabled:opacity-30 sm:right-3 sm:h-11 sm:w-11"
-              aria-label="Show next products"
+              aria-label={t("Show next products")}
               disabled={!canScrollNext}
             >
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">

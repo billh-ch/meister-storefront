@@ -1,3 +1,4 @@
+import { getTranslator } from '@/lib/i18n/server'
 import { getLocale } from '@/lib/i18n/server'
 import { localePath, translate } from '@/lib/i18n'
 import type { Metadata } from 'next'
@@ -107,6 +108,8 @@ export async function generateMetadata({
 const RELATED_LIMIT = 8
 
 export default async function ProductPage({ params }: ProductPageProps) {
+  const t = await getTranslator()
+
   const { slug } = await params
   const product = await getProductBySlug(decodeSlug(slug))
 
@@ -121,7 +124,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
     .filter((candidate) => candidate.slug !== product.slug)
     .slice(0, RELATED_LIMIT)
 
-  const specs = <ProductSpecsTable product={product} />
+  const specs = await ProductSpecsTable({ product })
   const locale = await getLocale()
   const canonicalUrl = canonicalProductUrl(product.slug, process.env, locale)
   const category = findCategory(product.category)
@@ -155,7 +158,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
               half-width strip under a full-width layout reads as unfinished. */}
           <div className="mt-12 lg:mt-16">
             {product.descriptionHtml && (
-              <AccordionItem title="DESCRIPTION" defaultOpen>
+              <AccordionItem title={t("DESCRIPTION")} defaultOpen>
                 <div
                   className="product-prose"
                   // Sanitised server-side in lib/sanitize.ts before it was
@@ -165,14 +168,14 @@ export default async function ProductPage({ params }: ProductPageProps) {
               </AccordionItem>
             )}
 
-            {specs && <AccordionItem title="SPECIFICATIONS">{specs}</AccordionItem>}
+            {specs && <AccordionItem title={t("SPECIFICATIONS")}>{specs}</AccordionItem>}
 
-            <AccordionItem title="SHIPPING & RETURNS">
+            <AccordionItem title={t("SHIPPING & RETURNS")}>
               <div className="product-prose">
                 {shippingReturnsCopy.map((section) => (
                   <div key={section.headline}>
-                    <h3>{section.headline}</h3>
-                    <p>{section.body}</p>
+                    <h3>{t(section.headline)}</h3>
+                    <p>{t(section.body)}</p>
                   </div>
                 ))}
               </div>
@@ -182,7 +185,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
 
         <ProductCarousel
           products={related}
-          title="YOU MAY ALSO LIKE"
+          title={t("YOU MAY ALSO LIKE")}
           viewAllHref={`/${product.category}`}
           ariaLabel="Related products"
         />

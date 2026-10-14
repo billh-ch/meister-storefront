@@ -1,4 +1,5 @@
 'use client'
+import { useTranslation, useLocalePath } from '@/components/i18n/locale-provider'
 
 import { useState, useTransition, type FormEvent } from 'react'
 import { useRouter } from 'next/navigation'
@@ -22,6 +23,9 @@ export default function SignUpForm({
   defaultFirstName = '',
   defaultLastName = '',
 }: SignUpFormProps) {
+  const t = useTranslation()
+  const lp = useLocalePath()
+
   const router = useRouter()
   const [isPending, startTransition] = useTransition()
   const [error, setError] = useState('')
@@ -39,7 +43,7 @@ export default function SignUpForm({
         lastName: String(formData.get('lastName') ?? ''),
       })
       if (result.ok) {
-        router.push(getSafeRedirectUrl(redirectUrl))
+        router.push(lp(getSafeRedirectUrl(redirectUrl)))
         router.refresh()
       } else {
         setError(result.error)
@@ -56,7 +60,7 @@ export default function SignUpForm({
             className="text-xs font-bold tracking-wide text-white uppercase"
             style={{ fontFamily: MONO }}
           >
-            First name
+            {t("First name")}
           </label>
           <input
             id="sign-up-first-name"
@@ -75,7 +79,7 @@ export default function SignUpForm({
             className="text-xs font-bold tracking-wide text-white uppercase"
             style={{ fontFamily: MONO }}
           >
-            Last name
+            {t("Last name")}
           </label>
           <input
             id="sign-up-last-name"
@@ -96,7 +100,7 @@ export default function SignUpForm({
           className="text-xs font-bold tracking-wide text-white uppercase"
           style={{ fontFamily: MONO }}
         >
-          Email
+          {t("Email")}
         </label>
         <input
           id="sign-up-email"
@@ -116,7 +120,7 @@ export default function SignUpForm({
           className="text-xs font-bold tracking-wide text-white uppercase"
           style={{ fontFamily: MONO }}
         >
-          Password
+          {t("Password")}
         </label>
         <input
           id="sign-up-password"
@@ -129,13 +133,13 @@ export default function SignUpForm({
           style={{ border: '1px solid #444444', fontFamily: MONO }}
         />
         <p className="text-xs text-[#999999]" style={{ fontFamily: MONO }}>
-          At least 8 characters.
+          {t("At least 8 characters.")}
         </p>
       </div>
 
       {error && (
         <p aria-live="polite" className="text-xs" style={{ fontFamily: MONO, color: '#FF6B6B' }}>
-          {error}
+          {t(error)}
         </p>
       )}
 
@@ -144,7 +148,7 @@ export default function SignUpForm({
         disabled={isPending}
         className="btn-gold flex h-12 w-full items-center justify-center text-xs tracking-[0.1em] uppercase"
       >
-        {isPending ? 'Creating account…' : 'Create account'}
+        {isPending ? t("Creating account…") : t("Create account")}
       </button>
     </form>
   )

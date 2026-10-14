@@ -1,3 +1,4 @@
+import { getTranslator } from '@/lib/i18n/server'
 import type { ProductDetail } from '@/lib/mock-data'
 
 interface ProductSpecsTableProps {
@@ -37,7 +38,9 @@ function buildRows(product: ProductDetail): SpecRow[] {
  * Returns `null` when there is nothing to show, so the page can drop the
  * whole accordion rather than render an empty one.
  */
-export default function ProductSpecsTable({ product }: ProductSpecsTableProps) {
+export default async function ProductSpecsTable({ product }: ProductSpecsTableProps) {
+  const t = await getTranslator()
+
   const rows = buildRows(product)
   if (rows.length === 0) return null
 
@@ -51,7 +54,7 @@ export default function ProductSpecsTable({ product }: ProductSpecsTableProps) {
           {/* Fixed label column rather than a fraction: at full page width a
               1/3 split leaves a gulf between label and value. */}
           <dt className="font-bold text-white sm:w-56 sm:flex-shrink-0">
-            {row.label}
+            {t(row.label)}
           </dt>
           <dd className="min-w-0 text-[#CCCCCC]">{row.value}</dd>
         </div>

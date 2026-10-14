@@ -1,3 +1,4 @@
+import { getTranslator } from '@/lib/i18n/server'
 import { getLocale } from '@/lib/i18n/server'
 import { translate } from '@/lib/i18n'
 import type { Metadata } from 'next'
@@ -46,6 +47,8 @@ export async function generateMetadata({ searchParams }: SearchPageProps): Promi
  * simplicity as the rest of the collection pages, no fuzzy matching.
  */
 export default async function SearchPage({ searchParams }: SearchPageProps) {
+  const t = await getTranslator()
+
   const sp = await searchParams
   const { q, page, sort } = sp
   const query = q?.trim() ?? ''
@@ -60,10 +63,10 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
             className="text-2xl text-white sm:text-3xl"
             style={{ fontFamily: DISPLAY, fontWeight: 800 }}
           >
-            SEARCH
+            {t("SEARCH")}
           </h1>
           <p className="text-sm text-[#999999]" style={{ fontFamily: MONO }}>
-            Type something in the search bar to find products.
+            {t("Type something in the search bar to find products.")}
           </p>
         </div>
         <Footer />
@@ -82,14 +85,14 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
     <main style={{ backgroundColor: '#1B1B18' }}>
       <Navbar />
       <CollectionView
-        title={`RESULTS FOR "${query}"`}
+        title={t("RESULTS FOR \"{value0}\"", { value0: query })}
         breadcrumbs={[{ label: 'HOME', href: '/' }, { label: 'SEARCH' }]}
         basePath="/search"
         collection={collection}
         sort={parseSort(sort)}
         facets={facets}
         activeFilters={filters}
-        emptyMessage="NO PRODUCTS MATCH YOUR SEARCH"
+        emptyMessage={t("NO PRODUCTS MATCH YOUR SEARCH")}
         searchQuery={query}
       />
       <Footer />

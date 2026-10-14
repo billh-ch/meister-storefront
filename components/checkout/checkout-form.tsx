@@ -1,4 +1,5 @@
 'use client'
+import { useTranslation } from '@/components/i18n/locale-provider'
 
 import { useEffect, useRef, useState, useTransition, type FormEvent } from 'react'
 import type { CreateCheckoutSessionResult } from '@/lib/checkout/actions'
@@ -49,6 +50,8 @@ export default function CheckoutForm({
   initialQuote,
   boxNowPartnerId,
 }: CheckoutFormProps) {
+  const t = useTranslation()
+
   const [isPending, startTransition] = useTransition()
   const [error, setError] = useState('')
   const [isRedirecting, setIsRedirecting] = useState(false)
@@ -180,7 +183,7 @@ export default function CheckoutForm({
               className="text-xs font-bold tracking-wide text-white uppercase"
               style={{ fontFamily: MONO }}
             >
-              Email for order confirmation
+              {t("Email for order confirmation")}
             </label>
             <input
               id="checkout-email"
@@ -196,18 +199,18 @@ export default function CheckoutForm({
 
         <AddressFields defaultValues={initialAddress} idPrefix="checkout" onCountryChange={() => { setBoxNowLocker(null); refreshShipping() }} onShippingAddressChange={() => refreshShipping()} />
 
-        <section aria-label="Delivery options" aria-busy={shippingPending} className="flex min-h-24 flex-col gap-3 border-t border-white/20 pt-4">
+        <section aria-label={t("Delivery options")} aria-busy={shippingPending} className="flex min-h-24 flex-col gap-3 border-t border-white/20 pt-4">
         {shippingPending && (
-          <p role="status" className="text-xs text-white" style={{ fontFamily: MONO }}>Updating delivery methods…</p>
+          <p role="status" className="text-xs text-white" style={{ fontFamily: MONO }}>{t("Updating delivery methods…")}</p>
         )}
-        {quote.status === 'cart' && !shippingPending ? (
+        {quote.status === "cart" && !shippingPending ? (
           <CheckoutCartIssues error={quote.error} issues={quote.issues} />
-        ) : (quote.status === 'error' || quote.status === 'address') && !shippingPending ? (
+        ) : (quote.status === "error" || quote.status === "address") && !shippingPending ? (
           <div>
-            <p role="alert" className="text-xs" style={{ fontFamily: MONO, color: '#FF6B6B' }}>{quote.error}</p>
-            <button type="button" onClick={() => refreshShipping(true)} className="mt-2 min-h-11 text-xs text-white underline">Retry delivery calculation</button>
+            <p role="alert" className="text-xs" style={{ fontFamily: MONO, color: '#FF6B6B' }}>{t(quote.error)}</p>
+            <button type="button" onClick={() => refreshShipping(true)} className="mt-2 min-h-11 text-xs text-white underline">{t("Retry delivery calculation")}</button>
           </div>
-        ) : quote.status === 'ready' ? (
+        ) : quote.status === "ready" ? (
           <fieldset disabled={shippingPending} className="border-0 p-0">
           <DeliveryMethods methods={methods} selectedId={selectedMethodId} onSelect={id => {
             if (id !== selectedMethodId) setBoxNowLocker(null)
@@ -226,7 +229,7 @@ export default function CheckoutForm({
         <div className="flex flex-col gap-3 lg:col-start-1 lg:row-start-2">
         {error && (
           <p aria-live="polite" className="text-xs" style={{ fontFamily: MONO, color: '#FF6B6B' }}>
-            {error}
+            {t(error)}
           </p>
         )}
 
@@ -235,7 +238,7 @@ export default function CheckoutForm({
           disabled={isPending || isRedirecting || !canPay}
           className="btn-gold flex h-12 w-full items-center justify-center text-xs tracking-[0.1em] uppercase"
         >
-          {isRedirecting ? 'Redirecting to Stripe…' : isPending ? 'Preparing payment…' : 'Continue to payment'}
+          {isRedirecting ? t("Redirecting to Stripe…") : isPending ? t("Preparing payment…") : t("Continue to payment")}
         </button>
         </div>
       </form>

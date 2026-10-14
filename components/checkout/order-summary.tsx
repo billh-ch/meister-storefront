@@ -1,3 +1,5 @@
+'use client'
+import { useTranslation } from '@/components/i18n/locale-provider'
 import type { ResolvedCartLine } from '@/lib/cart/resolve'
 import { cartLineKey } from '@/lib/cart/line-key'
 import { formatVariationLabel } from '@/lib/cart/variation-label'
@@ -20,6 +22,8 @@ interface OrderSummaryProps {
  *  total can't react to that; this can, since its parent owns the selection
  *  state and passes the resolved cost down as a prop each render. */
 export default function OrderSummary({ lines, subtotal, shippingCost }: OrderSummaryProps) {
+  const t = useTranslation()
+
   const total = subtotal + (shippingCost ?? 0)
 
   return (
@@ -47,21 +51,21 @@ export default function OrderSummary({ lines, subtotal, shippingCost }: OrderSum
           className="flex items-center justify-between pt-2 text-xs"
           style={{ fontFamily: MONO, borderTop: '1px solid #222222', color: '#999999' }}
         >
-          <span>SUBTOTAL</span>
+          <span>{t("SUBTOTAL")}</span>
           <span>{formatPrice(subtotal)}</span>
         </div>
         <div className="flex items-center justify-between text-xs" style={{ fontFamily: MONO, color: '#999999' }}>
-          <span>SHIPPING</span>
+          <span>{t("SHIPPING")}</span>
           <span>
-            {shippingCost === undefined ? '—' : shippingCost === 0 ? 'FREE' : formatPrice(shippingCost)}
+            {shippingCost === undefined ? '—' : shippingCost === 0 ? t("FREE") : formatPrice(shippingCost)}
           </span>
         </div>
         <div
           className="flex items-center justify-between pt-2 text-base font-bold"
           style={{ fontFamily: MONO, borderTop: '1px solid #444444' }}
         >
-          <span className="text-white">TOTAL</span>
-          <span className="text-[#FFD700]">{shippingCost === undefined ? 'Pending delivery' : formatPrice(total)}</span>
+          <span className="text-white">{t("TOTAL")}</span>
+          <span className="text-[#FFD700]">{shippingCost === undefined ? t("Pending delivery") : formatPrice(total)}</span>
         </div>
       </div>
     </div>

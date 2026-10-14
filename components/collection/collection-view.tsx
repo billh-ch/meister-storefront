@@ -1,10 +1,11 @@
+import { getTranslator } from '@/lib/i18n/server'
 import ProductCard from '@/components/product-card'
 import SimpleBreadcrumbs from './simple-breadcrumbs'
 import SortSelect from './sort-select'
 import PaginationControls from './pagination-controls'
 import FilterPanel from './filter-panel'
 import ActiveFilters from './active-filters'
-import Link from 'next/link'
+import Link from '@/components/i18n/localized-link'
 import {
   hasActiveFilters,
   type Collection,
@@ -42,7 +43,7 @@ const MONO = 'var(--font-space-mono), monospace'
  */
 const DEFAULT_EMPTY_MESSAGE = 'NO PRODUCTS IN THIS CATEGORY YET'
 
-export default function CollectionView({
+export default async function CollectionView({
   title,
   breadcrumbs,
   basePath,
@@ -53,6 +54,8 @@ export default function CollectionView({
   emptyMessage = DEFAULT_EMPTY_MESSAGE,
   searchQuery,
 }: CollectionViewProps) {
+  const t = await getTranslator()
+
   const { items, currentPage, totalPages, totalItems } = collection
   const filtersActive = hasActiveFilters(activeFilters)
   const resolvedEmptyMessage = filtersActive
@@ -72,7 +75,7 @@ export default function CollectionView({
             className="text-2xl text-white sm:text-3xl md:text-4xl"
             style={{ fontFamily: 'var(--font-dela-gothic), sans-serif', fontWeight: 800 }}
           >
-            {title}
+            {t(title)}
           </h1>
         </div>
 
@@ -84,7 +87,7 @@ export default function CollectionView({
           <div className="min-w-0 flex-1">
             <div className="mb-4 flex flex-wrap items-center justify-between gap-4">
               <p className="text-xs text-[#999999] sm:text-sm" style={{ fontFamily: MONO }}>
-                {totalItems} {totalItems === 1 ? 'PRODUCT' : 'PRODUCTS'}
+                {totalItems} {totalItems === 1 ? t("PRODUCT") : t("PRODUCTS")}
               </p>
               {totalItems > 0 && <SortSelect basePath={basePath} currentSort={sort} />}
             </div>
@@ -101,7 +104,7 @@ export default function CollectionView({
                 style={{ border: '1px solid #444444' }}
               >
                 <p className="text-sm text-[#999999]" style={{ fontFamily: MONO }}>
-                  {resolvedEmptyMessage}
+                  {t(resolvedEmptyMessage)}
                 </p>
                 {filtersActive && (
                   <Link
@@ -109,7 +112,7 @@ export default function CollectionView({
                     className="text-xs text-[#FFD700] underline"
                     style={{ fontFamily: MONO }}
                   >
-                    Clear all filters
+                    {t("Clear all filters")}
                   </Link>
                 )}
               </div>

@@ -1,4 +1,5 @@
 'use client'
+import { useTranslation } from '@/components/i18n/locale-provider'
 
 import { useId, useState, useTransition } from 'react'
 import QuantityStepper from '@/components/product/quantity-stepper'
@@ -24,6 +25,8 @@ export default function CartLineControls({
   quantity,
   onPendingChange,
 }: CartLineControlsProps) {
+  const t = useTranslation()
+
   const [isPending, startTransition] = useTransition()
   const stepperId = useId()
   const [error, setError] = useState('')
@@ -66,9 +69,9 @@ export default function CartLineControls({
         className="text-xs text-[#999999] underline transition-colors hover:text-[#FF6B6B] disabled:cursor-not-allowed"
         style={{ fontFamily: MONO }}
       >
-        Remove
+        {t("Remove")}
       </button>
-      {error && <p role="alert" className="w-full text-xs" style={{ color: 'var(--color-gold)', fontFamily: MONO }}>{error}</p>}
+      {error && <p role="alert" className="w-full text-xs" style={{ color: 'var(--color-gold)', fontFamily: MONO }}>{t(error)}</p>}
     </fieldset>
   )
 }

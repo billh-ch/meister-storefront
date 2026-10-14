@@ -1,3 +1,4 @@
+import { getTranslator } from '@/lib/i18n/server'
 import { getLocale } from '@/lib/i18n/server'
 import type { Metadata } from 'next'
 import { buildCollectionMetadata } from '@/lib/seo/metadata'
@@ -38,6 +39,8 @@ export async function generateMetadata({ searchParams }: ShopPageProps): Promise
  * runtime ambiguity between the two despite both living at the app root.
  */
 export default async function ShopPage({ searchParams }: ShopPageProps) {
+  const t = await getTranslator()
+
   const sp = await searchParams
   const filters = parseFilters(sp)
   const allProducts = await getProducts()
@@ -52,7 +55,7 @@ export default async function ShopPage({ searchParams }: ShopPageProps) {
     <main style={{ backgroundColor: '#1B1B18' }}>
       <Navbar />
       <CollectionView
-        title="SHOP"
+        title={t("SHOP")}
         breadcrumbs={[{ label: 'HOME', href: '/' }, { label: 'SHOP' }]}
         basePath="/shop"
         collection={collection}

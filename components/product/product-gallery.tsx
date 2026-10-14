@@ -1,4 +1,5 @@
 'use client'
+import { useTranslation } from '@/components/i18n/locale-provider'
 
 import Image from 'next/image'
 import useEmblaCarousel from 'embla-carousel-react'
@@ -51,6 +52,8 @@ export default function ProductGallery({
   productName,
   activeImage = null,
 }: ProductGalleryProps) {
+  const t = useTranslation()
+
   const [emblaRef, emblaApi] = useEmblaCarousel({ loop: false, align: 'start' })
   const [selectedIndex, setSelectedIndex] = useState(0)
 
@@ -60,8 +63,8 @@ export default function ProductGallery({
   const displayImages = useMemo(() => {
     if (!activeImage) return images
     if (images.some((image) => image.src === activeImage)) return images
-    return [{ src: activeImage, alt: `${productName} — selected option` }, ...images]
-  }, [images, activeImage, productName])
+    return [{ src: activeImage, alt: t('{name} — selected option', { name: productName }) }, ...images]
+  }, [images, activeImage, productName, t])
 
   useEffect(() => {
     if (!emblaApi) return
@@ -95,7 +98,7 @@ export default function ProductGallery({
           className="absolute inset-0 flex items-center justify-center text-sm text-[#999999]"
           style={{ fontFamily: MONO }}
         >
-          NO IMAGE AVAILABLE
+          {t("NO IMAGE AVAILABLE")}
         </div>
       </GalleryFrame>
     )
@@ -130,7 +133,7 @@ export default function ProductGallery({
               >
                 <Image
                   src={image.src}
-                  alt={image.alt || `${productName} — image ${index + 1}`}
+                  alt={image.alt || t('{name} — image {number}', { name: productName, number: index + 1 })}
                   fill
                   sizes={SIZES}
                   className="object-cover"
@@ -146,7 +149,10 @@ export default function ProductGallery({
       {/* Position announcement for screen readers — the tiles carry this
           visually, but nothing announces a swipe otherwise. */}
       <p className="sr-only" aria-live="polite">
-        Image {selectedIndex + 1} of {displayImages.length}
+        {t("Image")}
+        {selectedIndex + 1}
+        {t("of")}
+        {displayImages.length}
       </p>
 
       {/* Tile grid — every shot visible at once, no discovery required */}
@@ -159,7 +165,7 @@ export default function ProductGallery({
               key={`tile-${image.src}-${index}`}
               type="button"
               onClick={() => scrollTo(index)}
-              aria-label={`Show image ${index + 1} of ${displayImages.length}`}
+              aria-label={t("Show image {value0} of {value1}", { value0: index + 1, value1: displayImages.length })}
               aria-current={isSelected}
               // The selected tile is already on show above, so it's the
               // unselected ones that need to read as tappable.

@@ -1,5 +1,6 @@
+import { getTranslator } from '@/lib/i18n/server'
 import Image from 'next/image'
-import Link from 'next/link'
+import Link from '@/components/i18n/localized-link'
 import { BUSINESS_CONTACT } from '@/lib/agents/content'
 
 const CUSTOMER_CARE_LINKS = [
@@ -19,14 +20,16 @@ const SOCIAL_LINKS = [
 
 const MARQUEE_TEXT = 'PREMIUM EQUIPMENT FOR PREMIUM DIVES'
 
-export default function Footer() {
+export default async function Footer() {
+  const t = await getTranslator()
+
   const marqueeContent = Array.from({ length: 8 }, (_, i) => (
     <span
       key={i}
       className="mx-8 flex h-full items-center whitespace-nowrap tracking-[-0.02em] text-white"
       style={{ fontFamily: 'var(--font-dela-gothic), sans-serif', fontSize: '200px', lineHeight: '200px', fontWeight: 800 }}
     >
-      {MARQUEE_TEXT}
+      {t(MARQUEE_TEXT)}
     </span>
   ))
 
@@ -70,7 +73,7 @@ export default function Footer() {
           >
             <Image
               src="/meister-logo.svg"
-              alt="Meister"
+              alt={t("Meister")}
               width={170}
               height={40}
               className="h-auto max-w-full"
@@ -88,17 +91,17 @@ export default function Footer() {
               className="text-center text-xs tracking-[0.05em] text-white lg:max-w-xs lg:text-left"
               style={{ fontFamily: 'var(--font-space-mono), monospace' }}
             >
-              SIGN UP TO OUR NEWSLETTER TO RECEIVE LATEST UPDATES
+              {t("SIGN UP TO OUR NEWSLETTER TO RECEIVE LATEST UPDATES")}
             </p>
 
             <div className="flex w-full min-w-0 flex-1 items-center gap-2">
               <label htmlFor="footer-email" className="sr-only">
-                Email address
+                {t("Email address")}
               </label>
               <input
                 id="footer-email"
                 type="email"
-                placeholder="your@email.com"
+                placeholder={t("your@email.com")}
                 className="w-full min-w-0 cursor-not-allowed bg-transparent px-3 py-2 text-xs text-white placeholder-[#666666] outline-none md:text-sm"
                 style={{
                   border: '1px solid #444444',
@@ -110,9 +113,9 @@ export default function Footer() {
                 type="button"
                 className="btn-gold shrink-0 px-5 py-2 text-xs tracking-[0.1em] uppercase disabled:opacity-50 md:text-sm"
                 disabled
-                aria-label="Newsletter signup coming soon"
+                aria-label={t("Newsletter signup coming soon")}
               >
-                COMING SOON
+                {t("COMING SOON")}
               </button>
             </div>
 
@@ -120,7 +123,7 @@ export default function Footer() {
               className="hidden shrink-0 text-xs text-[#666666] sm:block"
               style={{ fontFamily: 'var(--font-space-mono), monospace' }}
             >
-              Not live yet
+              {t("Not live yet")}
             </span>
           </div>
         </div>
@@ -133,7 +136,7 @@ export default function Footer() {
               className="text-base font-bold tracking-[0.1em] text-white underline"
               style={{ fontFamily: 'var(--font-space-mono), monospace' }}
             >
-              Customer Care
+              {t("Customer Care")}
             </h3>
             <ul className="flex flex-col items-center gap-2" role="list">
               {CUSTOMER_CARE_LINKS.map(({ label, href }) => (
@@ -143,7 +146,7 @@ export default function Footer() {
                     className="text-base text-[#999999] transition-colors hover:text-[#FFD700]"
                     style={{ fontFamily: 'var(--font-space-mono), monospace' }}
                   >
-                    {label}
+                    {t(label)}
                   </Link>
                 </li>
               ))}
@@ -156,7 +159,7 @@ export default function Footer() {
               className="text-base font-bold tracking-[0.1em] text-white underline"
               style={{ fontFamily: 'var(--font-space-mono), monospace' }}
             >
-              Links
+              {t("Links")}
             </h3>
             <ul className="flex flex-col items-center gap-2" role="list">
               {SOCIAL_LINKS.map(({ label, href }) => (
@@ -168,7 +171,7 @@ export default function Footer() {
                     className="text-base text-[#999999] transition-colors hover:text-[#FFD700]"
                     style={{ fontFamily: 'var(--font-space-mono), monospace' }}
                   >
-                    {label}
+                    {t(label)}
                   </a>
                 </li>
               ))}
@@ -181,13 +184,13 @@ export default function Footer() {
               className="text-base font-bold tracking-[0.1em] text-white underline"
               style={{ fontFamily: 'var(--font-space-mono), monospace' }}
             >
-              Location
+              {t("Location")}
             </h3>
             <address
               className="flex flex-col items-center gap-2 text-base not-italic text-[#999999]"
               style={{ fontFamily: 'var(--font-space-mono), monospace' }}
             >
-              <p>{BUSINESS_CONTACT.streetAddress}, {BUSINESS_CONTACT.addressLocality} {BUSINESS_CONTACT.postalCode}</p>
+              <p>{t(BUSINESS_CONTACT.streetAddress)}, {t(BUSINESS_CONTACT.addressLocality)} {BUSINESS_CONTACT.postalCode}</p>
               <a
                 href={`mailto:${BUSINESS_CONTACT.email}`}
                 className="transition-colors hover:text-[#FFD700]"
@@ -202,7 +205,7 @@ export default function Footer() {
           <div className="flex flex-col items-center gap-0">
             <div className="w-full max-w-[280px] overflow-hidden" style={{ height: '230px' }}>
               <iframe
-                title="Meister Dive store location — Aigaleo, Athens"
+                title={t("Meister Dive store location — Aigaleo, Athens")}
                 src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3145.5!2d23.6822!3d37.9927!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x14a1bb8c4f6f0001%3A0x0!2sLeoforos%20Athinon%20387%2C%20Aigaleo!5e0!3m2!1sen!2sgr!4v1710000000000!5m2!1sen!2sgr"
                 width="280"
                 height="230"
@@ -224,7 +227,7 @@ export default function Footer() {
             className="text-center text-xs text-[#999999]"
             style={{ fontFamily: 'var(--font-space-mono), monospace' }}
           >
-            &copy;Meister &amp; Meister Dive 2025 | All rights reserved.
+            {t("©Meister & Meister Dive 2025 | All rights reserved.")}
           </p>
         </div>
       </div>

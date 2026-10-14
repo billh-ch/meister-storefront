@@ -1,3 +1,4 @@
+import { getTranslator } from '@/lib/i18n/server'
 import { getLocale } from '@/lib/i18n/server'
 import { translate } from '@/lib/i18n'
 import type { Metadata } from 'next'
@@ -28,6 +29,8 @@ export async function generateMetadata(): Promise<Metadata> { return {
  * trusting a single layer.
  */
 export default async function AccountPage() {
+  const t = await getTranslator()
+
   const session = await getSession()
   const wcCustomerId = session.wcCustomerId
   if (!wcCustomerId) redirect('/sign-in?redirect_url=/account')
@@ -50,7 +53,7 @@ export default async function AccountPage() {
             className="text-2xl text-white sm:text-3xl md:text-4xl"
             style={{ fontFamily: DISPLAY, fontWeight: 800 }}
           >
-            YOUR ACCOUNT
+            {t("YOUR ACCOUNT")}
           </h1>
           <LogoutButton />
         </div>
@@ -60,7 +63,7 @@ export default async function AccountPage() {
             className="mb-4 text-lg text-white sm:text-xl"
             style={{ fontFamily: DISPLAY, fontWeight: 800 }}
           >
-            YOUR ADDRESS
+            {t("YOUR ADDRESS")}
           </h2>
           <AddressForm initialAddress={initialAddress} />
         </div>
@@ -69,7 +72,7 @@ export default async function AccountPage() {
           className="mb-4 text-lg text-white sm:text-xl"
           style={{ fontFamily: DISPLAY, fontWeight: 800 }}
         >
-          YOUR ORDERS
+          {t("YOUR ORDERS")}
         </h2>
 
         {orders.length === 0 ? (
@@ -78,7 +81,7 @@ export default async function AccountPage() {
             style={{ border: '1px solid #444444' }}
           >
             <p className="text-sm text-[#999999]" style={{ fontFamily: MONO }}>
-              NO ORDERS YET
+              {t("NO ORDERS YET")}
             </p>
           </div>
         ) : (
@@ -87,16 +90,16 @@ export default async function AccountPage() {
               <div key={order.id} className="p-4" style={{ borderBottom: '1px solid #222222' }}>
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   <span className="text-sm font-bold text-white" style={{ fontFamily: MONO }}>
-                    Order #{order.number}
+                    {t("Order #")}{order.number}
                   </span>
                   <span className="text-xs text-[#999999]" style={{ fontFamily: MONO }}>
-                    {new Date(order.dateCreated).toLocaleDateString('el-GR')}
+                    {new Date(order.dateCreated).toLocaleDateString("el-GR")}
                   </span>
                   <span
                     className="text-xs font-bold tracking-wide uppercase"
                     style={{ fontFamily: MONO, color: '#4ADE80' }}
                   >
-                    {order.status}
+                    {t(order.status)}
                   </span>
                   <span className="text-sm font-bold text-white" style={{ fontFamily: MONO }}>
                     {formatPrice(order.total)}
