@@ -5,6 +5,7 @@ const browser=await chromium.launch({headless:true,executablePath:process.env.CH
 try {
  const page=await browser.newPage({viewport:{width:1440,height:1000}});const errors=[];page.on('pageerror',e=>errors.push(e.message))
  await page.goto(origin+'/'); await page.waitForLoadState('networkidle');assert.equal(new URL(page.url()).pathname,'/')
+ await page.getByRole('button', { name: /Choose language:|Επιλογή γλώσσας:/ }).click()
  await page.getByRole('link',{name:'Αλλαγή γλώσσας σε Ελληνικά'}).first().click();await page.waitForURL('**/el');await page.waitForLoadState('networkidle')
  await page.goto(origin+'/');await page.waitForURL('**/el');assert.equal(await page.locator('html').getAttribute('lang'),'el')
  await page.goto(origin+'/shop');assert.equal(await page.locator('html').getAttribute('lang'),'en')
@@ -15,6 +16,7 @@ try {
  await page.getByRole('button',{name:'Κλείσιμο επιβεβαίωσης καλαθιού'}).click()
  const cartBefore=(await page.context().cookies()).find(c=>c.name==='mm_cart')?.value;assert.ok(cartBefore)
  const stored=await page.evaluate(()=>Object.fromEntries(Object.entries(localStorage).filter(([key])=>/^mm_(wishlist|compare)/.test(key))))
+ await page.getByRole('button', { name: /Choose language:|Επιλογή γλώσσας:/ }).click()
  await page.getByRole('link',{name:'Switch language to English'}).first().click();await page.waitForURL('**/shop');await page.waitForLoadState('networkidle')
  assert.equal((await page.context().cookies()).find(c=>c.name==='mm_cart')?.value,cartBefore)
  assert.deepEqual(await page.evaluate(()=>Object.fromEntries(Object.entries(localStorage).filter(([key])=>/^mm_(wishlist|compare)/.test(key)))),stored)
@@ -54,6 +56,7 @@ try {
  assert.match(Buffer.from(variantCookie,'base64url').toString('utf8'),/"Options":"S"/)
  await page.getByRole('button',{name:'Κλείσιμο επιβεβαίωσης καλαθιού'}).click()
  await page.getByRole('button',{name:'Άνοιγμα μενού'}).click()
+ await page.locator('#mobile-menu').getByRole('button', { name: /Choose language:|Επιλογή γλώσσας:/ }).click()
  await page.locator('#mobile-menu').getByRole('link',{name:'Switch language to English'}).click()
  await page.waitForURL('**/products/hood-3mm')
  assert.equal((await page.context().cookies()).find(c=>c.name==='mm_cart').value,variantCookie)

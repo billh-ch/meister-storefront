@@ -291,11 +291,17 @@ body:has(dialog[open]) .compare-tray { display: none; }
    supplies native Greek catalog glyphs on English pages too. */
 html {
   --font-space-mono: var(--font-english-mono), var(--font-cascadia-mono);
-  --font-dela-gothic: var(--font-english-display), var(--font-cascadia-mono);
+  --font-dela-gothic: var(--font-syne);
 }
 html[lang="el"] {
   --font-space-mono: var(--font-cascadia-mono);
-  --font-dela-gothic: var(--font-cascadia-mono);
+  font-synthesis: none;
+}
+/* Semantic headings keep the same bold display face in both languages,
+   including headings with older inline mono styles. */
+:is(h1, h2, h3, h4, h5, h6) {
+  font-family: var(--font-syne), sans-serif !important;
+  font-weight: 700 !important;
   font-synthesis: none;
 }
 /* Cascadia's Google Fonts range tops out at 700, including inline weights. */

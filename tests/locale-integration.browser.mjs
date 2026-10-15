@@ -151,6 +151,7 @@ try {
     await page.goto(base + prefix + '/cart')
     await page.evaluate(() => { localStorage.setItem('mm_wishlist_guest', '["501"]'); localStorage.setItem('mm_compare_v1', JSON.stringify([{ id: '501', name: 'Catalog fins', category: 'fins' }])) })
     const savedBefore = await page.evaluate(() => [localStorage.getItem('mm_wishlist_guest'), localStorage.getItem('mm_compare_v1')])
+    await page.getByRole('button', { name: /Choose language:|Επιλογή γλώσσας:/ }).click()
     await page.getByRole('link', { name: locale === 'el' ? 'Switch language to English' : 'Αλλαγή γλώσσας σε Ελληνικά' }).first().click()
     await page.waitForURL(base + (locale === 'el' ? '/cart' : '/el/cart'))
     assert.equal((await context.cookies()).find(cookie => cookie.name === 'mm_cart').value, before)

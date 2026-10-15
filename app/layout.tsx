@@ -1,7 +1,7 @@
 import { getLocale } from '@/lib/i18n/server'
 import { LocaleProvider } from '@/components/i18n/locale-provider'
 import type { Metadata } from 'next'
-import { Cascadia_Mono, Space_Mono, Zalando_Sans_Expanded } from 'next/font/google'
+import { Cascadia_Mono, Space_Mono, Syne } from 'next/font/google'
 import './globals.css'
 import CompareProvider from '@/components/compare/provider'
 import WishlistProvider from '@/components/wishlist/provider'
@@ -10,16 +10,11 @@ import CartAddedBanner from '@/components/cart/cart-added-banner'
 import { buildPageMetadata } from '@/lib/seo/metadata'
 import { getPublicSiteUrl } from '@/lib/seo/site'
 
-/**
- * Zalando Sans Expanded — display heading font.
- * Loaded as a variable font (wght 200–900) because headings request both
- * 700 and 800; a single static weight would force the browser to fake the
- * heavier one with synthetic bold.
- */
-const zalandoSansExpanded = Zalando_Sans_Expanded({
-  style: 'normal',
-  subsets: ['latin'],
-  variable: '--font-english-display',
+/** Syne — shared bold heading font, including native Greek glyphs. */
+const syne = Syne({
+  weight: '700',
+  subsets: ['latin', 'greek'],
+  variable: '--font-syne',
   display: 'swap',
 })
 
@@ -57,7 +52,7 @@ export default async function RootLayout({
     <html
       lang={locale}
       dir="ltr"
-      className={`${zalandoSansExpanded.variable} ${spaceMono.variable} ${cascadiaMono.variable}`}
+      className={`${syne.variable} ${spaceMono.variable} ${cascadiaMono.variable}`}
     >
       <body className="min-h-screen antialiased">
         <LocaleProvider locale={locale}>

@@ -45,9 +45,11 @@ try {
   if(testCase==='switch') {
    const plain='/missing-store-page?ref=a%20b#detail'
    await page.goto(origin+'/el'+plain);await page.waitForLoadState('networkidle')
+   await page.getByRole('button', { name: /Choose language:|Επιλογή γλώσσας:/ }).click()
    const english=page.getByRole('link',{name:'Switch language to English'}).first()
    assert.equal(await english.getAttribute('href'),plain)
    await english.click();await page.waitForLoadState('networkidle');assert.equal(new URL(page.url()).pathname,'/missing-store-page');assert.equal(new URL(page.url()).search,'?ref=a%20b');assert.equal(new URL(page.url()).hash,'#detail');assert.equal(await page.locator('html').getAttribute('lang'),'en')
+   await page.getByRole('button', { name: /Choose language:|Επιλογή γλώσσας:/ }).click()
    const greek=page.getByRole('link',{name:'Αλλαγή γλώσσας σε Ελληνικά'}).first();assert.equal(await greek.getAttribute('href'),'/el'+plain)
    await greek.click();await page.waitForLoadState('networkidle');assert.equal(new URL(page.url()).pathname,'/el/missing-store-page');assert.equal(new URL(page.url()).search,'?ref=a%20b');assert.equal(new URL(page.url()).hash,'#detail');assert.equal(await page.locator('html').getAttribute('lang'),'el')
    for(const path of ['/el/api/cart','/el/docs','/el/%61pi/cart','/el/%64ocs','/el/logo%2esvg','/el/_next/image'])assert.equal((await page.request.get(origin+path)).status(),404)
