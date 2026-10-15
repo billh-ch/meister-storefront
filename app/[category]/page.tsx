@@ -1,3 +1,5 @@
+import { getLocale } from '@/lib/i18n/server'
+import { translate } from '@/lib/i18n'
 import type { Metadata } from 'next'
 import { buildCollectionMetadata, categoryMetadata } from '@/lib/seo/metadata'
 import { notFound } from 'next/navigation'
@@ -30,7 +32,7 @@ interface CategoryPageProps {
 export async function generateMetadata({ params, searchParams }: CategoryPageProps): Promise<Metadata> {
   const { category: slug } = await params
   const category = findCategory(slug)
-  if (!category) return { title: 'Not found — Meister', alternates: { canonical: null }, robots: { index: false, follow: true } }
+  if (!category) return { title: translate(await getLocale(), 'Not found — Meister'), alternates: { canonical: null }, robots: { index: false, follow: true } }
   const sp = await searchParams
   const products = await getProducts()
   const collection = paginateProducts(products.filter(product => product.category === slug), {
@@ -38,6 +40,7 @@ export async function generateMetadata({ params, searchParams }: CategoryPagePro
   })
   const copy = categoryMetadata[slug]
   return buildCollectionMetadata({
+    locale: await getLocale(),
     title: copy?.title || `${category.name} — Meister`,
     description: copy?.description || `Browse ${category.name.toLowerCase()} at Meister.`,
     path: `/${slug}`, currentPage: collection.currentPage, searchParams: sp,

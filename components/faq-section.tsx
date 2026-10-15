@@ -1,3 +1,4 @@
+import { getTranslator } from '@/lib/i18n/server'
 import AccordionItem from '@/components/product/accordion-item'
 import { homepageFaqs } from '@/lib/mock-data'
 
@@ -8,24 +9,26 @@ import { homepageFaqs } from '@/lib/mock-data'
  *
  * Server Component: static content, no interactivity of its own.
  */
-export default function FaqSection() {
+export default async function FaqSection() {
+  const t = await getTranslator()
+
   return (
     <section
       className="w-full px-6 py-20 md:px-10"
       style={{ backgroundColor: '#1B1B18' }}
-      aria-label="Frequently asked questions"
+      aria-label={t("Frequently asked questions")}
     >
       <h2
         className="mb-12 text-center text-3xl text-white md:text-5xl"
         style={{ fontFamily: 'var(--font-dela-gothic), sans-serif', fontWeight: 800 }}
       >
-        FREQUENTLY ASKED QUESTIONS
+        {t("FREQUENTLY ASKED QUESTIONS")}
       </h2>
 
       <div className="mx-auto max-w-[820px]">
         {homepageFaqs.map((faq, index) => (
-          <AccordionItem key={faq.q} title={faq.q} defaultOpen={index === 0}>
-            <p className="product-prose">{faq.a}</p>
+          <AccordionItem key={faq.q} title={t(faq.q)} defaultOpen={index === 0}>
+            <p className="product-prose">{t(faq.a)}</p>
           </AccordionItem>
         ))}
       </div>

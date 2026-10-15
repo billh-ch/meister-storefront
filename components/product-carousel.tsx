@@ -1,8 +1,9 @@
 'use client'
+import { useTranslation } from '@/components/i18n/locale-provider'
 
 import useEmblaCarousel from 'embla-carousel-react'
 import { useCallback, useEffect, useState } from 'react'
-import Link from 'next/link'
+import Link from '@/components/i18n/localized-link'
 import ProductCard from './product-card'
 import { type Product } from '@/lib/mock-data'
 import { useSlideWidth } from '@/lib/hooks/use-slide-width'
@@ -23,6 +24,8 @@ export default function ProductCarousel({
   viewAllHref = '/shop',
   ariaLabel = 'Most wanted products',
 }: ProductCarouselProps) {
+  const t = useTranslation()
+
   const [emblaRef, emblaApi] = useEmblaCarousel({
     loop: false,
     align: 'start',
@@ -58,7 +61,7 @@ export default function ProductCarousel({
     <section
       className="w-full py-16"
       style={{ backgroundColor: '#1B1B18' }}
-      aria-label={ariaLabel}
+      aria-label={t(ariaLabel)}
     >
       {/* Section header */}
       <div className="mb-6 flex items-center justify-between px-4 sm:mb-8 sm:px-6 md:px-10">
@@ -66,7 +69,7 @@ export default function ProductCarousel({
           className="text-2xl text-white sm:text-3xl md:text-5xl"
           style={{ fontFamily: 'var(--font-dela-gothic), sans-serif', fontWeight: 800 }}
         >
-          {title}
+          {t(title)}
         </h2>
 
         {/* VIEW ALL button — thick yellow border, dark bg, white text */}
@@ -80,7 +83,7 @@ export default function ProductCarousel({
               fontFamily: 'var(--font-space-mono), monospace',
             }}
           >
-            VIEW ALL
+            {t("VIEW ALL")}
           </Link>
         )}
       </div>
@@ -106,7 +109,7 @@ export default function ProductCarousel({
         <button
           onClick={scrollPrev}
           className="absolute left-2 top-1/2 z-10 flex h-10 w-10 -translate-y-1/2 cursor-pointer items-center justify-center border border-[#444444] bg-[#1B1B18]/80 text-white backdrop-blur-sm transition-colors hover:border-[#FFD700] hover:text-[#FFD700] disabled:opacity-30 sm:left-3 sm:h-11 sm:w-11"
-          aria-label="Show previous products"
+          aria-label={t("Show previous products")}
           disabled={!canScrollPrev}
         >
           <ChevronLeft />
@@ -116,7 +119,7 @@ export default function ProductCarousel({
         <button
           onClick={scrollNext}
           className="absolute right-2 top-1/2 z-10 flex h-10 w-10 -translate-y-1/2 cursor-pointer items-center justify-center border border-[#444444] bg-[#1B1B18]/80 text-white backdrop-blur-sm transition-colors hover:border-[#FFD700] hover:text-[#FFD700] disabled:opacity-30 sm:right-3 sm:h-11 sm:w-11"
-          aria-label="Show next products"
+          aria-label={t("Show next products")}
           disabled={!canScrollNext}
         >
           <ChevronRight />

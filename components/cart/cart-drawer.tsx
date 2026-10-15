@@ -1,8 +1,10 @@
 'use client'
+import { useTranslation, useLocale } from '@/components/i18n/locale-provider'
 
-import Link from 'next/link'
+import Link from '@/components/i18n/localized-link'
 import Image from 'next/image'
 import { useCallback, useEffect, useRef, useState } from 'react'
+import { stripLocale } from '@/lib/i18n'
 import { usePathname } from 'next/navigation'
 import type { ResolvedCart } from '@/lib/cart/resolve'
 import { cartLineKey } from '@/lib/cart/line-key'
@@ -15,6 +17,9 @@ const MONO = 'var(--font-space-mono), monospace'
 
 /** Native dialog provides modal focus trapping, Escape and focus restoration. */
 export default function CartDrawer() {
+  const t = useTranslation()
+  const locale = useLocale()
+
   const dialogRef = useRef<HTMLDialogElement>(null)
   const abortRef = useRef<AbortController | null>(null)
   const originalOverflow = useRef<string | null>(null)
@@ -22,7 +27,7 @@ export default function CartDrawer() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [mutationPending, setMutationPending] = useState(false)
-  const pathname = usePathname()
+  const pathname = stripLocale(usePathname())
 
   const restoreScroll = useCallback(() => {
     if (originalOverflow.current !== null) {
@@ -44,7 +49,7 @@ export default function CartDrawer() {
     setLoading(true)
     setError('')
     try {
-      const response = await fetch('/api/cart', { cache: 'no-store', signal: controller.signal })
+      const response = await fetch(`/api/cart?locale=${locale}`, { cache: 'no-store', signal: controller.signal })
       if (!response.ok) throw new Error('Cart unavailable')
       const next: ResolvedCart = await response.json()
       if (!controller.signal.aborted) setCart(next)
@@ -53,7 +58,7 @@ export default function CartDrawer() {
     } finally {
       if (!controller.signal.aborted) setLoading(false)
     }
-  }, [])
+  }, [locale])
 
   useEffect(() => {
     const open = (event: Event) => {
@@ -95,28 +100,28 @@ export default function CartDrawer() {
     >
       <div className="flex h-full min-w-0 flex-col">
         <header className="flex items-center justify-between gap-4 border-b border-white p-5">
-          <h2 id="cart-drawer-heading" className="text-lg font-bold">Your cart</h2>
-          <button type="button" onClick={close} aria-label="Close cart" className="min-h-11 min-w-11 text-xl">×</button>
+          <h2 id="cart-drawer-heading" className="text-lg font-bold">{t("Your cart")}</h2>
+          <button type="button" onClick={close} aria-label={t("Close cart")} className="min-h-11 min-w-11 text-xl">×</button>
         </header>
         <div className="min-h-0 flex-1 overflow-y-auto p-5" aria-busy={loading}>
-          {loading && <p role="status" className="mb-4 text-sm">Updating your cart…</p>}
+          {loading && <p role="status" className="mb-4 text-sm">{t("Updating your cart…")}</p>}
           {error ? (
             <div>
-              <p role="alert" className="text-sm">{error}</p>
-              <button type="button" onClick={() => void loadCart()} className="mt-3 min-h-11 underline">Retry</button>
+              <p role="alert" className="text-sm">{t(error)}</p>
+              <button type="button" onClick={() => void loadCart()} className="mt-3 min-h-11 underline">{t("Retry")}</button>
             </div>
           ) : cart && (
             <>
-              {cart.unavailableCount > 0 && <p role="status" className="mb-4 text-sm">Some items are no longer available. Review your cart before checkout.</p>}
+              {cart.unavailableCount > 0 && <p role="status" className="mb-4 text-sm">{t("Some items are no longer available. Review your cart before checkout.")}</p>}
               {cart.lines.length === 0 ? (
                 <div className="flex flex-col gap-4">
-                  <p>Your cart is empty.</p>
-                  <Link href="/shop" onClick={close} className="btn-gold px-4 py-3 text-center text-xs">Explore the range</Link>
+                  <p>{t("Your cart is empty.")}</p>
+                  <Link href="/shop" onClick={close} className="btn-gold px-4 py-3 text-center text-xs">{t("Explore the range")}</Link>
                 </div>
               ) : (
                 <>
                   <fieldset disabled={mutationPending || loading}>
-                    {onCheckoutPage && <p className="mb-4 text-xs">To change quantities, open the full cart before returning to checkout.</p>}
+                    {onCheckoutPage && <p className="mb-4 text-xs">{t("To change quantities, open the full cart before returning to checkout.")}</p>}
                     <ul className="flex flex-col gap-6">
                       {cart.lines.map(line => (
                         <li key={cartLineKey(line)} className="flex min-w-0 flex-col gap-3 border-b border-white/20 pb-5">
@@ -128,9 +133,9 @@ export default function CartDrawer() {
                             )}
                             <div className="flex min-w-0 flex-1 flex-col gap-2 break-words">
                               <Link href={`/products/${line.slug}`} onClick={close} className="text-sm font-bold">{line.name}</Link>
-                              {Object.entries(line.attributes).map(([name, value]) => <p key={name} className="text-xs">{name}: {value}</p>)}
+                              {Object.entries(line.attributes).map(([name, value]) => <p key={name} className="text-xs">{t(name)}: {value}</p>)}
                               <p className="text-sm">{formatPrice(line.unitPrice)} × {line.quantity}</p>
-                              {line.checkoutIssue ? <p className="text-xs text-[#FF6B6B]">{line.checkoutIssue}</p> : !line.purchasable && <p className="text-xs">Out of stock</p>}
+                              {line.checkoutIssue ? <p className="text-xs text-[#FF6B6B]">{t(line.checkoutIssue)}</p> : !line.purchasable && <p className="text-xs">{t("Out of stock")}</p>}
                             </div>
                           </div>
                           {!onCheckoutPage && <CartLineControls productId={line.productId} variationId={line.variationId} selectedOptions={line.selectedOptions} quantity={line.quantity} onPendingChange={setMutationPending} />}
@@ -145,10 +150,10 @@ export default function CartDrawer() {
           )}
         </div>
         <footer className="flex flex-col gap-3 border-t border-white p-5">
-          {cart && !error && <p className="flex justify-between text-sm"><span>Subtotal</span><span>{formatPrice(cart.subtotal)}</span></p>}
-          <p className="text-xs">Delivery is calculated at checkout.</p>
-          {checkoutAllowed && !loading && !mutationPending && !error && <Link href="/checkout" onClick={close} className="btn-gold px-4 py-3 text-center text-xs">Checkout</Link>}
-          <Link href="/cart" onClick={close} className="py-2 text-center text-xs underline">View full cart</Link>
+          {cart && !error && <p className="flex justify-between text-sm"><span>{t("Subtotal")}</span><span>{formatPrice(cart.subtotal)}</span></p>}
+          <p className="text-xs">{t("Delivery is calculated at checkout.")}</p>
+          {checkoutAllowed && !loading && !mutationPending && !error && <Link href="/checkout" onClick={close} className="btn-gold px-4 py-3 text-center text-xs">{t("Checkout")}</Link>}
+          <Link href="/cart" onClick={close} className="py-2 text-center text-xs underline">{t("View full cart")}</Link>
         </footer>
       </div>
     </dialog>

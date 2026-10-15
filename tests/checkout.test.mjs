@@ -2,7 +2,8 @@ import test from 'node:test'
 import assert from 'node:assert/strict'
 import { countries, isCountryCode } from '../lib/address/countries.ts'
 import { createRequestGuard } from '../lib/checkout/request-guard.ts'
-import { products } from '../lib/mock-data.ts'
+import './helpers/typescript-imports.mjs'
+const { products } = await import('../lib/mock-data.ts')
 import { cartItemSchema } from '../lib/cart/schema.ts'
 import { asUnavailableProductPreview } from '../lib/woocommerce/preview-product.ts'
 

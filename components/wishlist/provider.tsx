@@ -1,5 +1,6 @@
 'use client'
 
+import { useTranslation, useLocale } from '@/components/i18n/locale-provider'
 import { createContext, useContext, useEffect, useState, useSyncExternalStore, type ReactNode } from 'react'
 import { usePathname } from 'next/navigation'
 import { WishlistStore, type AccountWishlist } from '@/lib/wishlist/store'
@@ -10,13 +11,14 @@ async function responseData(response: Response): Promise<AccountWishlist> {
   return response.json()
 }
 export default function WishlistProvider({ children }: { children: ReactNode }) {
+  const locale = useLocale()
   const [store] = useState(() => new WishlistStore({
     read: key => window.localStorage.getItem(key),
     write: (key, value) => window.localStorage.setItem(key, value),
-    load: () => fetch('/api/wishlist', { cache: 'no-store' }).then(responseData),
+    load: () => fetch(`/api/wishlist?locale=${locale}`, { cache: 'no-store' }).then(responseData),
     change: (customerId, additions, removals) => fetch('/api/wishlist', {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ customerId, additions, removals }),
+      body: JSON.stringify({ customerId, additions, removals, locale }),
     }).then(responseData),
   }))
   const pathname = usePathname()
@@ -45,12 +47,13 @@ export function useWishlist() {
   return { ...state, toggle: store.toggle, retry: store.sync }
 }
 function WishlistFeedback() {
+  const t = useTranslation()
   const { error, message, retry, syncing } = useWishlist()
   return <>
-    <p className="sr-only" role="status">{message}</p>
-    {error && <aside aria-label="Wishlist synchronization" className="fixed bottom-4 left-3 z-[70] max-w-[calc(100vw-24px)] border border-[#FFD700] bg-[#1B1B18] p-4 text-xs text-white shadow-xl sm:left-6 sm:max-w-sm">
-      <p role="status">{error}</p>
-      <button type="button" disabled={syncing} onClick={() => void retry()} className="mt-2 min-h-11 px-3 font-bold text-[#FFD700] underline disabled:opacity-50">{syncing ? 'Syncing…' : 'Retry wishlist sync'}</button>
+    <p className="sr-only" role="status">{t(message)}</p>
+    {error && <aside aria-label={t("Wishlist synchronization")} className="fixed bottom-4 left-3 z-[70] max-w-[calc(100vw-24px)] border border-[#FFD700] bg-[#1B1B18] p-4 text-xs text-white shadow-xl sm:left-6 sm:max-w-sm">
+      <p role="status">{t(error)}</p>
+      <button type="button" disabled={syncing} onClick={() => void retry()} className="mt-2 min-h-11 px-3 font-bold text-[#FFD700] underline disabled:opacity-50">{t(syncing ? 'Syncing…' : 'Retry wishlist sync')}</button>
     </aside>}
   </>
 }

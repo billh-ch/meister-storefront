@@ -1,3 +1,4 @@
+import { localePath, isShopperPath } from '@/lib/i18n/paths'
 import { informationPages } from '@/lib/agents/content'
 import { canonicalProductUrl, getPublicSiteUrl, isIndexingAllowed } from './site'
 type Environment = Parameters<typeof getPublicSiteUrl>[0]
@@ -9,12 +10,13 @@ export function buildSitemapUrls(products: SitemapProduct[], categories: string[
     throw new Error('Sitemaps require real published products.')
   }
   const site = getPublicSiteUrl(env)
-  return [...new Set([
+  const english = [...new Set([
     site.href, new URL('/shop', site).href,
     ...categories.map(slug => new URL(`/${encodeURIComponent(slug)}`, site).href),
     ...Object.keys(informationPages).map(path => new URL(path, site).href),
     ...products.map(product => canonicalProductUrl(product.slug, env)),
   ])]
+  return [...english, ...english.filter(url => isShopperPath(new URL(url).pathname)).map(url => new URL(localePath(new URL(url).pathname, 'el'), site).href)]
 }
 
 function xmlEscape(value: string): string {
@@ -33,7 +35,11 @@ export async function sitemapResponse(
   try {
     const products = isIndexingAllowed(env) ? await loadProducts() : []
     const urls = buildSitemapUrls(products, categories, env)
-    const xml = `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls.map(url => `  <url><loc>${xmlEscape(url)}</loc></url>`).join('\n')}\n</urlset>`
+    const xml = `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">\n${urls.map(url => {
+      const parsed = new URL(url)
+      const alternates = isShopperPath(parsed.pathname) ? ['en', 'el', 'x-default'].map(locale => `<xhtml:link rel="alternate" hreflang="${locale}" href="${xmlEscape(new URL(localePath(parsed.pathname, locale === 'el' ? 'el' : 'en'), parsed.origin).href)}"/>`).join('') : ''
+      return `  <url><loc>${xmlEscape(url)}</loc>${alternates}</url>`
+    }).join('\n')}\n</urlset>`
     return new Response(xml, { headers: { 'Content-Type': 'application/xml; charset=utf-8', 'Cache-Control': isIndexingAllowed(env) ? 'no-store' : 'private, no-store' } })
   } catch {
     return new Response('Sitemap temporarily unavailable. Please retry later.', { status: 503, headers: { 'Cache-Control': 'no-store', 'Retry-After': '60', 'Content-Type': 'text/plain; charset=utf-8' } })

@@ -1,5 +1,7 @@
 'use server'
 
+import { getTranslator } from '@/lib/i18n/server'
+
 import { revalidatePath } from 'next/cache'
 import { getSession } from '@/lib/auth/session'
 import { addressSchema, type AddressInput } from '@/lib/address/schema'
@@ -14,21 +16,22 @@ export type AccountActionResult = { ok: true } | { ok: false; error: string }
  * user, since saving is the entire point of this action.
  */
 export async function updateAddressAction(input: AddressInput): Promise<AccountActionResult> {
+  const t = await getTranslator()
   const session = await getSession()
   const wcCustomerId = session.wcCustomerId
   if (!wcCustomerId) {
-    return { ok: false, error: 'Please sign in to continue.' }
+    return { ok: false, error: t('Please sign in to continue.') }
   }
 
   const parsed = addressSchema.safeParse(input)
   if (!parsed.success) {
-    return { ok: false, error: 'Please fill in every required field.' }
+    return { ok: false, error: t('Please fill in every required field.') }
   }
 
   try {
     await updateWcCustomerAddress(wcCustomerId, toWcAddress(parsed.data))
   } catch {
-    return { ok: false, error: 'Could not save your address. Please try again.' }
+    return { ok: false, error: t('Could not save your address. Please try again.') }
   }
 
   revalidatePath('/account')

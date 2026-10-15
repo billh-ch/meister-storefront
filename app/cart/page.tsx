@@ -1,6 +1,9 @@
+import { getTranslator } from '@/lib/i18n/server'
+import { getLocale } from '@/lib/i18n/server'
+import { translate } from '@/lib/i18n'
 import type { Metadata } from 'next'
 import Image from 'next/image'
-import Link from 'next/link'
+import Link from '@/components/i18n/localized-link'
 import Navbar from '@/components/navbar'
 import Footer from '@/components/footer'
 import SimpleBreadcrumbs from '@/components/collection/simple-breadcrumbs'
@@ -15,17 +18,19 @@ import { formatPrice } from '@/lib/mock-data'
 const MONO = 'var(--font-space-mono), monospace'
 const DISPLAY = 'var(--font-dela-gothic), sans-serif'
 
-export const metadata: Metadata = {
+export async function generateMetadata(): Promise<Metadata> { return {
   robots: { index: false, follow: false },
   alternates: { canonical: null },
-  title: 'Your Cart — Meister',
-}
+  title: translate(await getLocale(), 'Your Cart — Meister'),
+} }
 
 /**
  * Static path segment, publicly viewable — no sign-in required to see or edit
  * the cart, and none to check out either: `/checkout` supports guest orders.
  */
 export default async function CartPage() {
+  const t = await getTranslator()
+
   const cart = await getCart()
   const resolved = await resolveCartItems(cart)
   const hasPurchasableLines = resolved.lines.length > 0 && resolved.unavailableCount === 0 && resolved.lines.every((line) => line.purchasable)
@@ -41,10 +46,10 @@ export default async function CartPage() {
             className="min-w-0 text-lg text-white sm:text-3xl md:text-4xl"
             style={{ fontFamily: DISPLAY, fontWeight: 800 }}
           >
-            YOUR CART
+            {t("YOUR CART")}
           </h1>
           <Link href="/shop" className="flex min-h-11 shrink-0 items-center whitespace-nowrap border border-white/30 px-2 text-[10px] text-white hover:border-[#FFD700] hover:text-[#FFD700] sm:px-4 sm:text-xs" style={{ fontFamily: MONO }}>
-            Continue shopping
+            {t("Continue shopping")}
           </Link>
         </div>
 
@@ -54,13 +59,13 @@ export default async function CartPage() {
             style={{ border: '1px solid #444444' }}
           >
             <p className="text-sm text-[#999999]" style={{ fontFamily: MONO }}>
-              YOUR CART IS EMPTY
+              {t("YOUR CART IS EMPTY")}
             </p>
             <Link
               href="/shop"
               className="btn-gold px-6 py-3 text-xs tracking-[0.1em] uppercase"
             >
-              BROWSE PRODUCTS
+              {t("BROWSE PRODUCTS")}
             </Link>
           </div>
         ) : (
@@ -76,8 +81,8 @@ export default async function CartPage() {
                   style={{ fontFamily: MONO, color: '#FF6B6B', borderBottom: '1px solid #444444' }}
                 >
                   {resolved.unavailableCount === 1
-                    ? 'One item in your cart is no longer available and has been removed from your total.'
-                    : `${resolved.unavailableCount} items in your cart are no longer available and have been removed from your total.`}
+                    ? t("One item in your cart is no longer available and has been removed from your total.")
+                    : t('{count} items in your cart are no longer available and have been removed from your total.', { count: resolved.unavailableCount })}
                 </p>
               )}
 
@@ -90,40 +95,40 @@ export default async function CartPage() {
                 >
                   <Link
                     href={`/products/${line.slug}`}
-                    className="relative h-24 w-24 flex-shrink-0 overflow-hidden bg-[#222222]"
+                    className="relative h-16 w-16 flex-shrink-0 sm:h-24 sm:w-24 overflow-hidden bg-[#222222]"
                   >
                     {line.image && (
                       <Image src={line.image} alt={line.name} fill className="object-cover" sizes="96px" />
                     )}
                   </Link>
 
-                  <div className="flex flex-1 flex-col gap-2">
-                    <div className="flex items-start justify-between gap-4">
+                  <div className="flex min-w-0 flex-1 flex-col gap-2">
+                    <div className="flex flex-wrap items-start justify-between gap-2">
                       <div>
                         <Link
                           href={`/products/${line.slug}`}
-                          className="text-sm font-bold text-white transition-colors hover:text-[#FFD700] sm:text-base"
+                          className="break-words text-sm font-bold text-white transition-colors hover:text-[#FFD700] sm:text-base"
                           style={{ fontFamily: MONO }}
                         >
                           {line.name}
                         </Link>
                         {Object.keys(line.attributes).length > 0 && (
                           <p className="mt-1 text-xs text-[#999999]" style={{ fontFamily: MONO }}>
-                            {formatVariationLabel(line.attributes)}
+                            {formatVariationLabel(line.attributes, ' · ', t)}
                           </p>
                         )}
                         {line.checkoutIssue ? (
                           <div className="mt-1 text-xs text-[#FF6B6B]">
-                            <p>{line.checkoutIssue}</p>
-                            <Link href={`/products/${line.slug}`} className="inline-flex min-h-11 items-center text-[#FFD700] underline">Choose options</Link>
-                            <p>Remove this saved item, then add it with your chosen options.</p>
+                            <p>{t(line.checkoutIssue)}</p>
+                            <Link href={`/products/${line.slug}`} className="inline-flex min-h-11 items-center text-[#FFD700] underline">{t("Choose options")}</Link>
+                            <p>{t("Remove this saved item, then add it with your chosen options.")}</p>
                           </div>
                         ) : !line.purchasable && (
                           <p
                             className="mt-1 text-xs font-bold tracking-wide"
                             style={{ fontFamily: MONO, color: '#FF6B6B' }}
                           >
-                            OUT OF STOCK
+                            {t("OUT OF STOCK")}
                           </p>
                         )}
                       </div>

@@ -1,3 +1,5 @@
+'use client'
+import { useTranslation } from '@/components/i18n/locale-provider'
 import type { AddressInput } from '@/lib/address/schema'
 import { countries, isCountryCode } from '@/lib/address/countries'
 
@@ -27,13 +29,15 @@ interface AddressFieldsProps {
  *  plain `FormData`. `idPrefix` keeps DOM ids unique if both ever render
  *  on the same page (matches `QuantityStepper`'s existing `id` prop). */
 export default function AddressFields({ defaultValues, idPrefix, onCountryChange, onShippingAddressChange }: AddressFieldsProps) {
+  const t = useTranslation()
+
   const country = defaultValues?.country?.trim().toUpperCase() ?? 'GR'
   return (
     <>
       <div className="flex gap-4">
         <div className="flex min-w-0 flex-1 flex-col gap-1">
           <label htmlFor={`${idPrefix}-first-name`} className={LABEL_CLASS} style={{ fontFamily: MONO }}>
-            First name
+            {t("First name")}
           </label>
           <input
             id={`${idPrefix}-first-name`}
@@ -48,7 +52,7 @@ export default function AddressFields({ defaultValues, idPrefix, onCountryChange
         </div>
         <div className="flex min-w-0 flex-1 flex-col gap-1">
           <label htmlFor={`${idPrefix}-last-name`} className={LABEL_CLASS} style={{ fontFamily: MONO }}>
-            Last name
+            {t("Last name")}
           </label>
           <input
             id={`${idPrefix}-last-name`}
@@ -65,7 +69,7 @@ export default function AddressFields({ defaultValues, idPrefix, onCountryChange
 
       <div className="flex flex-col gap-1">
         <label htmlFor={`${idPrefix}-address1`} className={LABEL_CLASS} style={{ fontFamily: MONO }}>
-          Address
+          {t("Address")}
         </label>
         <input
           id={`${idPrefix}-address1`}
@@ -82,7 +86,7 @@ export default function AddressFields({ defaultValues, idPrefix, onCountryChange
 
       <div className="flex flex-col gap-1">
         <label htmlFor={`${idPrefix}-address2`} className={LABEL_CLASS} style={{ fontFamily: MONO }}>
-          Apartment, suite, etc. (optional)
+          {t("Apartment, suite, etc. (optional)")}
         </label>
         <input
           id={`${idPrefix}-address2`}
@@ -98,7 +102,7 @@ export default function AddressFields({ defaultValues, idPrefix, onCountryChange
       <div className="flex gap-4">
         <div className="flex min-w-0 flex-1 flex-col gap-1">
           <label htmlFor={`${idPrefix}-city`} className={LABEL_CLASS} style={{ fontFamily: MONO }}>
-            City
+            {t("City")}
           </label>
           <input
             id={`${idPrefix}-city`}
@@ -114,7 +118,7 @@ export default function AddressFields({ defaultValues, idPrefix, onCountryChange
         </div>
         <div className="flex w-24 min-w-0 flex-col gap-1 sm:w-32">
           <label htmlFor={`${idPrefix}-postcode`} className={LABEL_CLASS} style={{ fontFamily: MONO }}>
-            Postcode
+            {t("Postcode")}
           </label>
           <input
             id={`${idPrefix}-postcode`}
@@ -133,7 +137,7 @@ export default function AddressFields({ defaultValues, idPrefix, onCountryChange
       <div className="flex gap-4">
         <div className="flex min-w-0 flex-1 flex-col gap-1">
           <label htmlFor={`${idPrefix}-country`} className={LABEL_CLASS} style={{ fontFamily: MONO }}>
-            Country
+            {t("Country")}
           </label>
           <select
             id={`${idPrefix}-country`}
@@ -145,15 +149,15 @@ export default function AddressFields({ defaultValues, idPrefix, onCountryChange
             className={FIELD_CLASS}
             style={{ ...FIELD_STYLE, backgroundColor: 'var(--color-dark)' }}
           >
-            <option value="" disabled>Select a country</option>
+            <option value="" disabled>{t("Select a country")}</option>
             {countries.map(country => (
-              <option key={country.code} value={country.code}>{country.name}</option>
+              <option key={country.code} value={country.code}>{t(country.name)}</option>
             ))}
           </select>
         </div>
         <div className="flex min-w-0 flex-1 flex-col gap-1">
           <label htmlFor={`${idPrefix}-phone`} className={LABEL_CLASS} style={{ fontFamily: MONO }}>
-            Phone
+            {t("Phone")}
           </label>
           <input
             id={`${idPrefix}-phone`}

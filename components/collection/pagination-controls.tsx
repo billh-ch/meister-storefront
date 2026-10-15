@@ -1,4 +1,6 @@
-import Link from 'next/link'
+'use client'
+import { useTranslation } from '@/components/i18n/locale-provider'
+import Link from '@/components/i18n/localized-link'
 import { filtersToSearchParams, type FilterParams } from '@/lib/collection'
 
 interface PaginationControlsProps {
@@ -42,13 +44,15 @@ export default function PaginationControls({
   query,
   activeFilters,
 }: PaginationControlsProps) {
+  const t = useTranslation()
+
   if (totalPages <= 1) return null
 
   const pages = Array.from({ length: totalPages }, (_, i) => i + 1)
 
   return (
     <nav
-      aria-label="Pagination"
+      aria-label={t("Pagination")}
       className="mt-8 flex items-center justify-center gap-2 sm:mt-12"
       style={{ fontFamily: MONO }}
     >
@@ -113,6 +117,8 @@ function PageLink({
   label: string
   children: React.ReactNode
 }) {
+  const t = useTranslation()
+
   if (disabled) {
     return (
       <span
@@ -128,7 +134,7 @@ function PageLink({
   return (
     <Link
       href={pageHref(basePath, page, sort, query, activeFilters)}
-      aria-label={label}
+      aria-label={t(label)}
       className="flex h-9 w-9 items-center justify-center text-sm transition-colors hover:border-[#FFD700] hover:text-[#FFD700]"
       style={{ border: '1px solid #444444', color: '#FFFFFF' }}
     >

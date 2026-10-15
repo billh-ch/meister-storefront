@@ -1,3 +1,4 @@
+import { getLocale } from '@/lib/i18n/server'
 import type { Metadata } from 'next'
 import { buildPageMetadata } from '@/lib/seo/metadata'
 import Navbar from '@/components/navbar'
@@ -16,6 +17,7 @@ import { categoryDetails } from '@/lib/mock-data'
 export async function generateMetadata(): Promise<Metadata> {
   const products = await getProducts()
   return buildPageMetadata({
+    locale: await getLocale(),
     title: 'Meister — Freediving & Spearfishing Equipment',
     description: 'Explore freediving and spearfishing equipment at Meister: fins, wetsuits, spearguns and diving accessories. Browse product specifications and available options.',
     path: '/',

@@ -1,7 +1,8 @@
 'use client'
+import { useTranslation, useLocalePath } from '@/components/i18n/locale-provider'
 
 import { useRef, useState } from 'react'
-import Link from 'next/link'
+import Link from '@/components/i18n/localized-link'
 import { useRouter, useSearchParams } from 'next/navigation'
 import {
   hasActiveFilters,
@@ -28,6 +29,9 @@ type ListKey = 'brand' | 'category'
  * behind a FILTERS button.
  */
 export default function FilterPanel({ basePath, facets, active }: FilterPanelProps) {
+  const t = useTranslation()
+  const lp = useLocalePath()
+
   const router = useRouter()
   const searchParams = useSearchParams()
 
@@ -46,7 +50,7 @@ export default function FilterPanel({ basePath, facets, active }: FilterPanelPro
     // carry into a now-shorter result set.
     params.delete('page')
     const query = params.toString()
-    router.push(query ? `${basePath}?${query}` : basePath)
+    router.push(lp(query ? `${basePath}?${query}` : basePath))
   }
 
   const toggleInList = (key: ListKey, value: string) => {
@@ -101,7 +105,7 @@ export default function FilterPanel({ basePath, facets, active }: FilterPanelPro
         aria-expanded={open}
         className="mb-4 flex w-full items-center justify-between border border-[#444444] px-3 py-2 text-xs text-white uppercase lg:hidden"
       >
-        <span>Filters{activeCount > 0 ? ` (${activeCount})` : ''}</span>
+        <span>{t("Filters")}{activeCount > 0 ? ` (${activeCount})` : ''}</span>
         <span aria-hidden="true">{open ? '−' : '+'}</span>
       </button>
 
@@ -111,24 +115,24 @@ export default function FilterPanel({ basePath, facets, active }: FilterPanelPro
             className="text-sm text-white uppercase"
             style={{ fontFamily: DISPLAY, fontWeight: 700 }}
           >
-            Filters
+            {t("Filters")}
           </h2>
           {hasActiveFilters(active) && (
             <Link
               href={basePath}
               className="text-xs text-[#999999] underline transition-colors hover:text-[#FFD700]"
             >
-              Clear all
+              {t("Clear all")}
             </Link>
           )}
         </div>
 
         {facets.categories.length > 0 && (
-          <FilterGroup title="Category">
+          <FilterGroup title={t("Category")}>
             {facets.categories.map((category) => (
               <CheckRow
                 key={category.value}
-                label={`${category.label} (${category.count})`}
+                label={`${t(category.label)} (${category.count})`}
                 checked={active.categories.includes(category.value)}
                 onChange={() => toggleInList('category', category.value)}
               />
@@ -137,7 +141,7 @@ export default function FilterPanel({ basePath, facets, active }: FilterPanelPro
         )}
 
         {facets.brands.length > 0 && (
-          <FilterGroup title="Brand">
+          <FilterGroup title={t("Brand")}>
             {facets.brands.map((brand) => (
               <CheckRow
                 key={brand.value}
@@ -149,7 +153,7 @@ export default function FilterPanel({ basePath, facets, active }: FilterPanelPro
           </FilterGroup>
         )}
 
-        <FilterGroup title="Price (EUR)">
+        <FilterGroup title={t("Price (EUR)")}>
           <form
             key={priceFormKey}
             className="flex items-center gap-2"
@@ -166,11 +170,11 @@ export default function FilterPanel({ basePath, facets, active }: FilterPanelPro
               defaultValue={active.minPrice ?? ''}
               onBlur={commitPrice}
               placeholder={String(facets.priceBounds.min)}
-              aria-label="Minimum price"
+              aria-label={t("Minimum price")}
               className="w-full min-w-0 border border-[#444444] bg-transparent px-2 py-1.5 text-xs text-white"
               style={{ fontFamily: MONO }}
             />
-            <span className="shrink-0 text-xs text-[#999999]">to</span>
+            <span className="shrink-0 text-xs text-[#999999]">{t("to")}</span>
             <input
               ref={maxRef}
               type="number"
@@ -179,17 +183,17 @@ export default function FilterPanel({ basePath, facets, active }: FilterPanelPro
               defaultValue={active.maxPrice ?? ''}
               onBlur={commitPrice}
               placeholder={String(facets.priceBounds.max)}
-              aria-label="Maximum price"
+              aria-label={t("Maximum price")}
               className="w-full min-w-0 border border-[#444444] bg-transparent px-2 py-1.5 text-xs text-white"
               style={{ fontFamily: MONO }}
             />
             <button type="submit" className="sr-only">
-              Apply price range
+              {t("Apply price range")}
             </button>
           </form>
         </FilterGroup>
 
-        <FilterGroup title="Offers">
+        <FilterGroup title={t("Offers")}>
           <CheckRow
             label="On sale only"
             checked={active.onSale}
@@ -208,9 +212,11 @@ function FilterGroup({
   title: string
   children: React.ReactNode
 }) {
+  const t = useTranslation()
+
   return (
     <div className="mb-5 border-t border-[#222222] pt-4 first:border-t-0 first:pt-0">
-      <h3 className="mb-2 text-xs tracking-wide text-[#999999] uppercase">{title}</h3>
+      <h3 className="mb-2 text-xs tracking-wide text-[#999999] uppercase">{t(title)}</h3>
       <div className="flex flex-col gap-1.5">{children}</div>
     </div>
   )
@@ -225,6 +231,8 @@ function CheckRow({
   checked: boolean
   onChange: () => void
 }) {
+  const t = useTranslation()
+
   return (
     <label className="flex cursor-pointer items-center gap-2 text-xs text-white">
       <input
@@ -234,7 +242,7 @@ function CheckRow({
         className="h-3.5 w-3.5 shrink-0 cursor-pointer"
         style={{ accentColor: '#FFD700' }}
       />
-      <span>{label}</span>
+      <span>{t(label)}</span>
     </label>
   )
 }

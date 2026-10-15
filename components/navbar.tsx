@@ -1,9 +1,12 @@
 'use client'
+import { useTranslation } from '@/components/i18n/locale-provider'
 
 import CompareNavLink from './compare/nav-link'
 import WishlistNavLink from './wishlist/nav-link'
 import Image from 'next/image'
-import Link from 'next/link'
+import Link from '@/components/i18n/localized-link'
+import LanguageSwitch from '@/components/i18n/language-switch'
+import { useLocalePath } from '@/components/i18n/locale-provider'
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { formatPrice } from '@/lib/mock-data'
 import type { SearchSuggestion } from '@/app/api/search-suggestions/route'
@@ -23,6 +26,9 @@ const NAV_LINKS = [
 
 /** Sticky navigation bar with logo, nav links, search, and cart/account icons. */
 export default function Navbar() {
+  const t = useTranslation()
+
+  const localePath = useLocalePath()
   const [menuOpen, setMenuOpen] = useState(false)
   const [searchOpen, setSearchOpen] = useState(false)
   const [query, setQuery] = useState('')
@@ -127,17 +133,17 @@ export default function Navbar() {
     >
       <nav
         className="mx-auto flex max-w-[1400px] items-center justify-between px-3 py-3 sm:px-6 sm:py-4"
-        aria-label="Main navigation"
+        aria-label={t("Main navigation")}
       >
         {/* Logo */}
         <Link
           href="/"
           className="flex-shrink-0"
-          aria-label="Meister — home"
+          aria-label={t("Meister — home")}
         >
           <Image
             src="/meister-logo.svg"
-            alt="Meister"
+            alt={t("Meister")}
             width={140}
             height={40}
             className="w-[104px] sm:w-[140px]"
@@ -154,7 +160,7 @@ export default function Navbar() {
                 className="text-sm font-bold tracking-wider text-white transition-colors duration-150 hover:text-[#FFD700]"
                 style={{ fontFamily: 'var(--font-space-mono), monospace' }}
               >
-                {label}
+                {t(label)}
               </Link>
             </li>
           ))}
@@ -162,6 +168,8 @@ export default function Navbar() {
 
         {/* Right actions */}
         <div className="flex items-center gap-0 sm:gap-1">
+          <div className="hidden lg:block"><LanguageSwitch /></div>
+
           {/* Search toggle */}
           <button
             type="button"
@@ -169,7 +177,7 @@ export default function Navbar() {
             onClick={() => (searchOpen ? closeSearch() : setSearchOpen(true))}
             aria-expanded={searchOpen}
             aria-controls="search-bar"
-            aria-label={searchOpen ? 'Close search' : 'Search products'}
+            aria-label={searchOpen ? t("Close search") : t("Search products")}
           >
             {searchOpen ? <CloseIcon /> : <SearchIcon />}
           </button>
@@ -183,7 +191,7 @@ export default function Navbar() {
             onClick={event => {
               if (!event.metaKey && !event.ctrlKey && !event.shiftKey && !event.altKey && openCartDrawer()) event.preventDefault()
             }}
-            aria-label={cartCount > 0 ? `Shopping cart, ${cartCount} items` : 'Shopping cart'}
+            aria-label={cartCount > 0 ? t('Shopping cart, {count} items', { count: cartCount }) : t("Shopping cart")}
             className="relative flex h-11 w-11 shrink-0 items-center justify-center text-white transition-colors hover:text-[#FFD700]"
           >
             <CartIcon />
@@ -206,7 +214,7 @@ export default function Navbar() {
           {/* Account icon */}
           <Link
             href="/account"
-            aria-label="My account"
+            aria-label={t("My account")}
             className="hidden h-11 w-11 shrink-0 items-center justify-center text-white transition-colors hover:text-[#FFD700] sm:flex"
           >
             <AccountIcon />
@@ -218,7 +226,7 @@ export default function Navbar() {
             onClick={() => setMenuOpen((prev) => !prev)}
             aria-expanded={menuOpen}
             aria-controls="mobile-menu"
-            aria-label={menuOpen ? 'Close menu' : 'Open menu'}
+            aria-label={menuOpen ? t("Close menu") : t("Open menu")}
           >
             {menuOpen ? <CloseIcon /> : <HamburgerIcon />}
           </button>
@@ -236,9 +244,9 @@ export default function Navbar() {
           style={{ backgroundColor: '#111111' }}
         >
           <div className="relative mx-auto max-w-[1400px]">
-            <form action="/search" method="GET" className="flex items-center gap-3">
+            <form action={localePath("/search")} method="GET" className="flex items-center gap-3">
               <label htmlFor="navbar-search-input" className="sr-only">
-                Search products
+                {t("Search products")}
               </label>
               <input
                 ref={searchInputRef}
@@ -248,7 +256,7 @@ export default function Navbar() {
                 value={query}
                 onChange={(e) => handleQueryChange(e.target.value)}
                 autoComplete="off"
-                placeholder="Search products…"
+                placeholder={t("Search products…")}
                 className="w-full bg-transparent px-3 py-2 text-sm text-white placeholder-[#666666] outline-none"
                 style={{
                   border: '1px solid #444444',
@@ -260,7 +268,7 @@ export default function Navbar() {
                 className="btn-gold shrink-0 px-5 py-2 text-xs tracking-[0.1em] uppercase"
                 style={{ fontFamily: 'var(--font-space-mono), monospace' }}
               >
-                GO
+                {t("GO")}
               </button>
             </form>
 
@@ -311,6 +319,7 @@ export default function Navbar() {
           className="border-t border-[#222222] lg:hidden"
           style={{ backgroundColor: '#111111' }}
         >
+          <div className="px-4 pt-2"><LanguageSwitch /></div>
           <ul className="flex flex-col px-6 py-4" role="list">
             {NAV_LINKS.map(({ label, href }) => (
               <li key={label}>
@@ -320,12 +329,12 @@ export default function Navbar() {
                   style={{ fontFamily: 'var(--font-space-mono), monospace' }}
                   onClick={() => setMenuOpen(false)}
                 >
-                  {label}
+                  {t(label)}
                 </Link>
               </li>
             ))}
-            <li><Link href="/compare" scroll={false} onNavigate={() => window.scrollTo({ top: 0, left: 0, behavior: 'instant' })} onClick={() => setMenuOpen(false)} className="block py-3 text-sm font-bold text-white hover:text-[#FFD700]">COMPARE PRODUCTS</Link></li>
-            <li><Link href="/account" onClick={() => setMenuOpen(false)} className="block py-3 text-sm font-bold text-white hover:text-[#FFD700]">MY ACCOUNT</Link></li>
+            <li><Link href="/compare" scroll={false} onNavigate={() => window.scrollTo({ top: 0, left: 0, behavior: 'instant' })} onClick={() => setMenuOpen(false)} className="block py-3 text-sm font-bold text-white hover:text-[#FFD700]">{t("COMPARE PRODUCTS")}</Link></li>
+            <li><Link href="/account" onClick={() => setMenuOpen(false)} className="block py-3 text-sm font-bold text-white hover:text-[#FFD700]">{t("MY ACCOUNT")}</Link></li>
           </ul>
         </div>
       )}

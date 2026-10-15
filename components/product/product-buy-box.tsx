@@ -1,4 +1,5 @@
 'use client'
+import { useTranslation } from '@/components/i18n/locale-provider'
 
 import { useCallback, useEffect, useMemo, useRef, useState, useTransition } from 'react'
 import {
@@ -108,14 +109,14 @@ function describeStock(status: StockStatus, quantity: number | null): StockDispl
   }
 
   if (status === 'onbackorder') {
-    return { label: 'AVAILABLE ON BACKORDER — SHIPS LATER', color: '#FFD700' }
+    return { label: 'AVAILABLE ON BACKORDER', color: '#FFD700' }
   }
 
   if (quantity !== null && quantity > 0 && quantity <= LOW_STOCK_THRESHOLD) {
     return { label: `ONLY ${quantity} LEFT`, color: '#FFD700' }
   }
 
-  return { label: 'IN STOCK — SHIPS IN 1–2 DAYS', color: '#4ADE80' }
+  return { label: 'IN STOCK', color: '#4ADE80' }
 }
 
 /* ================================================================
@@ -128,6 +129,8 @@ function describeStock(status: StockStatus, quantity: number | null): StockDispl
    ================================================================ */
 
 export default function ProductBuyBox({ product }: ProductBuyBoxProps) {
+  const t = useTranslation()
+
   const variationAxes = useMemo(
     () => product.attributes.filter((attribute) => attribute.isVariationAxis),
     [product.attributes],
@@ -217,7 +220,7 @@ export default function ProductBuyBox({ product }: ProductBuyBoxProps) {
     // outcome for a shopper who isn't sure what the page expects of them.
     if (unchosen.length > 0) {
       setMissing(unchosen)
-      setConfirmation(`Please choose ${unchosen.join(' and ')} first`)
+      setConfirmation(t('Please choose {options} first', { options: unchosen.map(name => t(name)).join(t(' and ')) }))
       setIsConfirmationError(true)
       if (window.matchMedia('(max-width: 1023px)').matches) {
         requestAnimationFrame(() => {
@@ -247,7 +250,7 @@ export default function ProductBuyBox({ product }: ProductBuyBoxProps) {
         selectedOptions: axisNames.length > 0 ? selected : undefined,
       })
       if (result.ok) {
-        setConfirmation(`Added to cart — ${quantity} × ${product.name}`)
+        setConfirmation(t('Added to cart — {quantity} × {name}', { quantity, name: product.name }))
         setIsConfirmationError(false)
         notifyCartAdded(product.name, quantity, activeVariant?.image || product.image)
       } else {
@@ -255,7 +258,7 @@ export default function ProductBuyBox({ product }: ProductBuyBoxProps) {
         setIsConfirmationError(true)
       }
     })
-  }, [axisNames, selected, quantity, product.id, product.name, product.image, activeVariant])
+  }, [axisNames, selected, quantity, product.id, product.name, product.image, activeVariant, t])
 
   const isError = isConfirmationError
 
@@ -301,7 +304,7 @@ export default function ProductBuyBox({ product }: ProductBuyBoxProps) {
                   className="text-xs text-[#999999]"
                   style={{ fontFamily: MONO }}
                 >
-                  FROM
+                  {t("FROM")}
                 </span>
               )}
               <span
@@ -325,13 +328,13 @@ export default function ProductBuyBox({ product }: ProductBuyBoxProps) {
                     className="px-2 py-0.5 text-[11px] font-bold tracking-wide text-[#1B1B18] uppercase"
                     style={{ fontFamily: MONO, backgroundColor: '#FFD700' }}
                   >
-                    Save {savingPercent}%
+                    {t('Save {percent}%', { percent: savingPercent })}
                   </span>
                 </>
               )}
             </div>
             <p className="mt-1 text-xs text-[#999999]" style={{ fontFamily: MONO }}>
-              {activeVariant ? 'Price for your selection · ' : ''}VAT included
+              {activeVariant ? t("Price for your selection · ") : ''}{t("VAT included")}
             </p>
           </div>
 
@@ -345,7 +348,7 @@ export default function ProductBuyBox({ product }: ProductBuyBoxProps) {
               style={{ backgroundColor: stock.color }}
               aria-hidden="true"
             />
-            {stock.label}
+            {stock.label.startsWith('ONLY ') ? t('ONLY {count} LEFT', { count: product.stockQuantity ?? 0 }) : t(stock.label)}
           </p>
 
           {product.shortDescriptionHtml && (
@@ -377,12 +380,12 @@ export default function ProductBuyBox({ product }: ProductBuyBoxProps) {
               className="btn-gold flex h-12 w-full cursor-pointer items-center justify-center text-sm tracking-[0.1em] uppercase"
             >
               {!isPurchasable
-                ? 'Out of stock'
+                ? t("Out of stock")
                 : isPending
-                  ? 'Adding…'
+                  ? t("Adding…")
                   : needsOptions
-                    ? 'Select options'
-                    : 'Add to cart'}
+                    ? t("Select options")
+                    : t("Add to cart")}
             </button>
 
             {/* One live region for both the failure and the success message */}
@@ -391,7 +394,7 @@ export default function ProductBuyBox({ product }: ProductBuyBoxProps) {
               className="mt-2 min-h-[1.25rem] text-xs"
               style={{ fontFamily: MONO, color: isError ? '#FF6B6B' : '#4ADE80' }}
             >
-              {confirmation}
+              {t(confirmation)}
             </p>
           </div>
 
@@ -426,7 +429,7 @@ export default function ProductBuyBox({ product }: ProductBuyBoxProps) {
           >
             {/* The bar is width-constrained, so it shows the floor of the
                 range rather than both ends. */}
-            {showRange || showFrom ? 'FROM ' : ''}
+            {showRange || showFrom ? t("FROM ") : ''}
             {formatPrice(showRange ? range.min : price)}
           </p>
         </div>
@@ -440,7 +443,7 @@ export default function ProductBuyBox({ product }: ProductBuyBoxProps) {
           tabIndex={ctaVisible ? -1 : 0}
           className="btn-gold flex h-11 flex-shrink-0 cursor-pointer items-center justify-center px-5 text-xs tracking-[0.1em] uppercase"
         >
-          {!isPurchasable ? 'Sold out' : isPending ? '…' : needsOptions ? 'Options' : 'Add'}
+          {!isPurchasable ? t("Sold out") : isPending ? '…' : needsOptions ? t("Options") : t("Add")}
         </button>
       </div>
     </>

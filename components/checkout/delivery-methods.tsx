@@ -1,3 +1,5 @@
+'use client'
+import { useTranslation } from '@/components/i18n/locale-provider'
 import type { ShippingMethod } from '@/lib/woocommerce'
 import { formatPrice } from '@/lib/mock-data'
 
@@ -16,11 +18,12 @@ interface DeliveryMethodsProps {
  *  Nothing here hardcodes which methods exist; only `isPickup` gets a
  *  distinct icon/label treatment. */
 export default function DeliveryMethods({ methods, selectedId, onSelect }: DeliveryMethodsProps) {
+  const t = useTranslation()
+
   if (methods.length === 0) {
     return (
       <p className="text-xs" style={{ fontFamily: MONO, color: '#FF6B6B' }}>
-        No delivery options are available for this cart and address. Complete
-        your address or contact us for help.
+        {t("No delivery options are available for this cart and address. Complete your address or contact us for help.")}
       </p>
     )
   }
@@ -28,7 +31,7 @@ export default function DeliveryMethods({ methods, selectedId, onSelect }: Deliv
   return (
     <fieldset className="flex flex-col gap-2">
       <legend className="mb-1 text-xs font-bold tracking-wide text-white uppercase" style={{ fontFamily: MONO }}>
-        Delivery method
+        {t("Delivery method")}
       </legend>
       {methods.map((method) => (
         <label
@@ -49,13 +52,13 @@ export default function DeliveryMethods({ methods, selectedId, onSelect }: Deliv
               required
               className="accent-[#FFD700]"
             />
-            {method.title}
+            {t(method.title)}
             {method.isPickup && (
-              <span className="text-[10px] tracking-wide text-[#999999] uppercase">Pickup</span>
+              <span className="text-[10px] tracking-wide text-[#999999] uppercase">{t("Pickup")}</span>
             )}
           </span>
           <span className="whitespace-nowrap text-[#CCCCCC]">
-            {method.cost === 0 ? 'FREE' : formatPrice(method.cost)}
+            {method.cost === 0 ? t("FREE") : formatPrice(method.cost)}
           </span>
         </label>
       ))}

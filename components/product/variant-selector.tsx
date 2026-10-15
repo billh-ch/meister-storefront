@@ -1,4 +1,5 @@
 'use client'
+import { useTranslation } from '@/components/i18n/locale-provider'
 
 import { useId } from 'react'
 import type { ProductAttribute } from '@/lib/mock-data'
@@ -42,6 +43,8 @@ export default function VariantSelector({
   onSelect,
   missing,
 }: VariantSelectorProps) {
+  const t = useTranslation()
+
   const baseId = useId()
 
   if (attributes.length === 0) return null
@@ -79,7 +82,7 @@ export default function VariantSelector({
                   }}
                 >
                   <option value="" disabled>
-                    Choose {attribute.name}…
+                    {t('Choose {attribute}…', { attribute: t(attribute.name) })}
                   </option>
                   {attribute.values.map((value) => (
                     <option
@@ -179,12 +182,14 @@ interface AxisLabelProps {
 }
 
 function AxisLabel({ attribute, chosen, isMissing }: AxisLabelProps) {
+  const t = useTranslation()
+
   return (
     <span
       className="flex flex-wrap items-baseline gap-2 text-xs font-bold tracking-wide text-white uppercase"
       style={{ fontFamily: MONO }}
     >
-      <span>{attribute.name}</span>
+      <span>{t(attribute.name)}</span>
       {chosen ? (
         <span className="font-normal normal-case text-[#CCCCCC]">{chosen}</span>
       ) : (
@@ -192,7 +197,7 @@ function AxisLabel({ attribute, chosen, isMissing }: AxisLabelProps) {
           className="font-normal normal-case"
           style={{ color: isMissing ? '#FF6B6B' : '#999999' }}
         >
-          {isMissing ? 'Please choose one' : 'Choose one'}
+          {isMissing ? t("Please choose one") : t("Choose one")}
         </span>
       )}
     </span>

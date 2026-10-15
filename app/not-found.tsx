@@ -1,4 +1,5 @@
-import Link from 'next/link'
+import { getTranslator } from '@/lib/i18n/server'
+import Link from '@/components/i18n/localized-link'
 import Navbar from '@/components/navbar'
 import Footer from '@/components/footer'
 
@@ -10,7 +11,9 @@ const DISPLAY = 'var(--font-dela-gothic), sans-serif'
  * rather than the framework default. `products/[slug]` has its own more
  * specific version for a missing product; this is the generic catch-all.
  */
-export default function NotFound() {
+export default async function NotFound() {
+  const t = await getTranslator()
+
   return (
     <main style={{ backgroundColor: '#1B1B18' }}>
       <Navbar />
@@ -20,15 +23,14 @@ export default function NotFound() {
           className="text-2xl text-white sm:text-3xl md:text-4xl"
           style={{ fontFamily: DISPLAY, fontWeight: 800 }}
         >
-          404 — PAGE NOT FOUND
+          {t("404 — PAGE NOT FOUND")}
         </h1>
 
         <p
           className="max-w-lg text-sm text-[#CCCCCC]"
           style={{ fontFamily: MONO }}
         >
-          This page doesn&rsquo;t exist, or the link you followed is out of
-          date. Have a look at what we currently carry.
+          {t("This page doesn’t exist, or the link you followed is out of date. Have a look at what we currently carry.")}
         </p>
 
         <Link
@@ -40,7 +42,7 @@ export default function NotFound() {
             fontFamily: MONO,
           }}
         >
-          Back to shop
+          {t("Back to shop")}
         </Link>
       </div>
 

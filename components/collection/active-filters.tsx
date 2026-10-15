@@ -1,4 +1,5 @@
 'use client'
+import { useTranslation, useLocalePath } from '@/components/i18n/locale-provider'
 
 import { useRouter, useSearchParams } from 'next/navigation'
 import type { FilterParams } from '@/lib/collection'
@@ -22,13 +23,16 @@ export default function ActiveFilters({
   active,
   categoryLabels,
 }: ActiveFiltersProps) {
+  const t = useTranslation()
+  const lp = useLocalePath()
+
   const router = useRouter()
   const searchParams = useSearchParams()
 
   const pushParams = (params: URLSearchParams) => {
     params.delete('page')
     const query = params.toString()
-    router.push(query ? `${basePath}?${query}` : basePath)
+    router.push(lp(query ? `${basePath}?${query}` : basePath))
   }
 
   const removeFromList = (key: 'brand' | 'category', value: string) => {
@@ -70,10 +74,10 @@ export default function ActiveFilters({
   if (active.minPrice != null || active.maxPrice != null) {
     const label =
       active.minPrice != null && active.maxPrice != null
-        ? `EUR ${active.minPrice} to ${active.maxPrice}`
+        ? t('EUR {min} to {max}', { min: active.minPrice, max: active.maxPrice })
         : active.minPrice != null
-          ? `from EUR ${active.minPrice}`
-          : `up to EUR ${active.maxPrice}`
+          ? t('from EUR {price}', { price: active.minPrice })
+          : t('up to EUR {price}', { price: active.maxPrice! })
     chips.push({
       key: 'price',
       label,
@@ -99,9 +103,9 @@ export default function ActiveFilters({
           onClick={chip.onRemove}
           className="flex items-center gap-1.5 border border-[#444444] px-2 py-1 text-xs text-white transition-colors hover:border-[#FFD700] hover:text-[#FFD700]"
         >
-          <span>{chip.label}</span>
+          <span>{t(chip.label)}</span>
           <span aria-hidden="true">×</span>
-          <span className="sr-only">Remove filter</span>
+          <span className="sr-only">{t("Remove filter")}</span>
         </button>
       ))}
     </div>

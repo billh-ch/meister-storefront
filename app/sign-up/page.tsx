@@ -1,5 +1,8 @@
+import { getTranslator } from '@/lib/i18n/server'
+import { getLocale } from '@/lib/i18n/server'
+import { translate } from '@/lib/i18n'
 import type { Metadata } from 'next'
-import Link from 'next/link'
+import Link from '@/components/i18n/localized-link'
 import Navbar from '@/components/navbar'
 import Footer from '@/components/footer'
 import SignUpForm from '@/components/auth/sign-up-form'
@@ -7,11 +10,11 @@ import SignUpForm from '@/components/auth/sign-up-form'
 const MONO = 'var(--font-space-mono), monospace'
 const DISPLAY = 'var(--font-dela-gothic), sans-serif'
 
-export const metadata: Metadata = {
+export async function generateMetadata(): Promise<Metadata> { return {
   robots: { index: false, follow: false },
   alternates: { canonical: null },
-  title: 'Create Account — Meister',
-}
+  title: translate(await getLocale(), 'Create Account — Meister'),
+} }
 
 interface SignUpPageProps {
   searchParams: Promise<{
@@ -23,6 +26,8 @@ interface SignUpPageProps {
 }
 
 export default async function SignUpPage({ searchParams }: SignUpPageProps) {
+  const t = await getTranslator()
+
   const { redirect_url, email, first_name, last_name } = await searchParams
 
   return (
@@ -33,7 +38,7 @@ export default async function SignUpPage({ searchParams }: SignUpPageProps) {
           className="text-2xl text-white sm:text-3xl"
           style={{ fontFamily: DISPLAY, fontWeight: 800 }}
         >
-          CREATE ACCOUNT
+          {t("CREATE ACCOUNT")}
         </h1>
 
         <SignUpForm
@@ -44,12 +49,12 @@ export default async function SignUpPage({ searchParams }: SignUpPageProps) {
         />
 
         <p className="text-sm text-[#999999]" style={{ fontFamily: MONO }}>
-          Already have an account?{' '}
+          {t("Already have an account?")}{' '}
           <Link
             href={`/sign-in${redirect_url ? `?redirect_url=${encodeURIComponent(redirect_url)}` : ''}`}
             className="text-[#FFD700] hover:underline"
           >
-            Sign in
+            {t("Sign in")}
           </Link>
         </p>
       </div>

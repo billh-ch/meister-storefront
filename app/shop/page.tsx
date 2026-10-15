@@ -1,3 +1,5 @@
+import { getTranslator } from '@/lib/i18n/server'
+import { getLocale } from '@/lib/i18n/server'
 import type { Metadata } from 'next'
 import { buildCollectionMetadata } from '@/lib/seo/metadata'
 import Navbar from '@/components/navbar'
@@ -23,6 +25,7 @@ export async function generateMetadata({ searchParams }: ShopPageProps): Promise
   const products = await getProducts()
   const collection = paginateProducts(products, { page: sp.page, sort: sp.sort, filters: parseFilters(sp) })
   return buildCollectionMetadata({
+    locale: await getLocale(),
     title: 'Shop Diving & Spearfishing Equipment — Meister',
     description: 'Browse the Meister catalog of freediving and spearfishing equipment. Explore fins, wetsuits, spearguns, accessories and merchandise.',
     path: '/shop', currentPage: collection.currentPage, searchParams: sp,
@@ -36,6 +39,8 @@ export async function generateMetadata({ searchParams }: ShopPageProps): Promise
  * runtime ambiguity between the two despite both living at the app root.
  */
 export default async function ShopPage({ searchParams }: ShopPageProps) {
+  const t = await getTranslator()
+
   const sp = await searchParams
   const filters = parseFilters(sp)
   const allProducts = await getProducts()
@@ -50,7 +55,7 @@ export default async function ShopPage({ searchParams }: ShopPageProps) {
     <main style={{ backgroundColor: '#1B1B18' }}>
       <Navbar />
       <CollectionView
-        title="SHOP"
+        title={t("SHOP")}
         breadcrumbs={[{ label: 'HOME', href: '/' }, { label: 'SHOP' }]}
         basePath="/shop"
         collection={collection}
