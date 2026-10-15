@@ -12,7 +12,7 @@ Private account routes use the same encrypted session protection in both languag
 
 ## Typography, terminology and formatting
 
-Greek body text uses Cascadia Mono through `next/font/google`, with its Greek subset and 200–700 weight axis. English body text uses Space Mono. Both locales use Syne at weight 700 for headings, with native Greek glyphs and synthetic heading bold disabled. Generated font assets include the Greek glossary glyphs; no runtime Google Fonts stylesheet or DOM translation widget is used.
+Greek body text uses Cascadia Mono through `next/font/google`, with its Greek subset and 200–700 weight axis. English retains its original Space Mono body text and Zalando Sans Expanded heading styling, including the variable heading weights. Greek headings use Syne at weight 700, with native Greek glyphs and synthetic heading bold disabled. The heading override is scoped to the Greek locale. Generated font assets include the Greek glossary glyphs; no runtime Google Fonts stylesheet or DOM translation widget is used.
 
 Terminology was reviewed against https://dive-meister.com/ and existing WooCommerce category/attribute fields; company facts were checked against https://meister.gr/about-us. Use Πέδιλα, Λεπίδες, Πέλματα, Παρατροπίδες, Στολές Κατάδυσης, Ψαροτούφεκα, Εξοπλισμός and Ένδυση. Commerce uses Προσθήκη στο καλάθι, Καλάθι, Ολοκλήρωση παραγγελίας, Αγαπημένα and Σύγκριση. Preserve Carbon, brands/models, Λείο / Ξυρισμένο and Φόδρα where authored. Backorder is Κατόπιν παραγγελίας without a delivery promise.
 
