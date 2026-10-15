@@ -166,10 +166,10 @@ export default function Navbar() {
           ))}
         </ul>
 
-        <div className="hidden lg:block"><LanguageSwitch /></div>
-
         {/* Right actions */}
         <div className="flex items-center gap-0 sm:gap-1">
+          <div className="hidden lg:block"><LanguageSwitch /></div>
+
           {/* Search toggle */}
           <button
             type="button"
