@@ -4,7 +4,7 @@ import type { ShippingAddressInput } from '@/lib/address/schema'
 import type { ShippingQuote } from './model'
 import { quoteResolvedCart } from './shipping'
 
-export async function getShippingQuote(address: ShippingAddressInput): Promise<ShippingQuote> {
-  try { return await quoteResolvedCart(await resolveCartItems(await getCart()), address) }
+export async function getShippingQuote(address: ShippingAddressInput, locale: string = 'en'): Promise<ShippingQuote> {
+  try { return await quoteResolvedCart(await resolveCartItems(await getCart(), locale), address) }
   catch { return { status: 'error', error: 'Could not verify your cart. Please try again.' } }
 }

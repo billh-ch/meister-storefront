@@ -46,7 +46,7 @@ export interface ResolvedCart {
  * counted in `unavailableCount`; outdated options and out-of-stock items
  * stay visible and removable, with `purchasable: false`.
  */
-export async function resolveCartItems(cart: CartItem[]): Promise<ResolvedCart> {
+export async function resolveCartItems(cart: CartItem[], locale: string = 'en'): Promise<ResolvedCart> {
   const deduped = new Map<string, CartItem>()
   for (const item of cart) {
     const key = cartLineKey(item)
@@ -55,7 +55,7 @@ export async function resolveCartItems(cart: CartItem[]): Promise<ResolvedCart> 
   }
 
   const productIds = Array.from(new Set(Array.from(deduped.values(), (item) => item.productId)))
-  const products = await Promise.all(productIds.map((id) => getProductById(id)))
+  const products = await Promise.all(productIds.map((id) => getProductById(id, locale)))
   const productById = new Map(productIds.map((id, i) => [id, products[i]]))
 
   const lines: ResolvedCartLine[] = []

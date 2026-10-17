@@ -1,9 +1,10 @@
 import { wcFetch } from '@/lib/woocommerce/client'
-import { mapCompareProduct, type CompareProduct, type MeasurementUnits } from './model'
+import type { CompareProduct, MeasurementUnits } from './model'
+import { mapCompareProduct } from './map-product'
 import type { WcProductDetail } from '@/lib/woocommerce/queries/get-product-by-slug'
 import { products as mockProducts, toMockProductDetail } from '@/lib/mock-data'
 
-export async function fetchCompareCatalog(ids: string[]): Promise<{ products: CompareProduct[]; units: MeasurementUnits }> {
+export async function fetchCompareCatalog(ids: string[], locale: string = 'en'): Promise<{ products: CompareProduct[]; units: MeasurementUnits }> {
   if (process.env.NEXT_PUBLIC_USE_MOCK_DATA === 'true') return {
     products: mockProducts.filter(product => ids.includes(product.id)).map(product => {
       const detail = toMockProductDetail(product)
@@ -11,7 +12,7 @@ export async function fetchCompareCatalog(ids: string[]): Promise<{ products: Co
     }), units: { weight: 'kg', dimensions: 'cm' },
   }
   const raw = await wcFetch<WcProductDetail[]>('/products', { include: ids.join(','), status: 'publish', per_page: '4' }, { revalidate: 30, tags: ['products'] })
-  const products = raw.filter(product => product.status === 'publish').map(mapCompareProduct)
+  const products = raw.filter(product => product.status === 'publish').map(product => mapCompareProduct(product, locale))
   const units: MeasurementUnits = {}
   if (products.some(product => product.weight || Object.values(product.dimensions).some(Boolean))) {
     try {

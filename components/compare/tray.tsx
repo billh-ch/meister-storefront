@@ -1,5 +1,6 @@
 'use client'
-import { useTranslation } from '@/components/i18n/locale-provider'
+import { useLocale, useTranslation } from '@/components/i18n/locale-provider'
+import { useEffect, useState } from 'react'
 
 import Link from '@/components/i18n/localized-link'
 import { stripLocale } from '@/lib/i18n'
@@ -7,8 +8,24 @@ import { usePathname } from 'next/navigation'
 import { useCompare } from './provider'
 export default function CompareTray() {
   const t = useTranslation()
+  const locale = useLocale()
 
   const { items, message, error, clear, remove, retry } = useCompare()
+  const ids = items.map(item => item.id).join(',')
+  const key = `${locale}:${ids}`
+  const [catalog, setCatalog] = useState<{ key: string; names: Record<string, string> } | null>(null)
+  useEffect(() => {
+    if (!ids) return
+    const controller = new AbortController()
+    void fetch(`/api/wishlist/products?ids=${ids}&locale=${locale}`, { cache: 'no-store', signal: controller.signal })
+      .then(response => response.ok ? response.json() : null)
+      .then(data => {
+        if (!controller.signal.aborted && data?.products) setCatalog({ key, names: Object.fromEntries(data.products.map((product: { id: string; name: string }) => [product.id, product.name])) })
+      }).catch(() => { /* Saved selections remain usable during a catalog outage. */ })
+    return () => controller.abort()
+  }, [ids, key, locale])
+  // Locale projection is display-only: never rewrite saved IDs or another tab's names.
+  const displayedItems = items.map(item => ({ ...item, name: catalog?.key === key ? catalog.names[item.id] ?? item.name : item.name }))
   const pathname = stripLocale(usePathname())
   const hidden = pathname === '/compare' || pathname === '/cart' || pathname.startsWith('/checkout')
   return <>
@@ -24,7 +41,7 @@ export default function CompareTray() {
           </div>
         </div>
         <div className="flex gap-2 overflow-x-auto">
-          {items.map(item => <div key={item.id} className="flex shrink-0 items-center gap-1 border border-[#444444] pl-2"><span className="max-w-28 truncate text-[10px]">{item.name}</span><button type="button" aria-label={t("Remove {value0} from comparison tray", { value0: item.name })} onClick={() => remove(item.id)} className="flex h-11 w-11 items-center justify-center text-lg text-[#999999] hover:text-white">×</button></div>)}
+          {displayedItems.map(item => <div key={item.id} className="flex shrink-0 items-center gap-1 border border-[#444444] pl-2"><span className="max-w-28 truncate text-[10px]">{item.name}</span><button type="button" aria-label={t("Remove {value0} from comparison tray", { value0: item.name })} onClick={() => remove(item.id)} className="flex h-11 w-11 items-center justify-center text-lg text-[#999999] hover:text-white">×</button></div>)}
         </div>
         {message.includes("same category") || message.includes("four products") ? <p className="pt-2 text-[11px] text-[#FFD700]">{t(message)}</p> : null}
         {error && <div className="pt-2 text-[11px] text-[#FFD700]"><p>{t(error)}</p><button type="button" onClick={retry} className="min-h-11 underline">{t("Retry comparison save")}</button></div>}

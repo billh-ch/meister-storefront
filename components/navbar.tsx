@@ -1,5 +1,5 @@
 'use client'
-import { useTranslation } from '@/components/i18n/locale-provider'
+import { useLocale, useTranslation } from '@/components/i18n/locale-provider'
 
 import CompareNavLink from './compare/nav-link'
 import WishlistNavLink from './wishlist/nav-link'
@@ -27,6 +27,7 @@ const NAV_LINKS = [
 /** Sticky navigation bar with logo, nav links, search, and cart/account icons. */
 export default function Navbar() {
   const t = useTranslation()
+  const locale = useLocale()
 
   const localePath = useLocalePath()
   const [menuOpen, setMenuOpen] = useState(false)
@@ -113,7 +114,7 @@ export default function Navbar() {
       const controller = new AbortController()
       abortRef.current = controller
 
-      fetch(`/api/search-suggestions?q=${encodeURIComponent(trimmed)}`, {
+      fetch(`/api/search-suggestions?q=${encodeURIComponent(trimmed)}&locale=${locale}`, {
         signal: controller.signal,
       })
         .then((res) => res.json())

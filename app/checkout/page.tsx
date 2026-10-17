@@ -38,7 +38,7 @@ export default async function CheckoutPage() {
   const locale = await getLocale()
   const [cart, session] = await Promise.all([getCart(), getSession()])
   const isGuest = !session.wcCustomerId
-  const resolvedCart = await resolveCartItems(cart).catch(() => null)
+  const resolvedCart = await resolveCartItems(cart, locale).catch(() => null)
   const cartUnavailable = resolvedCart === null
   const resolved = resolvedCart ?? { lines: [], unavailableCount: 0, subtotal: 0 }
 

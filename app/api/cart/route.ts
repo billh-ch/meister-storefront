@@ -10,7 +10,7 @@ export async function GET(request: Request) {
   if (!locale.success) return Response.json({ error: 'Invalid language selection.' }, { status: 400, headers: { 'Cache-Control': 'private, no-store' } })
   const t = (source: string) => translate(locale.data, source)
   try {
-    const cart = await resolveCartItems(await getCart())
+    const cart = await resolveCartItems(await getCart(), locale.data)
     return NextResponse.json({ ...cart, lines: cart.lines.map(line => ({ ...line, ...(line.checkoutIssue ? { checkoutIssue: t(line.checkoutIssue) } : {}) })) }, { headers: { 'Cache-Control': 'private, no-store' } })
   } catch {
     return NextResponse.json(

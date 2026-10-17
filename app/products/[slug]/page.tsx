@@ -96,7 +96,7 @@ export async function generateMetadata({
 }: ProductPageProps): Promise<Metadata> {
   const { slug } = await params
   // Deduped with the page's own call by request memoisation — not a second fetch.
-  const product = await getProductBySlug(decodeSlug(slug))
+  const product = await getProductBySlug(decodeSlug(slug), await getLocale())
 
   if (!product) {
     return { title: translate(await getLocale(), 'Product not found — Meister'), alternates: { canonical: null }, robots: { index: false, follow: true } }
@@ -111,14 +111,14 @@ export default async function ProductPage({ params }: ProductPageProps) {
   const t = await getTranslator()
 
   const { slug } = await params
-  const product = await getProductBySlug(decodeSlug(slug))
+  const product = await getProductBySlug(decodeSlug(slug), await getLocale())
 
   // Must run before anything that could open a Suspense boundary: once the
   // response starts streaming, Next can only inject `noindex` instead of
   // returning a real 404 status. This is also why there is no loading.tsx.
   if (!product) notFound()
 
-  const allProducts = await getProducts()
+  const allProducts = await getProducts(await getLocale())
   const related = allProducts
     .filter((candidate) => candidate.category === product.category)
     .filter((candidate) => candidate.slug !== product.slug)

@@ -4,6 +4,7 @@ import type {
   ProductVariant,
 } from '@/lib/mock-data'
 import { sanitizeProductHtml } from '@/lib/sanitize'
+import { getProductContent } from '@/lib/product-content/translations'
 import type {
   WcProductDetail,
   WcVariation,
@@ -113,20 +114,22 @@ function derivePriceFrom(
 export function mapProductDetail(
   wc: WcProductDetail,
   variations: WcVariation[] = [],
+  locale: string = 'en',
 ): ProductDetail {
+  const content = getProductContent(wc, locale)
   const price = toNumber(wc.price)
   const regularPrice = deriveRegularPrice(price, wc, variations)
   const salePrice = wc.sale_price ? toNumber(wc.sale_price) : null
 
   const gallery = wc.images.map((image) => ({
     src: resolveImageUrl(image.src),
-    alt: image.alt?.trim() || wc.name,
+    alt: image.alt?.trim() || content.name,
   }))
 
   return {
     id: String(wc.id),
     slug: wc.slug,
-    name: wc.name,
+    name: content.name,
     price,
     options: '',
     image: gallery[0]?.src ?? '',
@@ -136,8 +139,8 @@ export function mapProductDetail(
     type: wc.type === 'variable' ? 'variable' : 'simple',
 
     gallery,
-    descriptionHtml: sanitizeProductHtml(wc.description),
-    shortDescriptionHtml: sanitizeProductHtml(wc.short_description),
+    descriptionHtml: sanitizeProductHtml(content.description),
+    shortDescriptionHtml: sanitizeProductHtml(content.short_description),
     sku: wc.sku,
     stockStatus: toStockStatus(wc.stock_status),
     stockQuantity: wc.stock_quantity,

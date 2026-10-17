@@ -21,15 +21,15 @@ export async function getPublishedProducts(): Promise<Product[]> {
     throw new Error('Demo products are not a published catalog.')
   }
   const products = await fetchProducts({ requireComplete: true })
-  return products.filter(product => product.status === 'publish').map(mapProduct)
+  return products.filter(product => product.status === 'publish').map(product => mapProduct(product))
 }
 
-export async function getProducts(): Promise<Product[]> {
+export async function getProducts(locale: string = 'en'): Promise<Product[]> {
   if (useMock) return mockProducts
 
   try {
     const wcProducts = await fetchProducts()
-    return wcProducts.map(mapProduct)
+    return wcProducts.map(product => mapProduct(product, locale))
   } catch (error) {
     console.error('[WooCommerce] Failed to fetch products, falling back to mock data:', error)
     return mockProducts.map(asUnavailableProductPreview)
@@ -60,7 +60,7 @@ export async function getPublishedProductBySlug(slug: string): Promise<ProductDe
  * - A *thrown* error means the store is unreachable (tunnel down, bad
  *   credentials), so it falls back to mock data exactly like getProducts().
  */
-export async function getProductBySlug(slug: string): Promise<ProductDetail | null> {
+export async function getProductBySlug(slug: string, locale: string = 'en'): Promise<ProductDetail | null> {
   if (useMock) return findMockDetail(slug)
 
   try {
@@ -70,7 +70,7 @@ export async function getProductBySlug(slug: string): Promise<ProductDetail | nu
     const variations =
       wcProduct.type === 'variable' ? await fetchVariations(wcProduct.id) : []
 
-    return mapProductDetail(wcProduct, variations)
+    return mapProductDetail(wcProduct, variations, locale)
   } catch (error) {
     console.error(
       `[WooCommerce] Failed to fetch product "${slug}", falling back to mock data:`,
@@ -89,7 +89,7 @@ export async function getProductBySlug(slug: string): Promise<ProductDetail | nu
  * is worse than the read-only browsing fallback those use. A thrown error
  * here should surface as an explicit "couldn't verify your cart" state.
  */
-export async function getProductById(id: string): Promise<ProductDetail | null> {
+export async function getProductById(id: string, locale: string = 'en'): Promise<ProductDetail | null> {
   if (useMock) {
     const product = mockProducts.find((candidate) => candidate.id === id)
     return product ? toMockProductDetail(product) : null
@@ -101,7 +101,7 @@ export async function getProductById(id: string): Promise<ProductDetail | null> 
   const variations =
     wcProduct.type === 'variable' ? await fetchVariations(wcProduct.id, { fresh: true }) : []
 
-  return mapProductDetail(wcProduct, variations)
+  return mapProductDetail(wcProduct, variations, locale)
 }
 
 /** No mock fallback and no mock data at all here — there's no real order
