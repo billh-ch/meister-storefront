@@ -77,7 +77,7 @@ export async function createCheckoutSessionAction(
   }
 
   const cart = await getCart()
-  const resolved = await resolveCartItems(cart)
+  const resolved = await resolveCartItems(cart, locale)
 
   if (resolved.lines.length === 0) {
     return { error: t('Your cart is empty.') }

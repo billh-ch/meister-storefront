@@ -24,6 +24,12 @@ export interface WcProductAttribute {
 }
 
 export interface WcProduct {
+  description?: string
+  short_description?: string
+  /** Private server inputs. Never spread these into browser product objects. */
+  meister_translation_source?: unknown
+  meister_translations?: unknown
+  meta_data?: { key: string; value: unknown }[]
   id: number
   name: string
   slug: string

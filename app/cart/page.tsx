@@ -32,7 +32,7 @@ export default async function CartPage() {
   const t = await getTranslator()
 
   const cart = await getCart()
-  const resolved = await resolveCartItems(cart)
+  const resolved = await resolveCartItems(cart, await getLocale())
   const hasPurchasableLines = resolved.lines.length > 0 && resolved.unavailableCount === 0 && resolved.lines.every((line) => line.purchasable)
 
   return (

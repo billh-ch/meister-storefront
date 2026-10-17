@@ -17,7 +17,7 @@ export async function POST(request: Request) {
   const t = inputTranslator(input)
   const parsed = shippingAddressSchema.extend({ locale: requestLocaleSchema }).safeParse(input)
   if (!parsed.success) return Response.json({ status: 'address', error: t('Please check your delivery country and address.') }, { status: 400, headers })
-  const quote = await getShippingQuote(parsed.data)
+  const quote = await getShippingQuote(parsed.data, parsed.data.locale)
   const localizedQuote = quote.status === 'ready' ? quote : { ...quote, error: t(quote.error), ...('issues' in quote ? { issues: quote.issues.map(issue => ({ ...issue, message: t(issue.message) })) } : {}) }
   return Response.json(localizedQuote, { status: quote.status === 'error' ? 503 : 200, headers })
 }

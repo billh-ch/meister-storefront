@@ -1,5 +1,5 @@
 'use client'
-import { useTranslation } from '@/components/i18n/locale-provider'
+import { useLocale, useTranslation } from '@/components/i18n/locale-provider'
 
 import Image from 'next/image'
 import Link from '@/components/i18n/localized-link'
@@ -18,6 +18,7 @@ interface CartRecommendationsProps {
 
 export default function CartRecommendations({ productIds, disabled = false, onPendingChange, onNavigate }: CartRecommendationsProps) {
   const t = useTranslation()
+  const locale = useLocale()
 
   const [products, setProducts] = useState<Product[]>([])
   const [error, setError] = useState('')
@@ -29,12 +30,12 @@ export default function CartRecommendations({ productIds, disabled = false, onPe
 
   useEffect(() => {
     const controller = new AbortController()
-    fetch('/api/cart/recommendations', { cache: 'no-store', signal: controller.signal })
+    fetch(`/api/cart/recommendations?locale=${locale}`, { cache: 'no-store', signal: controller.signal })
       .then(response => response.ok ? response.json() : [])
       .then((next: Product[]) => { if (!controller.signal.aborted) setProducts(next) })
       .catch(() => { if (!controller.signal.aborted) setProducts([]) })
     return () => controller.abort()
-  }, [cartKey])
+  }, [cartKey, locale])
 
   const add = (product: Product) => {
     setError('')

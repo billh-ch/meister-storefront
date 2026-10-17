@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server'
+import { queryLocale } from '@/lib/i18n/request'
 import { getProducts } from '@/lib/woocommerce'
 
 const MAX_RESULTS = 2
@@ -22,13 +23,15 @@ export interface SearchSuggestion {
  * since it uses the WooCommerce consumer key/secret server-side).
  */
 export async function GET(request: Request) {
+  const locale = queryLocale(request)
+  if (!locale.success) return Response.json({ error: 'Invalid language selection.' }, { status: 400 })
   const query = new URL(request.url).searchParams.get('q')?.trim().toLowerCase() ?? ''
 
   if (query.length < MIN_QUERY_LENGTH) {
     return NextResponse.json({ results: [] })
   }
 
-  const products = await getProducts()
+  const products = await getProducts(locale.data)
 
   const matches = products
     .filter((product) => product.name.toLowerCase().includes(query))
