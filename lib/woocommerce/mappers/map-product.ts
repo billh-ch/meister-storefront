@@ -1,4 +1,5 @@
 import type { Product } from '@/lib/mock-data'
+import { getProductContent } from '@/lib/product-content/translations'
 import type { WcProduct } from '../queries/get-products'
 import { mapBrand } from './map-brand'
 import { mapCategorySlug } from './category-map'
@@ -6,18 +7,19 @@ import { hasPriceRange } from './has-price-range'
 import { resolveImageUrl } from './resolve-image-url'
 import { toStockStatus } from './stock-status'
 
-export function mapProduct(product: WcProduct): Product {
+export function mapProduct(product: WcProduct, locale: string = 'en'): Product {
+  const content = getProductContent(product, locale)
   const seen = new Set<string>()
   const gallery = product.images.flatMap(image => {
     const src = resolveImageUrl(image.src)
     if (!src || seen.has(src)) return []
     seen.add(src)
-    return [{ src, alt: image.alt?.trim() || product.name }]
+    return [{ src, alt: image.alt?.trim() || content.name }]
   })
   return {
     id: String(product.id),
     slug: product.slug,
-    name: product.name,
+    name: content.name,
     price: Number.parseFloat(product.price) || 0,
     // Phase 1 (homepage): variations aren't fetched, so size/color options
     // and swatches stay empty. ProductCard renders both defensively.

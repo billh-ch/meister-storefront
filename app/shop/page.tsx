@@ -22,7 +22,7 @@ interface ShopPageProps {
 
 export async function generateMetadata({ searchParams }: ShopPageProps): Promise<Metadata> {
   const sp = await searchParams
-  const products = await getProducts()
+  const products = await getProducts(await getLocale())
   const collection = paginateProducts(products, { page: sp.page, sort: sp.sort, filters: parseFilters(sp) })
   return buildCollectionMetadata({
     locale: await getLocale(),
@@ -43,7 +43,7 @@ export default async function ShopPage({ searchParams }: ShopPageProps) {
 
   const sp = await searchParams
   const filters = parseFilters(sp)
-  const allProducts = await getProducts()
+  const allProducts = await getProducts(await getLocale())
   const facets = deriveFacets(allProducts, { includeCategories: true })
   const collection = paginateProducts(allProducts, {
     page: sp.page,

@@ -10,6 +10,6 @@ export async function GET(request: Request) {
   const raw = new URL(request.url).searchParams.get('ids')?.split(',') ?? []
   const ids = normalizeIds(raw)
   if (!ids.length || ids.length > 4 || ids.length !== raw.length) return Response.json({ error: t('Choose up to four unique products.') }, { status: 400, headers })
-  try { return Response.json(await fetchCompareCatalog(ids), { headers }) }
+  try { return Response.json(await fetchCompareCatalog(ids, locale.data), { headers }) }
   catch { return Response.json({ error: t('Could not load products for comparison. Please retry.') }, { status: 503, headers }) }
 }

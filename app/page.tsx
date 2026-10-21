@@ -15,7 +15,7 @@ import { serializeStructuredData } from '@/lib/seo/structured-data'
 import { categoryDetails } from '@/lib/mock-data'
 
 export async function generateMetadata(): Promise<Metadata> {
-  const products = await getProducts()
+  const products = await getProducts(await getLocale())
   return buildPageMetadata({
     locale: await getLocale(),
     title: 'Meister — Freediving & Spearfishing Equipment',
@@ -41,7 +41,7 @@ export async function generateMetadata(): Promise<Metadata> {
 const MOST_WANTED_LIMIT = 12
 
 export default async function HomePage() {
-  const products = await getProducts()
+  const products = await getProducts(await getLocale())
 
   return (
     <main>

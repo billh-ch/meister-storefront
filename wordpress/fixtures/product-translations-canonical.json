@@ -1,0 +1,26 @@
+[
+  {
+    "source": {
+      "name": "Carbon Πέδιλα & Rails",
+      "short_description": "<p>Λείο / Ξυρισμένο &amp; Φόδρα</p>\n",
+      "description": "<div>80 cm\r\nCarbon — 100 €</div>"
+    },
+    "sha256": "16a2861c1580780ab1d37f167dc8e5fc18268def28ddf00d0098f0d97e2a847e"
+  },
+  {
+    "source": {
+      "name": "Café é",
+      "short_description": "",
+      "description": ""
+    },
+    "sha256": "a07c3b6fba8b53cb753f10f8eeaedea14a821e118a1afe47514333e6a09af4fc"
+  },
+  {
+    "source": {
+      "name": "A & B",
+      "short_description": "Line one\nLine two",
+      "description": "<p>Do not wpautop.</p>"
+    },
+    "sha256": "61bd4c1c05ad2edd732eb0eef7084633cb8865721737432619c10002feee21dd"
+  }
+]

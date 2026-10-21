@@ -20,7 +20,7 @@ export async function GET(request: Request) {
     const products = process.env.NEXT_PUBLIC_USE_MOCK_DATA === 'true'
       ? mockProducts.filter(product => ids.includes(product.id))
       : (await wcFetch<WcProduct[]>('/products', { include: ids.join(','), per_page: '40', status: 'publish' }))
-          .filter(product => product.status === 'publish').map(mapProduct)
+          .filter(product => product.status === 'publish').map(product => mapProduct(product, locale.data))
     return Response.json({ products }, { headers })
   } catch {
     return Response.json({ error: t('Could not load saved products. Please retry.') }, { status: 503, headers })

@@ -34,7 +34,7 @@ export async function generateMetadata({ params, searchParams }: CategoryPagePro
   const category = findCategory(slug)
   if (!category) return { title: translate(await getLocale(), 'Not found — Meister'), alternates: { canonical: null }, robots: { index: false, follow: true } }
   const sp = await searchParams
-  const products = await getProducts()
+  const products = await getProducts(await getLocale())
   const collection = paginateProducts(products.filter(product => product.category === slug), {
     page: sp.page, sort: sp.sort, filters: parseFilters(sp),
   })
@@ -58,7 +58,7 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
 
   const sp = await searchParams
   const filters = parseFilters(sp)
-  const allProducts = await getProducts()
+  const allProducts = await getProducts(await getLocale())
   const categoryProducts = allProducts.filter((product) => product.category === category.slug)
   const facets = deriveFacets(categoryProducts, { includeCategories: false })
   const collection = paginateProducts(categoryProducts, {

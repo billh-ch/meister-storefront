@@ -74,7 +74,7 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
     )
   }
 
-  const allProducts = await getProducts()
+  const allProducts = await getProducts(await getLocale())
   const matches = allProducts.filter((product) =>
     product.name.toLowerCase().includes(query.toLowerCase()),
   )
