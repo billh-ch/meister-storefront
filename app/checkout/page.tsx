@@ -1,5 +1,8 @@
+import { getTranslator } from '@/lib/i18n/server'
+import { getLocale } from '@/lib/i18n/server'
+import { localePath, translate } from '@/lib/i18n'
 import type { Metadata } from 'next'
-import Link from 'next/link'
+import Link from '@/components/i18n/localized-link'
 import Navbar from '@/components/navbar'
 import Footer from '@/components/footer'
 import SimpleBreadcrumbs from '@/components/collection/simple-breadcrumbs'
@@ -16,11 +19,11 @@ import CheckoutCartIssues from '@/components/checkout/cart-issues'
 const MONO = 'var(--font-space-mono), monospace'
 const DISPLAY = 'var(--font-dela-gothic), sans-serif'
 
-export const metadata: Metadata = {
+export async function generateMetadata(): Promise<Metadata> { return {
   robots: { index: false, follow: false },
   alternates: { canonical: null },
-  title: 'Checkout — Meister',
-}
+  title: translate(await getLocale(), 'Checkout — Meister'),
+} }
 
 /**
  * Open to guests — no sign-in gate. A logged-in shopper gets their saved
@@ -30,9 +33,12 @@ export const metadata: Metadata = {
  * split server-side.
  */
 export default async function CheckoutPage() {
+  const t = await getTranslator()
+
+  const locale = await getLocale()
   const [cart, session] = await Promise.all([getCart(), getSession()])
   const isGuest = !session.wcCustomerId
-  const resolvedCart = await resolveCartItems(cart).catch(() => null)
+  const resolvedCart = await resolveCartItems(cart, locale).catch(() => null)
   const cartUnavailable = resolvedCart === null
   const resolved = resolvedCart ?? { lines: [], unavailableCount: 0, subtotal: 0 }
 
@@ -74,15 +80,14 @@ export default async function CheckoutPage() {
           className="mb-6 text-2xl text-white sm:text-3xl md:text-4xl"
           style={{ fontFamily: DISPLAY, fontWeight: 800 }}
         >
-          CHECKOUT
+          {t("CHECKOUT")}
         </h1>
 
         {cartUnavailable ? (
           <div role="alert" className="flex flex-col gap-3 border border-[#FF6B6B]/50 p-4 text-sm text-white">
-            <p>Could not verify your cart. Your saved items are still there. Please try again.</p>
+            <p>{t("Could not verify your cart. Your saved items are still there. Please try again.")}</p>
             {/* A full reload rechecks WooCommerce and replaces any stale checkout client. */}
-            {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
-            <a href="/checkout" className="inline-flex min-h-11 items-center text-[#FFD700] underline">Retry checkout</a>
+                        <a href={localePath("/checkout", locale)} className="inline-flex min-h-11 items-center text-[#FFD700] underline">{t("Retry checkout")}</a>
           </div>
         ) : isEmpty ? (
           <div
@@ -90,10 +95,10 @@ export default async function CheckoutPage() {
             style={{ border: '1px solid #444444' }}
           >
             <p className="text-sm text-[#999999]" style={{ fontFamily: MONO }}>
-              YOUR CART IS EMPTY
+              {t("YOUR CART IS EMPTY")}
             </p>
             <Link href="/shop" className="btn-gold px-6 py-3 text-xs tracking-[0.1em] uppercase">
-              BROWSE PRODUCTS
+              {t("BROWSE PRODUCTS")}
             </Link>
           </div>
         ) : hasChanged ? (
@@ -107,11 +112,11 @@ export default async function CheckoutPage() {
           <div className="flex flex-col gap-4">
             {isGuest && (
               <p className="text-xs text-[#999999]" style={{ fontFamily: MONO }}>
-                Have an account?{' '}
+                {t("Have an account?")}{' '}
                 <Link href="/sign-in?redirect_url=/checkout" className="text-[#FFD700] hover:underline">
-                  Sign in
+                  {t("Sign in")}
                 </Link>{' '}
-                for faster checkout, or just continue below.
+                {t("for faster checkout, or just continue below.")}
               </p>
             )}
             <CheckoutForm

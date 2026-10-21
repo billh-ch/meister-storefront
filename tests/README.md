@@ -88,3 +88,5 @@ cart items, quick additions and refreshed totals in both cart views, backorder
 purchases, variant navigation, pending additions, and recommendation outages.
 The mobile variants check uses the mock variable hood product and verifies that
 Options scrolls to and focuses its selector before adding the chosen variant.
+
+Greek locale integration: `node tests/locale-integration.browser.mjs` performs one optimized build and runs an owned local Woo-shaped backend plus Next server. It overrides Woo/Stripe/Redis service credentials, uses sealed fixture sessions for account reads, intercepts valid payment submission, and verifies English/Greek language, source catalog/identity continuity, account/auth/address errors, delivery recovery, BOX NOW language and iframe boundaries at 320/390/768/1440. No production customer/order/session/shipment is created. Stop other Next dev/build servers first to avoid `.next` conflicts. `LOCALE_TEST_MODE=dev` and optional `LOCALE_TEST_LOCALE=en|el` support focused harness development; default runs both locales on the optimized build.

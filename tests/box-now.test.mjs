@@ -78,3 +78,12 @@ test('missing, mismatched or foreign lockers and service failures stop payment',
     await assert.rejects(resolveCheckoutLocker('GR', 'box_now_delivery', { id: '3' }), /verify.*locker/i)
   } finally { globalThis.fetch = original }
 })
+
+test('Greek BOX NOW language keeps the proven Greece iframe selection contract', () => {
+  const url = new URL(boxNowWidgetUrl('10558', '123', 'el'))
+  assert.equal(url.searchParams.get('language'), 'gr')
+  assert.equal(url.searchParams.get('countryCode'), 'gr')
+  assert.equal(url.searchParams.get('autoselect'), 'yes')
+  assert.equal(url.searchParams.get('autoclose'), 'no')
+  assert.equal(new URL(boxNowWidgetUrl('10558')).searchParams.get('language'), 'en')
+})

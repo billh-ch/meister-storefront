@@ -1,4 +1,5 @@
 'use client'
+import { useTranslation } from '@/components/i18n/locale-provider'
 
 import { useId, useState } from 'react'
 
@@ -26,6 +27,8 @@ export default function AccordionItem({
   defaultOpen = false,
   children,
 }: AccordionItemProps) {
+  const t = useTranslation()
+
   const [isOpen, setIsOpen] = useState(defaultOpen)
   const panelId = useId()
   const buttonId = `${panelId}-trigger`
@@ -42,7 +45,7 @@ export default function AccordionItem({
           className="flex w-full cursor-pointer items-center justify-between gap-4 py-4 text-left text-sm font-bold"
           style={{ fontFamily: MONO, color: isOpen ? '#FFD700' : '#FFFFFF' }}
         >
-          <span>{title}</span>
+          <span>{t(title)}</span>
           <span
             className="accordion-chevron flex-shrink-0 text-lg text-[#FFD700]"
             data-open={isOpen ? 'true' : 'false'}

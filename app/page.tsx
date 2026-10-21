@@ -1,3 +1,4 @@
+import { getLocale } from '@/lib/i18n/server'
 import type { Metadata } from 'next'
 import { buildPageMetadata } from '@/lib/seo/metadata'
 import Navbar from '@/components/navbar'
@@ -14,8 +15,9 @@ import { serializeStructuredData } from '@/lib/seo/structured-data'
 import { categoryDetails } from '@/lib/mock-data'
 
 export async function generateMetadata(): Promise<Metadata> {
-  const products = await getProducts()
+  const products = await getProducts(await getLocale())
   return buildPageMetadata({
+    locale: await getLocale(),
     title: 'Meister — Freediving & Spearfishing Equipment',
     description: 'Explore freediving and spearfishing equipment at Meister: fins, wetsuits, spearguns and diving accessories. Browse product specifications and available options.',
     path: '/',
@@ -39,7 +41,7 @@ export async function generateMetadata(): Promise<Metadata> {
 const MOST_WANTED_LIMIT = 12
 
 export default async function HomePage() {
-  const products = await getProducts()
+  const products = await getProducts(await getLocale())
 
   return (
     <main>

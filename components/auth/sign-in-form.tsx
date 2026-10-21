@@ -1,4 +1,5 @@
 'use client'
+import { useTranslation, useLocalePath } from '@/components/i18n/locale-provider'
 
 import { useState, useTransition, type FormEvent } from 'react'
 import { useRouter } from 'next/navigation'
@@ -8,6 +9,9 @@ import { getSafeRedirectUrl } from '@/lib/auth/safe-redirect'
 const MONO = 'var(--font-space-mono), monospace'
 
 export default function SignInForm({ redirectUrl }: { redirectUrl: string }) {
+  const t = useTranslation()
+  const lp = useLocalePath()
+
   const router = useRouter()
   const [isPending, startTransition] = useTransition()
   const [error, setError] = useState('')
@@ -22,7 +26,7 @@ export default function SignInForm({ redirectUrl }: { redirectUrl: string }) {
     startTransition(async () => {
       const result = await loginAction({ email, password })
       if (result.ok) {
-        router.push(getSafeRedirectUrl(redirectUrl))
+        router.push(lp(getSafeRedirectUrl(redirectUrl)))
         router.refresh()
       } else {
         setError(result.error)
@@ -38,7 +42,7 @@ export default function SignInForm({ redirectUrl }: { redirectUrl: string }) {
           className="text-xs font-bold tracking-wide text-white uppercase"
           style={{ fontFamily: MONO }}
         >
-          Email
+          {t("Email")}
         </label>
         <input
           id="sign-in-email"
@@ -57,7 +61,7 @@ export default function SignInForm({ redirectUrl }: { redirectUrl: string }) {
           className="text-xs font-bold tracking-wide text-white uppercase"
           style={{ fontFamily: MONO }}
         >
-          Password
+          {t("Password")}
         </label>
         <input
           id="sign-in-password"
@@ -72,7 +76,7 @@ export default function SignInForm({ redirectUrl }: { redirectUrl: string }) {
 
       {error && (
         <p aria-live="polite" className="text-xs" style={{ fontFamily: MONO, color: '#FF6B6B' }}>
-          {error}
+          {t(error)}
         </p>
       )}
 
@@ -81,7 +85,7 @@ export default function SignInForm({ redirectUrl }: { redirectUrl: string }) {
         disabled={isPending}
         className="btn-gold flex h-12 w-full items-center justify-center text-xs tracking-[0.1em] uppercase"
       >
-        {isPending ? 'Signing in…' : 'Sign in'}
+        {isPending ? t("Signing in…") : t("Sign in")}
       </button>
     </form>
   )

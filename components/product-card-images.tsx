@@ -1,11 +1,14 @@
 'use client'
+import { useTranslation } from '@/components/i18n/locale-provider'
 
 import Image from 'next/image'
-import Link from 'next/link'
+import Link from '@/components/i18n/localized-link'
 import { useRef, useState, type ReactNode } from 'react'
 import type { Product } from '@/lib/mock-data'
 
 export default function ProductCardImages({ product, children }: { product: Product; children?: ReactNode }) {
+  const t = useTranslation()
+
   const images = product.gallery?.length ? product.gallery : product.image ? [{ src: product.image, alt: product.name }] : []
   const multiple = images.length > 1
   const track = useRef<HTMLDivElement>(null)
@@ -22,7 +25,7 @@ export default function ProductCardImages({ product, children }: { product: Prod
   return (
     <div className="relative aspect-square w-full overflow-hidden"
       data-product-image-gallery={multiple ? 'multiple' : 'single'} data-image-index={selected}
-      role={multiple ? 'group' : undefined} aria-label={multiple ? `${product.name} photos` : undefined} tabIndex={multiple ? 0 : undefined}
+      role={multiple ? 'group' : undefined} aria-label={multiple ? t('{name} photos', { name: product.name }) : undefined} tabIndex={multiple ? 0 : undefined}
       onKeyDown={event => {
         if (!multiple || !['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) return
         event.preventDefault()
@@ -46,15 +49,15 @@ export default function ProductCardImages({ product, children }: { product: Prod
           {images.map((image, index) => (
             <Link key={`${image.src}-${index}`} href={`/products/${product.slug}`} draggable={false}
               className="relative h-full w-full shrink-0 snap-start" tabIndex={index === selected ? 0 : -1}
-              aria-label={`View ${product.name}${multiple ? ` — photo ${index + 1}` : ''}`}>
+              aria-label={multiple ? t('View {name} — photo {number}', { name: product.name, number: index + 1 }) : t('View {value0}', { value0: product.name })}>
               <Image src={image.src} alt={image.alt || product.name} fill draggable={false}
                 sizes="(max-width: 640px) 85vw, (max-width: 1024px) 50vw, 30vw" className="object-cover" loading="lazy" />
             </Link>
           ))}
         </div>
       ) : (
-        <Link href={`/products/${product.slug}`} aria-label={`View ${product.name}`} className="hatching-bg absolute inset-0 flex flex-col items-center justify-center gap-2 px-4 text-center">
-          <span className="text-xs tracking-widest text-[#999999]">NO IMAGE AVAILABLE</span>
+        <Link href={`/products/${product.slug}`} aria-label={t("View {value0}", { value0: product.name })} className="hatching-bg absolute inset-0 flex flex-col items-center justify-center gap-2 px-4 text-center">
+          <span className="text-xs tracking-widest text-[#999999]">{t("NO IMAGE AVAILABLE")}</span>
           <span className="text-[10px] text-[#666666]">{product.name}</span>
         </Link>
       )}
@@ -64,9 +67,9 @@ export default function ProductCardImages({ product, children }: { product: Prod
         <div className="pointer-events-none absolute bottom-2 left-1/2 flex -translate-x-1/2 items-center gap-1.5 rounded-full bg-black/60 px-3 py-2" aria-hidden="true">
           {images.slice(dotStart, dotStart + 5).map((image, index) => <span key={`${image.src}-${index}`} data-image-dot className={`h-1.5 w-1.5 rounded-full ${dotStart + index === selected ? 'bg-[#FFD700]' : 'bg-white/70'}`} />)}
         </div>
-        <button type="button" aria-label="Previous photo" disabled={selected === 0} onClick={() => goTo(selected - 1)} className="absolute top-1/2 left-2 hidden h-11 w-11 -translate-y-1/2 items-center justify-center border border-white/40 bg-black/60 text-xl text-white disabled:opacity-30 md:flex">‹</button>
-        <button type="button" aria-label="Next photo" disabled={selected === images.length - 1} onClick={() => goTo(selected + 1)} className="absolute top-1/2 right-2 hidden h-11 w-11 -translate-y-1/2 items-center justify-center border border-white/40 bg-black/60 text-xl text-white disabled:opacity-30 md:flex">›</button>
-        <p className="sr-only" aria-live="polite">Photo {selected + 1} of {images.length}</p>
+        <button type="button" aria-label={t("Previous photo")} disabled={selected === 0} onClick={() => goTo(selected - 1)} className="absolute top-1/2 left-2 hidden h-11 w-11 -translate-y-1/2 items-center justify-center border border-white/40 bg-black/60 text-xl text-white disabled:opacity-30 md:flex">‹</button>
+        <button type="button" aria-label={t("Next photo")} disabled={selected === images.length - 1} onClick={() => goTo(selected + 1)} className="absolute top-1/2 right-2 hidden h-11 w-11 -translate-y-1/2 items-center justify-center border border-white/40 bg-black/60 text-xl text-white disabled:opacity-30 md:flex">›</button>
+        <p className="sr-only" aria-live="polite">{t('Photo {number} of {total}', { number: selected + 1, total: images.length })}</p>
       </>}
     </div>
   )

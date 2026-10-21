@@ -1,4 +1,5 @@
 'use client'
+import { useTranslation } from '@/components/i18n/locale-provider'
 
 import { useEffect, useRef, useState, useTransition, type FormEvent } from 'react'
 import { updateAddressAction } from '@/lib/account/actions'
@@ -9,6 +10,8 @@ import { addressFromFormData } from '@/lib/address/form-data'
 const MONO = 'var(--font-space-mono), monospace'
 
 export default function AddressForm({ initialAddress }: { initialAddress?: AddressInput }) {
+  const t = useTranslation()
+
   const [isPending, startTransition] = useTransition()
   const [error, setError] = useState('')
   const [justSaved, setJustSaved] = useState(false)
@@ -39,7 +42,7 @@ export default function AddressForm({ initialAddress }: { initialAddress?: Addre
 
       {error && (
         <p aria-live="polite" className="text-xs" style={{ fontFamily: MONO, color: '#FF6B6B' }}>
-          {error}
+          {t(error)}
         </p>
       )}
 
@@ -48,7 +51,7 @@ export default function AddressForm({ initialAddress }: { initialAddress?: Addre
         disabled={isPending}
         className="btn-gold flex h-12 w-full items-center justify-center text-xs tracking-[0.1em] uppercase sm:w-auto sm:px-8"
       >
-        {isPending ? 'Saving…' : justSaved ? 'Saved' : 'Save address'}
+        {isPending ? t("Saving…") : justSaved ? t("Saved") : t("Save address")}
       </button>
     </form>
   )

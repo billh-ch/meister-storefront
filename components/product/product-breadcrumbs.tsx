@@ -1,4 +1,5 @@
-import Link from 'next/link'
+import { getTranslator } from '@/lib/i18n/server'
+import Link from '@/components/i18n/localized-link'
 import { findCategory } from '@/lib/categories'
 
 interface ProductBreadcrumbsProps {
@@ -8,17 +9,19 @@ interface ProductBreadcrumbsProps {
 
 const MONO = 'var(--font-space-mono), monospace'
 
-export default function ProductBreadcrumbs({
+export default async function ProductBreadcrumbs({
   categorySlug,
   productName,
 }: ProductBreadcrumbsProps) {
+  const t = await getTranslator()
+
   // All five real categories, not just the four homepage showcase tabs —
   // categoryDetails has no `guns` entry, so a guns product's breadcrumb
   // used to silently drop its middle crumb.
   const category = findCategory(categorySlug)
 
   return (
-    <nav aria-label="Breadcrumb" className="px-4 py-4 sm:px-6 md:px-10">
+    <nav aria-label={t("Breadcrumb")} className="px-4 py-4 sm:px-6 md:px-10">
       <ol
         className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-[#999999]"
         style={{ fontFamily: MONO }}
@@ -26,7 +29,7 @@ export default function ProductBreadcrumbs({
         <li>
           {/* -my-2 py-2 keeps the tap target at 44px without visual bulk */}
           <Link href="/" className="-my-2 py-2 hover:text-[#FFD700]">
-            HOME
+            {t("HOME")}
           </Link>
         </li>
         {category && (
@@ -37,7 +40,7 @@ export default function ProductBreadcrumbs({
                 href={`/${category.slug}`}
                 className="-my-2 py-2 hover:text-[#FFD700]"
               >
-                {category.name}
+                {t(category.name)}
               </Link>
             </li>
           </>

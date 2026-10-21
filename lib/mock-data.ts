@@ -1,3 +1,4 @@
+import { BUSINESS_CONTACT } from './business-contact'
 /**
  * Mock/fallback data layer. Product shapes here (`Product`) are the contract
  * `lib/woocommerce` maps real WooCommerce REST data into — this file's
@@ -188,8 +189,8 @@ export interface TrustItem {
   readonly href?: string
 }
 
-/** Shop support line. Placeholder — confirm with the shop. */
-export const SUPPORT_PHONE = '+30 210 000 0000'
+/** Verified published shop support line (dive-meister.com). */
+export const SUPPORT_PHONE = BUSINESS_CONTACT.displayTelephone
 
 export const trustItems: readonly TrustItem[] = [
   {
@@ -218,7 +219,7 @@ export const trustItems: readonly TrustItem[] = [
 export const shippingReturnsCopy = [
   {
     headline: 'Delivery',
-    body: 'Orders placed before 14:00 ship the same working day. Delivery within Greece takes 1–3 working days. Exact delivery methods and rates — including free in-store pickup — are shown at checkout.',
+    body: 'Delivery options and charges are calculated at checkout for your address and cart. Contact the store to confirm delivery timing.',
   },
   {
     headline: 'Returns',
@@ -246,7 +247,7 @@ export const homepageFaqs = [
   },
   {
     q: 'How much is shipping and how fast will it arrive?',
-    a: 'Shipping within Greece is free on orders over 80€. Below that it is a flat 5€, shown before you pay. Orders placed before 14:00 on a working day ship the same day, with delivery in 1 to 3 working days. You get a tracking link by email once your order is on its way.',
+    a: 'Delivery options and charges are calculated at checkout for your address and cart. Contact the store at info@dive-meister.com or +30 210 5317549 to confirm delivery timing.',
   },
   {
     q: 'Who makes this gear, and is it genuine?',

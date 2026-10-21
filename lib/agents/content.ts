@@ -2,12 +2,8 @@ import type { Product } from '@/lib/mock-data'
 import { isMeisterMade } from '@/lib/brand'
 import { getPublicSiteUrl } from '@/lib/seo/site'
 
-/** Published on dive-meister.com, whose footer and policy identify dive-meister.gr. */
-export const BUSINESS_CONTACT = {
-  email: 'info@dive-meister.com', telephone: '+302105317549', displayTelephone: '+30 210 5317549',
-  streetAddress: 'Leoforos Athinon 387', addressLocality: 'Aigaleo', postalCode: '12243', addressCountry: 'GR',
-  source: 'https://dive-meister.com/', privacySource: 'https://dive-meister.com/23876-2/',
-} as const
+import { BUSINESS_CONTACT } from '@/lib/business-contact'
+export { BUSINESS_CONTACT } from '@/lib/business-contact'
 
 export const HOME_PARAGRAPHS = [
   'Meister is a storefront for freediving and spearfishing equipment. Explore fins, wetsuits, spearguns, diving accessories and merchandise in the public catalog. Product pages bring together photographs, descriptions, specifications and the options supplied for each model, so you can compare equipment before deciding what belongs in your diving setup. The catalog includes Meister-branded equipment as well as products from other manufacturers; check the brand shown for the individual item rather than assuming every product is made by Meister.',

@@ -286,3 +286,26 @@ body {
 
 /* Native cart dialogs own the viewport while open. */
 body:has(dialog[open]) .compare-tray { display: none; }
+
+/* Aliases cover inline font references throughout the storefront. Cascadia
+   supplies native Greek catalog glyphs on English pages too. */
+html {
+  --font-space-mono: var(--font-english-mono), var(--font-cascadia-mono);
+  --font-dela-gothic: var(--font-english-display), var(--font-cascadia-mono);
+}
+html[lang="el"] {
+  --font-space-mono: var(--font-cascadia-mono);
+  --font-dela-gothic: var(--font-syne);
+  font-synthesis: none;
+}
+/* Greek headings use Syne, including older inline mono styles.
+   English headings retain their original font and weight declarations. */
+html[lang="el"] :is(h1, h2, h3, h4, h5, h6) {
+  font-family: var(--font-syne), sans-serif !important;
+  font-weight: 700 !important;
+  font-synthesis: none;
+}
+/* Cascadia's Google Fonts range tops out at 700, including inline weights. */
+html[lang="el"] :is(h1, h2, h3, h4, h5, h6, .font-extrabold, .font-black, [style*="font-weight:800"], [style*="font-weight: 800"], [style*="font-weight:900"], [style*="font-weight: 900"]) {
+  font-weight: 700 !important;
+}

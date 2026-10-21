@@ -1,3 +1,6 @@
+import { getTranslator } from '@/lib/i18n/server'
+import { getLocale } from '@/lib/i18n/server'
+import { localePath, translate } from '@/lib/i18n'
 import type { Metadata } from 'next'
 import { buildProductMetadata } from '@/lib/seo/metadata'
 import { notFound } from 'next/navigation'
@@ -93,41 +96,44 @@ export async function generateMetadata({
 }: ProductPageProps): Promise<Metadata> {
   const { slug } = await params
   // Deduped with the page's own call by request memoisation — not a second fetch.
-  const product = await getProductBySlug(decodeSlug(slug))
+  const product = await getProductBySlug(decodeSlug(slug), await getLocale())
 
   if (!product) {
-    return { title: 'Product not found — Meister', alternates: { canonical: null }, robots: { index: false, follow: true } }
+    return { title: translate(await getLocale(), 'Product not found — Meister'), alternates: { canonical: null }, robots: { index: false, follow: true } }
   }
 
-  return buildProductMetadata(product)
+  return buildProductMetadata(product, process.env, await getLocale())
 }
 
 const RELATED_LIMIT = 8
 
 export default async function ProductPage({ params }: ProductPageProps) {
+  const t = await getTranslator()
+
   const { slug } = await params
-  const product = await getProductBySlug(decodeSlug(slug))
+  const product = await getProductBySlug(decodeSlug(slug), await getLocale())
 
   // Must run before anything that could open a Suspense boundary: once the
   // response starts streaming, Next can only inject `noindex` instead of
   // returning a real 404 status. This is also why there is no loading.tsx.
   if (!product) notFound()
 
-  const allProducts = await getProducts()
+  const allProducts = await getProducts(await getLocale())
   const related = allProducts
     .filter((candidate) => candidate.category === product.category)
     .filter((candidate) => candidate.slug !== product.slug)
     .slice(0, RELATED_LIMIT)
 
-  const specs = <ProductSpecsTable product={product} />
-  const canonicalUrl = canonicalProductUrl(product.slug)
+  const specs = await ProductSpecsTable({ product })
+  const locale = await getLocale()
+  const canonicalUrl = canonicalProductUrl(product.slug, process.env, locale)
   const category = findCategory(product.category)
   const structuredData = [
     ...(process.env.NEXT_PUBLIC_USE_MOCK_DATA !== 'true' && /^\d+$/.test(product.id)
       ? [buildProductStructuredData(product, canonicalUrl)] : []),
     buildBreadcrumbStructuredData([
-      { name: 'Home', url: getPublicSiteUrl().href },
-      ...(category ? [{ name: category.name, url: new URL(`/${category.slug}`, getPublicSiteUrl()).href }] : []),
+      { name: locale === 'el' ? 'Αρχική' : 'Home', url: new URL(localePath('/', locale), getPublicSiteUrl()).href },
+      ...(category ? [{ name: t(category.name), url: new URL(localePath(`/${category.slug}`, locale), getPublicSiteUrl()).href }] : []),
       { name: product.name, url: canonicalUrl },
     ]),
   ]
@@ -152,7 +158,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
               half-width strip under a full-width layout reads as unfinished. */}
           <div className="mt-12 lg:mt-16">
             {product.descriptionHtml && (
-              <AccordionItem title="DESCRIPTION" defaultOpen>
+              <AccordionItem title={t("DESCRIPTION")} defaultOpen>
                 <div
                   className="product-prose"
                   // Sanitised server-side in lib/sanitize.ts before it was
@@ -162,14 +168,14 @@ export default async function ProductPage({ params }: ProductPageProps) {
               </AccordionItem>
             )}
 
-            {specs && <AccordionItem title="SPECIFICATIONS">{specs}</AccordionItem>}
+            {specs && <AccordionItem title={t("SPECIFICATIONS")}>{specs}</AccordionItem>}
 
-            <AccordionItem title="SHIPPING & RETURNS">
+            <AccordionItem title={t("SHIPPING & RETURNS")}>
               <div className="product-prose">
                 {shippingReturnsCopy.map((section) => (
                   <div key={section.headline}>
-                    <h3>{section.headline}</h3>
-                    <p>{section.body}</p>
+                    <h3>{t(section.headline)}</h3>
+                    <p>{t(section.body)}</p>
                   </div>
                 ))}
               </div>
@@ -179,7 +185,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
 
         <ProductCarousel
           products={related}
-          title="YOU MAY ALSO LIKE"
+          title={t("YOU MAY ALSO LIKE")}
           viewAllHref={`/${product.category}`}
           ariaLabel="Related products"
         />

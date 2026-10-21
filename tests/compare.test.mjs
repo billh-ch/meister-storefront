@@ -1,7 +1,7 @@
 import './helpers/typescript-imports.mjs'
 import test from 'node:test'
 import assert from 'node:assert/strict'
-const model=await import('../lib/compare/model.ts').catch(()=>({}))
+const model = { ...await import('../lib/compare/model.ts'), ...await import('../lib/compare/map-product.ts') }
 const product=(id,attrs=[])=>({id,name:`Product ${id}`,price:20,priceFrom:false,brand:null,category:'fins',stockStatus:'instock',sku:'',weight:'',dimensions:{length:'',width:'',height:''},attributes:attrs})
 test('new attributes create rows dynamically with missing values and stable shared IDs',()=>{
  assert.equal(typeof model.buildComparisonRows,'function')

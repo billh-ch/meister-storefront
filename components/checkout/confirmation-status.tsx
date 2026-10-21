@@ -1,7 +1,8 @@
 'use client'
+import { useTranslation } from '@/components/i18n/locale-provider'
 
 import { useEffect, useState } from 'react'
-import Link from 'next/link'
+import Link from '@/components/i18n/localized-link'
 
 const MONO = 'var(--font-space-mono), monospace'
 const DISPLAY = 'var(--font-dela-gothic), sans-serif'
@@ -45,6 +46,8 @@ export default function ConfirmationStatus({
   paymentIntentId,
   guestSignup,
 }: ConfirmationStatusProps) {
+  const t = useTranslation()
+
   const [order, setOrder] = useState<OrderSummary | null>(null)
   const [gaveUp, setGaveUp] = useState(false)
 
@@ -95,19 +98,19 @@ export default function ConfirmationStatus({
     return (
       <>
         <h1 className="text-2xl text-white sm:text-3xl" style={{ fontFamily: DISPLAY, fontWeight: 800 }}>
-          THANK YOU
+          {t("THANK YOU")}
         </h1>
         <p className="mt-3 text-sm text-[#999999]" style={{ fontFamily: MONO }}>
-          Order #{order.number} is confirmed.{' '}
-          {isGuest ? 'A confirmation email is on its way.' : ''}
+          {t('Order #{number} is confirmed.', { number: order.number })}{' '}
+          {isGuest ? t("A confirmation email is on its way.") : ''}
         </p>
 
         {guestSignup && (
           <p className="mt-4 text-sm text-[#999999]" style={{ fontFamily: MONO }}>
             <Link href={guestSignupHref(guestSignup)} className="text-[#FFD700] hover:underline">
-              Create an account
+              {t("Create an account")}
             </Link>{' '}
-            to track this order and check out faster next time.
+            {t("to track this order and check out faster next time.")}
           </p>
         )}
 
@@ -115,7 +118,7 @@ export default function ConfirmationStatus({
           href={primaryHref}
           className="btn-gold mt-6 inline-flex px-6 py-3 text-xs tracking-[0.1em] uppercase"
         >
-          {primaryLabel}
+          {t(primaryLabel)}
         </Link>
       </>
     )
@@ -125,18 +128,18 @@ export default function ConfirmationStatus({
     return (
       <>
         <h1 className="text-2xl text-white sm:text-3xl" style={{ fontFamily: DISPLAY, fontWeight: 800 }}>
-          PAYMENT RECEIVED
+          {t("PAYMENT RECEIVED")}
         </h1>
         <p className="mt-3 text-sm text-[#999999]" style={{ fontFamily: MONO }}>
           {isGuest
-            ? 'We are still finalizing your order — we will email your confirmation shortly.'
-            : 'We are still finalizing your order — check your account in a moment, or we will email your confirmation shortly.'}
+            ? t("We are still finalizing your order — we will email your confirmation shortly.")
+            : t("We are still finalizing your order — check your account in a moment, or we will email your confirmation shortly.")}
         </p>
         <Link
           href={primaryHref}
           className="btn-gold mt-6 inline-flex px-6 py-3 text-xs tracking-[0.1em] uppercase"
         >
-          {isGuest ? 'CONTINUE SHOPPING' : 'GO TO YOUR ACCOUNT'}
+          {isGuest ? t("CONTINUE SHOPPING") : t("GO TO YOUR ACCOUNT")}
         </Link>
       </>
     )
@@ -145,10 +148,10 @@ export default function ConfirmationStatus({
   return (
     <>
       <h1 className="text-2xl text-white sm:text-3xl" style={{ fontFamily: DISPLAY, fontWeight: 800 }}>
-        PROCESSING YOUR ORDER…
+        {t("PROCESSING YOUR ORDER…")}
       </h1>
       <p className="mt-3 text-sm text-[#999999]" style={{ fontFamily: MONO }}>
-        Just a moment.
+        {t("Just a moment.")}
       </p>
     </>
   )

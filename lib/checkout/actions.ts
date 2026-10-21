@@ -1,5 +1,8 @@
 'use server'
 
+import { requestLocaleSchema } from '@/lib/i18n/request'
+import { translate, localePath } from '@/lib/i18n'
+import { getTranslator } from '@/lib/i18n/server'
 import { getSession } from '@/lib/auth/session'
 import { getCart } from '@/lib/cart/cookie'
 import { resolveCartItems } from '@/lib/cart/resolve'
@@ -21,9 +24,11 @@ export type CreateCheckoutSessionResult = { url: string } | { error: string; ref
 /** Compatibility entry point for existing callers. New checkout clients use
  *  the stable shipping route; both read the shopper's server-side cart. */
 export async function getShippingMethodsAction(input: ShippingAddressInput): Promise<ShippingMethod[]> {
-  const address = shippingAddressSchema.parse(input)
-  const quote = await getShippingQuote(address)
-  if (quote.status !== 'ready') throw new Error(quote.error)
+  const t = await getTranslator()
+  const parsed = shippingAddressSchema.safeParse(input)
+  if (!parsed.success) throw new Error(t('Please check your delivery country and address.'))
+  const quote = await getShippingQuote(parsed.data)
+  if (quote.status !== 'ready') throw new Error(t(quote.error))
   return quote.methods
 }
 
@@ -47,9 +52,14 @@ export async function createCheckoutSessionAction(
   deliveryMethodId: string,
   expected?: { cartSignature: string; shippingCost: number },
   boxNowLocker?: BoxNowLockerSelection,
+  localeInput?: unknown,
 ): Promise<CreateCheckoutSessionResult> {
+  const parsedLocale = requestLocaleSchema.safeParse(localeInput)
+  if (!parsedLocale.success) return { error: 'Invalid language selection.' }
+  const locale = parsedLocale.data
+  const t = (source: string) => translate(locale, source)
   if (process.env.NEXT_PUBLIC_USE_MOCK_DATA === 'true') {
-    return { error: 'Payments are unavailable in mock-data mode. Connect WooCommerce to continue.' }
+    return { error: t('Payments are unavailable in mock-data mode. Connect WooCommerce to continue.') }
   }
   const session = await getSession()
   const wcCustomerId = session.wcCustomerId
@@ -57,26 +67,26 @@ export async function createCheckoutSessionAction(
 
   const parsed = addressSchema.safeParse(input)
   if (!parsed.success) {
-    return { error: 'Please fill in every required field.' }
+    return { error: t('Please fill in every required field.') }
   }
 
   // A logged-in order takes its email from the WooCommerce customer record;
   // a guest order has nowhere else to get it.
   if (isGuest && !parsed.data.email) {
-    return { error: 'Please enter your email address.' }
+    return { error: t('Please enter your email address.') }
   }
 
   const cart = await getCart()
-  const resolved = await resolveCartItems(cart)
+  const resolved = await resolveCartItems(cart, locale)
 
   if (resolved.lines.length === 0) {
-    return { error: 'Your cart is empty.' }
+    return { error: t('Your cart is empty.') }
   }
   if (resolved.unavailableCount > 0 || resolved.lines.some((line) => !line.purchasable)) {
-    return { error: 'Your cart has changed — please review it before checking out.' }
+    return { error: t('Your cart has changed — please review it before checking out.') }
   }
   if (expected && expected.cartSignature !== checkoutCartSignature(resolved.lines)) {
-    return { error: 'Your cart or product prices have changed. Please review your cart before paying.', refreshShipping: true }
+    return { error: t('Your cart or product prices have changed. Please review your cart before paying.'), refreshShipping: true }
   }
 
   // Best-effort — remembers the address for next time, but must never block
@@ -99,19 +109,19 @@ export async function createCheckoutSessionAction(
       postcode: parsed.data.postcode,
       address1: parsed.data.address1,
   })
-  if (quote.status !== 'ready') return { error: quote.error, refreshShipping: true }
+  if (quote.status !== 'ready') return { error: t(quote.error), refreshShipping: true }
   const method = quote.methods.find((candidate) => candidate.id === deliveryMethodId)
   if (!method) {
-    return { error: 'Please choose a delivery method.', refreshShipping: true }
+    return { error: t('Please choose a delivery method.'), refreshShipping: true }
   }
   const shipping = method.cost
   if (expected && Math.round(expected.shippingCost * 100) !== Math.round(shipping * 100)) {
-    return { error: 'The delivery price has changed. Please review the updated total and continue.', refreshShipping: true }
+    return { error: t('The delivery price has changed. Please review the updated total and continue.'), refreshShipping: true }
   }
 
   let locker: BoxNowLocker | undefined
   try { locker = await resolveCheckoutLocker(parsed.data.country, method.wcMethodId, boxNowLocker) }
-  catch (error) { return { error: error instanceof Error ? error.message : 'Could not verify your BOX NOW locker. Please try again.' } }
+  catch (error) { return { error: t(error instanceof Error ? error.message : 'Could not verify your BOX NOW locker. Please try again.') } }
 
   // Metadata carries only *identity* — product/variation ids, quantities,
   // the shopper's axis picks, and the shipping address — never a price.
@@ -147,7 +157,7 @@ export async function createCheckoutSessionAction(
   const lineItems = resolved.lines.map((line) => {
     // Show the chosen variation on Stripe's hosted page and the receipt too,
     // so the last screen before payment matches our own checkout summary.
-    const variation = formatVariationLabel(line.attributes, ', ')
+    const variation = formatVariationLabel(line.attributes, ', ', t)
     return {
       price_data: {
         currency: 'eur',
@@ -164,7 +174,7 @@ export async function createCheckoutSessionAction(
   lineItems.push({
     price_data: {
       currency: 'eur',
-      product_data: { name: method.title },
+      product_data: { name: t(method.title) },
       unit_amount: Math.round(shipping * 100),
     },
     quantity: 1,
@@ -176,14 +186,16 @@ export async function createCheckoutSessionAction(
 
     const checkoutSession = await stripe.checkout.sessions.create({
       mode: 'payment',
+      locale,
       line_items: lineItems,
       // Guests give Stripe their email so it can send them a receipt and so
       // the confirmation page can recover it; logged-in shoppers already
       // have an account email on file.
       ...(parsed.data.email ? { customer_email: parsed.data.email } : {}),
-      success_url: `${baseUrl}/checkout/confirmation?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${baseUrl}/checkout`,
+      success_url: `${baseUrl}${localePath('/checkout/confirmation', locale)}?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${baseUrl}${localePath('/checkout', locale)}`,
       metadata: {
+        locale,
         // Empty string for a guest — the webhook reads this back and treats
         // a blank/zero value as "guest order" (customer_id 0 in WooCommerce).
         wcCustomerId: wcCustomerId ? String(wcCustomerId) : '',
@@ -205,11 +217,11 @@ export async function createCheckoutSessionAction(
     })
 
     if (!checkoutSession.url) {
-      return { error: 'Could not start checkout. Please try again.' }
+      return { error: t('Could not start checkout. Please try again.') }
     }
 
     return { url: checkoutSession.url }
   } catch {
-    return { error: 'Could not reach the payment processor. Please try again.' }
+    return { error: t('Could not reach the payment processor. Please try again.') }
   }
 }

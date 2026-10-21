@@ -1,3 +1,4 @@
+import { inputTranslator, requestLocaleSchema } from '@/lib/i18n/request'
 import { shippingAddressSchema } from '@/lib/address/schema'
 import { getShippingQuote } from '@/lib/checkout/get-shipping-quote'
 
@@ -13,8 +14,10 @@ export async function POST(request: Request) {
   if (body.length > 8192) return Response.json({ status: 'address', error: 'Please check your address.' }, { status: 400, headers })
   let input: unknown
   try { input = JSON.parse(body) } catch { return Response.json({ status: 'address', error: 'Please check your address.' }, { status: 400, headers }) }
-  const parsed = shippingAddressSchema.safeParse(input)
-  if (!parsed.success) return Response.json({ status: 'address', error: 'Please check your delivery country and address.' }, { status: 400, headers })
-  const quote = await getShippingQuote(parsed.data)
-  return Response.json(quote, { status: quote.status === 'error' ? 503 : 200, headers })
+  const t = inputTranslator(input)
+  const parsed = shippingAddressSchema.extend({ locale: requestLocaleSchema }).safeParse(input)
+  if (!parsed.success) return Response.json({ status: 'address', error: t('Please check your delivery country and address.') }, { status: 400, headers })
+  const quote = await getShippingQuote(parsed.data, parsed.data.locale)
+  const localizedQuote = quote.status === 'ready' ? quote : { ...quote, error: t(quote.error), ...('issues' in quote ? { issues: quote.issues.map(issue => ({ ...issue, message: t(issue.message) })) } : {}) }
+  return Response.json(localizedQuote, { status: quote.status === 'error' ? 503 : 200, headers })
 }
