@@ -31,7 +31,7 @@ export default async function AboutSection() {
           <p className="mt-5 max-w-xl text-sm leading-7 text-[#cccccc]">
             {t("Founded in Greece in 2013, Meister creates wetsuits, fin blades and diving accessories for freedivers and spearfishers. Our work brings together equipment design, practical experience and a community connected by the sea. From our base in Aigaleo, Athens, we help divers find the equipment and guidance for their next underwater adventure.")}
           </p>
-          <Link href="https://www.meister.gr/about-us" className="btn-gold mt-6 inline-flex min-h-11 items-center justify-center gap-4 px-5 py-3 text-xs tracking-[0.1em] uppercase">
+          <Link href="https://www.meister.gr/about-us" target="_blank" rel="noopener noreferrer" className="btn-gold mt-6 inline-flex min-h-11 items-center justify-center gap-4 px-5 py-3 text-xs tracking-[0.1em] uppercase">
             {t("About Meister")}
 <span aria-hidden="true">→</span>
           </Link>
