@@ -55,7 +55,7 @@
 .learn { padding-top: 50px; }
 .learnHeading { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 12px; margin-bottom: 20px; }
 .learnHeading span { font-size: 11px; color: #aaa99e; }
-.learnGrid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+.learnGrid { display: grid; grid-template-columns: repeat(3, 1fr); align-items: start; gap: 12px; }
 .learn details { border: 1px solid #59594b; padding: 18px; }
 .finder summary { cursor: pointer; font-size: 13px; font-weight: 700; }
 .learn details p { font-size: 12px; color: #c6c6bb; margin-top: 16px; }
