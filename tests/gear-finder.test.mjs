@@ -49,3 +49,34 @@ test('every approved answer combination preserves its original recommendation or
   assert.equal(createHash('sha256').update(JSON.stringify(suitResults)).digest('hex'),'9a042eb35c468530a3170989345d62ac941e2cd017130afe9ca830c480a611ac')
   assert.equal(createHash('sha256').update(JSON.stringify(finResults)).digest('hex'),'e78e1386817a768a540baed5fe44633d35dc0ceb4187b254d60aef5efd6d4662')
 })
+
+test('finder sessions reject invalid answers and retain valid independent progress', async () => {
+  let sessionModule
+  try { sessionModule=await import('../lib/gear-finder/session.ts') } catch {}
+  assert.equal(typeof sessionModule?.createFinderStore,'function','validated session store must exist')
+  const values=new Map()
+  const storage={getItem:k=>values.get(k)??null,setItem:(k,v)=>values.set(k,v)}
+  const store=sessionModule.createFinderStore(storage)
+  store.update('fins',{answers:{use:'mixed'},step:1,results:false,showAll:false})
+  const restored=sessionModule.createFinderStore(storage)
+  assert.equal(restored.getSnapshot().fins.answers.use,'mixed')
+  assert.equal(restored.getSnapshot().wetsuits.step,0)
+  values.set('meister_gear_finder_v1',JSON.stringify({fins:{answers:{use:'invalid',budget:'any',private:'unexpected'},step:999,results:true,showAll:true}}))
+  const safe=sessionModule.createFinderStore(storage).getSnapshot()
+  assert.deepEqual(safe.fins.answers,{budget:'any'})
+  assert.equal(safe.fins.results,false)
+  assert.equal(safe.fins.step,0,'cannot skip past missing required answers')
+  const broken={getItem(){throw Error('blocked')},setItem(){throw Error('blocked')}}
+  assert.doesNotThrow(()=>sessionModule.createFinderStore(broken).update('fins',{step:0,answers:{},results:false,showAll:false}))
+})
+
+test('gear finder routes and metadata retain locale and mode', async () => {
+  const {localePath,isShopperPath}=await import('../lib/i18n/paths.ts')
+  assert.equal(isShopperPath('/gear-finder'),true)
+  assert.equal(localePath('/gear-finder#fins','el'),'/el/gear-finder#fins')
+  assert.equal(localePath('/el/gear-finder#wetsuits','en'),'/gear-finder#wetsuits')
+  const {buildPageMetadata}=await import('../lib/seo/metadata.ts')
+  const meta=buildPageMetadata({title:'Gear Finder — Wetsuits & Fins — Meister',description:'Guide',path:'/gear-finder',locale:'el'},{NEXT_PUBLIC_SITE_URL:'https://meister-storefront.vercel.app',VERCEL_ENV:'production'})
+  assert.equal(meta.alternates.languages.el,'https://meister-storefront.vercel.app/el/gear-finder')
+  assert.match(meta.title,/Οδηγός/)
+})

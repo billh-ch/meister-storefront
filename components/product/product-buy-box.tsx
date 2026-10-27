@@ -1,5 +1,6 @@
 'use client'
 import { useTranslation } from '@/components/i18n/locale-provider'
+import Link from '@/components/i18n/localized-link'
 
 import { useCallback, useEffect, useMemo, useRef, useState, useTransition } from 'react'
 import {
@@ -356,6 +357,17 @@ export default function ProductBuyBox({ product }: ProductBuyBoxProps) {
               className="product-prose"
               dangerouslySetInnerHTML={{ __html: product.shortDescriptionHtml }}
             />
+          )}
+
+          {(product.category === 'suits' || product.category === 'fins') && (
+            <Link
+              href={`/gear-finder#${product.category === 'suits' ? 'wetsuits' : 'fins'}`}
+              className="flex min-h-11 items-center gap-3 border-y border-[#555547] py-3 text-xs leading-relaxed text-[#FFD700] underline decoration-[#817332] underline-offset-4 transition-colors hover:text-[#FFE94D]"
+              style={{ fontFamily: MONO }}
+            >
+              <svg className="h-4 w-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden="true"><circle cx="12" cy="12" r="9" /><path d="M9.5 9a2.5 2.5 0 1 1 4.1 1.9c-1.2.8-1.6 1.2-1.6 2.6M12 16v1" /></svg>
+              <span>{t('Not sure where to start? Take our quiz.')} <span aria-hidden="true">→</span></span>
+            </Link>
           )}
 
           {variationAxes.length > 0 && (

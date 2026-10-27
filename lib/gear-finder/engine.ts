@@ -13,6 +13,7 @@ export function thermalPlan(a: Answers): {range: number[] | null; adjusted: bool
 }
 export function rankSuits<T extends SuitModel = SuitModel>(a: Answers,products: T[] = PRODUCTS as T[]){
  const plan=thermalPlan(a);
+ const range=plan.range;
  if(a.temp==='cold')return {plan,matches:[]};
  const cap=a.budget==='any'?Infinity:Number(a.budget);
  const matches=products.filter(p=>{
@@ -20,7 +21,7 @@ export function rankSuits<T extends SuitModel = SuitModel>(a: Answers,products: 
    if(a.care==='easy'&&p.inner!=='lined')return false;
    if(a.care==='rugged'&&p.outer!=='lined')return false;
    if(a.care==='smooth'&&p.outer!=='smooth')return false;
-   if(plan.range&&!p.thickness.some(t=>t>=plan.range[0]&&t<=plan.range[1]))return false;
+   if(range&&!p.thickness.some(t=>t>=range[0]&&t<=range[1]))return false;
    return true;
  }).map(p=>{
    let score=0;
@@ -35,7 +36,7 @@ export function rankSuits<T extends SuitModel = SuitModel>(a: Answers,products: 
    if(a.care==='easy'&&p.inner==='lined')score+=10;
    if((a.temp==='cool'||a.cold==='yes')&&['pro','scs'].includes(p.id))score+=9;
    if(p.id==='pro')score+=1;
-   const options=plan.range?p.thickness.filter(t=>t>=plan.range[0]&&t<=plan.range[1]):[];
+   const options=range?p.thickness.filter(t=>t>=range[0]&&t<=range[1]):[];
    return {product:p,score,thickness:options.length?options[0]:null};
  }).sort((x,y)=>y.score-x.score||x.product.price[0]-y.product.price[0]||x.product.id.localeCompare(y.product.id));
  return {plan,matches};
