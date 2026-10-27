@@ -16,4 +16,4 @@ The main showcase section (`categories-section.tsx`) with:
 - `document.fonts.ready` for recalculating layout after font load
 - `emblaApi.reInit()` + `scrollTo(0, true)` when filtered data changes
 - CSS `grid-template-rows: 0fr → 1fr` for smooth accordion height animation
-- Marquee: two identical halves so `-50%` translateX loops seamlessly
+- Marquees use the shared `Marquee` component: two identical groups sized after `document.fonts.ready`, remeasured with `ResizeObserver`. Animate exactly one measured group at a constant pixels-per-second speed; repeat only enough text to fill the viewport.

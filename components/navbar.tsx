@@ -22,6 +22,7 @@ const NAV_LINKS = [
   { label: 'GUNS', href: '/guns' },
   { label: 'ACCESSORIES', href: '/accessories' },
   { label: 'MERCH', href: '/merch' },
+  { label: 'GEAR FINDER', href: '/gear-finder' },
 ] as const
 
 /** Sticky navigation bar with logo, nav links, search, and cart/account icons. */
@@ -153,23 +154,25 @@ export default function Navbar() {
         </Link>
 
         {/* Desktop nav links */}
-        <ul className="hidden items-center gap-5 lg:flex xl:gap-8" role="list">
-          {NAV_LINKS.map(({ label, href }) => (
-            <li key={label}>
-              <Link
-                href={href}
+        <ul className="hidden items-center gap-4 xl:flex" role="list">
+          {NAV_LINKS.map(({ label, href }) => {
+            // A native entry resets the hash-selected quiz while retaining its tab session.
+            const NavLink = href === '/gear-finder' ? 'a' : Link
+            return <li key={label} className="relative not-first:before:pointer-events-none not-first:before:absolute not-first:before:top-1/2 not-first:before:-left-2 not-first:before:h-3 not-first:before:w-px not-first:before:-translate-y-1/2 not-first:before:bg-white/50">
+              <NavLink
+                href={localePath(href)}
                 className="text-sm font-bold tracking-wider text-white transition-colors duration-150 hover:text-[#FFD700]"
                 style={{ fontFamily: 'var(--font-space-mono), monospace' }}
               >
                 {t(label)}
-              </Link>
+              </NavLink>
             </li>
-          ))}
+          })}
         </ul>
 
         {/* Right actions */}
         <div className="flex items-center gap-0 sm:gap-1">
-          <div className="hidden lg:block"><LanguageSwitch /></div>
+          <div className="hidden xl:block"><LanguageSwitch /></div>
 
           {/* Search toggle */}
           <button
@@ -223,7 +226,7 @@ export default function Navbar() {
 
           {/* Mobile menu button */}
           <button
-            className="flex h-11 w-11 shrink-0 items-center justify-center text-white transition-colors hover:text-[#FFD700] lg:hidden"
+            className="flex h-11 w-11 shrink-0 items-center justify-center text-white transition-colors hover:text-[#FFD700] xl:hidden"
             onClick={() => setMenuOpen((prev) => !prev)}
             aria-expanded={menuOpen}
             aria-controls="mobile-menu"
@@ -317,23 +320,24 @@ export default function Navbar() {
       {menuOpen && (
         <div
           id="mobile-menu"
-          className="border-t border-[#222222] lg:hidden"
+          className="border-t border-[#222222] xl:hidden"
           style={{ backgroundColor: '#111111' }}
         >
           <div className="px-4 pt-2"><LanguageSwitch /></div>
-          <ul className="flex flex-col px-6 py-4" role="list">
-            {NAV_LINKS.map(({ label, href }) => (
-              <li key={label}>
-                <Link
-                  href={href}
+          <ul className="flex flex-col divide-y divide-white/20 px-6 py-4" role="list">
+            {NAV_LINKS.map(({ label, href }) => {
+              const NavLink = href === '/gear-finder' ? 'a' : Link
+              return <li key={label}>
+                <NavLink
+                  href={localePath(href)}
                   className="block py-3 text-sm font-bold tracking-wider text-white hover:text-[#FFD700]"
                   style={{ fontFamily: 'var(--font-space-mono), monospace' }}
                   onClick={() => setMenuOpen(false)}
                 >
                   {t(label)}
-                </Link>
+                </NavLink>
               </li>
-            ))}
+            })}
             <li><Link href="/compare" scroll={false} onNavigate={() => window.scrollTo({ top: 0, left: 0, behavior: 'instant' })} onClick={() => setMenuOpen(false)} className="block py-3 text-sm font-bold text-white hover:text-[#FFD700]">{t("COMPARE PRODUCTS")}</Link></li>
             <li><Link href="/account" onClick={() => setMenuOpen(false)} className="block py-3 text-sm font-bold text-white hover:text-[#FFD700]">{t("MY ACCOUNT")}</Link></li>
           </ul>

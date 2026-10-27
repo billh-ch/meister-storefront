@@ -1,5 +1,6 @@
 import { getTranslator, getLocale } from '@/lib/i18n/server'
 import Image from 'next/image'
+import Marquee from './marquee'
 import Link from '@/components/i18n/localized-link'
 import { BUSINESS_CONTACT } from '@/lib/agents/content'
 
@@ -24,16 +25,6 @@ export default async function Footer() {
   const t = await getTranslator()
   const locale = await getLocale()
 
-  const marqueeContent = Array.from({ length: 8 }, (_, i) => (
-    <span
-      key={i}
-      className="mx-8 flex h-full items-center whitespace-nowrap tracking-[-0.02em] text-white"
-      style={{ fontFamily: 'var(--font-dela-gothic), sans-serif', fontSize: '200px', lineHeight: '200px', fontWeight: 800 }}
-    >
-      {t(MARQUEE_TEXT)}
-    </span>
-  ))
-
   return (
     <footer
       className="relative w-full"
@@ -53,15 +44,10 @@ export default async function Footer() {
       {/* Content wrapper */}
       <div className="relative z-10 flex w-full flex-col">
         {/* ── Row 1: Marquee ── */}
-        <div
-          className="flex w-full items-center overflow-hidden"
-          style={{ height: '200px', marginTop: '40px' }}
-        >
-          <div className="animate-marquee flex" style={{ animationDuration: '300s', height: '200px' }}>
-            {marqueeContent}
-            {marqueeContent}
-          </div>
-        </div>
+        <Marquee
+          text={t(MARQUEE_TEXT)}
+          className="mt-10 h-[200px] w-full font-display text-[200px] leading-[200px] font-extrabold tracking-[-0.02em] text-white"
+        />
 
         {/* ── Row 2: Logo + Newsletter ── */}
         <div className="flex w-full flex-col md:flex-row">

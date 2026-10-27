@@ -66,7 +66,7 @@ export default function LanguageSwitch() {
           className={open ? 'rotate-180' : undefined}><path d="m4 6 4 4 4-4" /></svg>
       </button>
       <div id={panelId} hidden={!open}
-        className="absolute left-0 top-full lg:left-auto lg:right-0 z-50 mt-2 min-w-44 rounded border border-card-border bg-nav p-1.5 shadow-xl">
+        className="absolute left-0 top-full xl:left-auto xl:right-0 z-50 mt-2 min-w-44 rounded border border-card-border bg-nav p-1.5 shadow-xl">
         <p className="px-3 py-2 text-[10px] uppercase tracking-wider text-foreground/60">{title}</p>
         {languages.map(language => (
           <a key={language.locale} ref={element => { links.current[language.locale] = element ?? undefined }}

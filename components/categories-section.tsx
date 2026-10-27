@@ -6,6 +6,7 @@ import Link from '@/components/i18n/localized-link'
 import useEmblaCarousel from 'embla-carousel-react'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import ProductCard from './product-card'
+import Marquee from './marquee'
 import {
   type CategoryDetail,
   type Product,
@@ -140,26 +141,11 @@ export default function CategoriesSection({
           style={{ border: '1px solid #FFD700', backgroundColor: '#1B1B18' }}
         >
           {/* Marquee */}
-          <div
-            className="w-full overflow-hidden border-y border-[#333333] py-2 sm:py-3"
-            aria-hidden="true"
-          >
-            <div className="animate-marquee whitespace-nowrap">
-              {[0, 1].map((half) => (
-                <span key={half} className="inline-block">
-                  {Array.from({ length: 8 }).map((_, j) => (
-                    <span
-                      key={j}
-                      className="pr-6 text-xs font-bold tracking-[0.2em] text-[#FFD700] uppercase sm:pr-8 sm:text-sm"
-                      style={{ fontFamily: 'var(--font-space-mono), monospace' }}
-                    >
-                      {t(active.marqueeText)} •{' '}
-                    </span>
-                  ))}
-                </span>
-              ))}
-            </div>
-          </div>
+          <Marquee
+            key={active.slug}
+            text={`${t(active.marqueeText)} •`}
+            className="w-full border-y border-[#333333] py-2 text-xs font-bold tracking-[0.2em] text-gold uppercase sm:py-3 sm:text-sm"
+          />
 
           {/* Tagline */}
           <h2

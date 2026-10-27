@@ -11,7 +11,7 @@ export function buildSitemapUrls(products: SitemapProduct[], categories: string[
   }
   const site = getPublicSiteUrl(env)
   const english = [...new Set([
-    site.href, new URL('/shop', site).href,
+    site.href, new URL('/shop', site).href, new URL('/gear-finder', site).href,
     ...categories.map(slug => new URL(`/${encodeURIComponent(slug)}`, site).href),
     ...Object.keys(informationPages).map(path => new URL(path, site).href),
     ...products.map(product => canonicalProductUrl(product.slug, env)),

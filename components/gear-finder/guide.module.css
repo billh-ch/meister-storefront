@@ -1,0 +1,151 @@
+.finder { max-width: 1320px; margin: 0 auto; padding: 24px 32px 80px; color: #f7f7f1; font-family: var(--font-space-mono), monospace; font-size: 14px; line-height: 1.7; }
+.finder * { min-width: 0; }
+.finder h1,.finder h2,.finder h3,.question legend { font-family: var(--font-dela-gothic), sans-serif; font-weight: 700; line-height: 1.18; letter-spacing: -.035em; overflow-wrap: anywhere; }
+.finder h2 { font-size: clamp(24px, 3vw, 38px); }
+.finder h3 { font-size: 22px; }
+.finder a:not(.button) { text-underline-offset: 4px; }
+.finder button,.finder summary,.finder a { -webkit-tap-highlight-color: transparent; }
+.finder :is(a,button,summary,input):focus-visible { outline: 2px solid #ffd700; outline-offset: 5px; }
+.modeBar { display: flex; justify-content: space-between; align-items: center; gap: 24px; border-bottom: 1px solid #45453b; padding-bottom: 20px; }
+.eyebrow { color: #ffd700; font-size: 11px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; }
+.modeLinks { display: flex; gap: 8px; }
+.modeLinks a { padding: 12px 28px; border: 1px solid #55554b; display: flex; flex-direction: column; text-decoration: none; transition: background .15s, color .15s; }
+.modeLinks a[aria-current] { color: #1b1b18; background: #ffd700; border-color: #ffd700; }
+.modeLinks a span { font-weight: 700; font-size: 15px; }
+.modeLinks small { font-size: 10px; }
+.hero { display: grid; grid-template-columns: 1fr 260px; gap: 60px; padding: 52px 0 44px; align-items: center; }
+.hero h1 { white-space: pre-line; font-size: clamp(35px, 4.6vw, 64px); margin: 16px 0 20px; }
+.intro { color: #c6c6bb; max-width: 680px; }
+.meta { display: flex; flex-wrap: wrap; gap: 12px 24px; margin-top: 24px; list-style: none; padding: 0; color: #e5e5d9; font-size: 11px; }
+.meta li::before { content: '✓'; color: #ffd700; margin-right: 8px; }
+.heroArt { height: 260px; background: #f4f4ed; position: relative; display: flex; align-items: center; justify-content: center; transform: rotate(3deg); border: 1px solid #ffd700; }
+.heroArt img { width: 100%; height: 230px; object-fit: contain; mix-blend-mode: multiply; }
+.heroArt span { position: absolute; bottom: 0; left: 0; right: 0; padding: 7px; background: #ffd700; color: #1b1b18; text-align: center; font-size: 9px; font-weight: 700; letter-spacing: .12em; }
+.quiz { display: grid; grid-template-columns: 280px 1fr; border: 1px solid #646452; }
+.rail { background: #22221d; border-right: 1px solid #646452; padding: 32px 24px; }
+.rail ol { list-style: none; padding: 0; margin: 24px 0 32px; }
+.rail li { display: flex; align-items: center; gap: 12px; color: #9d9d91; font-size: 12px; padding: 10px 0; }
+.rail li span { flex: 0 0 26px; width: 26px; height: 26px; display: grid; place-items: center; border: 1px solid #66665a; font-size: 11px; }
+.rail li[aria-current] { color: #ffd700; }
+.rail li[aria-current] span { background: #ffd700; color: #1b1b18; border-color: #ffd700; }
+.rail li[data-complete='true']:not([aria-current]) { color: #eeeeDF; }
+.quizMain { padding: 32px 40px; }
+.progressRow { display: flex; justify-content: space-between; gap: 10px; color: #c6c6bb; font-size: 11px; }
+.progress { height: 3px; background: #47473d; margin: 12px 0 30px; }
+.progress span { display: block; height: 100%; background: #ffd700; }
+.question { border: 0; padding: 0; margin: 0; }
+.question legend { font-size: clamp(25px, 2.7vw, 36px); width: 100%; }
+.question legend,.resultHeading h2 { scroll-margin-top: 110px; outline: none; }
+.hint { color: #b9b9ae; font-size: 12px; margin: 12px 0 24px; }
+.options { display: grid; gap: 10px; }
+.option { display: flex; align-items: flex-start; gap: 14px; padding: 18px; border: 1px solid #5e5e50; cursor: pointer; transition: border-color .15s, background .15s; }
+.option:hover { border-color: #b5aa4c; }
+.option[data-selected='true'] { border-color: #ffd700; background: #ffd7000c; }
+.option:focus-within { outline: 2px solid #ffd700; outline-offset: 3px; }
+.option input { flex-shrink: 0; margin-top: 5px; width: 17px; height: 17px; accent-color: #ffd700; }
+.option strong { font-size: 13px; display: block; }
+.optionHelp { display: block; color: #b9b9ae; font-size: 11px; margin-top: 3px; }
+.controls,.resultActions { display: flex; gap: 12px; flex-wrap: wrap; justify-content: space-between; margin-top: 28px; }
+.button { min-height: 46px; display: inline-flex; align-items: center; justify-content: center; padding: 12px 20px; border: 1px solid #8c8c75; background: transparent; color: #fff; font-family: inherit; font-weight: 700; font-size: 12px; line-height: 1.4; text-align: center; text-decoration: none; cursor: pointer; transition: background .15s; }
+.button:hover { background: #ffffff0d; }
+.button:disabled { opacity: .4; cursor: default; }
+.primary { border-color: #ffd700; background: #ffd700; color: #1b1b18; }
+.primary:hover:not(:disabled) { background: #ffe94d; }
+.quizNote { font-size: 11px; color: #aaa99e; margin: 18px 0 0; }
+.learn { padding-top: 50px; }
+.learnHeading { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 12px; margin-bottom: 20px; }
+.learnHeading span { font-size: 11px; color: #aaa99e; }
+.learnGrid { display: grid; grid-template-columns: repeat(3, 1fr); align-items: start; gap: 12px; }
+.learn details { border: 1px solid #59594b; padding: 18px; }
+.finder summary { cursor: pointer; font-size: 13px; font-weight: 700; }
+.learn details p { font-size: 12px; color: #c6c6bb; margin-top: 16px; }
+.resultHeading { display: flex; justify-content: space-between; align-items: flex-end; gap: 20px; }
+.resultHeading h2 { margin-top: 8px; }
+.pills { padding: 0; display: flex; gap: 8px; flex-wrap: wrap; list-style: none; margin: 24px 0; }
+.pills li { padding: 5px 10px; border: 1px solid #59594b; font-size: 10px; color: #cecec3; }
+.best { display: grid; grid-template-columns: 38% 1fr; border: 1px solid #ffd700; }
+.productImage { background: #f5f5ee; display: grid; place-items: center; min-height: 230px; }
+.productImage img { width: 100%; height: 100%; max-height: 480px; object-fit: contain; mix-blend-mode: multiply; }
+.productImage span { color: #777; letter-spacing: .1em; }
+.productBody { padding: 30px; }
+.productBody h2,.productBody h3 { margin: 12px 0; }
+.productBody p { margin: 12px 0; }
+.productBody .button { margin-top: 10px; }
+.muted { color: #b9b9ae; font-size: 12px; }
+.small { font-size: 11px; color: #aaa99e; }
+.price { font-size: 26px; font-weight: 700; line-height: 1.3; }
+.price small { font-size: 14px; }
+.stock { color: #a9d4af; font-size: 11px; }
+.stockWarning { color: #ffd700; font-size: 11px; }
+.reasons { margin: 18px 0; padding-left: 18px; font-size: 12px; color: #dbdbce; }
+.reasons li { margin-top: 10px; }
+.reasons li::marker { color: #ffd700; }
+.noteGrid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.note { border: 1px solid #59594b; padding: 24px; margin-top: 14px; }
+.note h3 { font-size: 20px; margin-bottom: 12px; }
+.note p { font-size: 12px; color: #c6c6bb; }
+.note a,.disclosure a { color: #ffd700; text-decoration: underline; }
+.warm { border-color: #817332; background: #ffd70008; }
+.alternatives { margin-top: 38px; }
+.alternatives>h2 { margin-bottom: 20px; font-size: 26px; }
+.cards { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.card { border: 1px solid #59594b; display: flex; flex-direction: column; }
+.card .productImage { height: 260px; min-height: 0; }
+.card .productImage img { height: 260px; }
+.card .productBody { padding: 24px; }
+.card h3 { font-size: 25px; }
+.resultActions { justify-content: flex-end; }
+.resultActions>button:first-child { margin-right: auto; }
+.disclosure { border-top: 1px solid #59594b; margin-top: 30px; padding-top: 20px; font-size: 11px; color: #aaa99e; }
+.disclosure details { margin-top: 16px; }
+.disclosure details p,.disclosure ul { margin-top: 14px; }
+.disclosure li { margin-top: 8px; }
+@media (max-width: 1000px) {
+  .quiz { grid-template-columns: 220px 1fr; }
+  .quizMain { padding: 28px; }
+  .rail { padding: 28px 18px; }
+}
+@media (max-width: 700px) {
+  .finder { padding: 20px 16px 50px; font-size: 13px; }
+  .modeBar { align-items: stretch; flex-direction: column; gap: 12px; padding-bottom: 16px; }
+  .modeLinks a { flex: 1; padding: 12px 16px; }
+  .modeLinks a small { font-size: 9px; }
+  .hero { grid-template-columns: 1fr; padding: 30px 0; gap: 0; }
+  .heroArt { display: none; }
+  .hero h1 { font-size: clamp(31px, 8.5vw, 44px); }
+  .meta { gap: 8px 14px; font-size: 10px; }
+  .quiz { grid-template-columns: 1fr; }
+  .rail { display: none; }
+  .quizMain { padding: 24px 18px; }
+  .progressRow { font-size: 10px; }
+  .question legend { font-size: 27px; }
+  .question legend,.resultHeading h2 { scroll-margin-top: 88px; }
+  .option { padding: 14px 12px; gap: 12px; }
+  .controls { gap: 10px; }
+  .controls .button { padding: 12px; font-size: 11px; }
+  .controls .primary { flex: 1; }
+  .learnGrid,.noteGrid,.cards { grid-template-columns: 1fr; }
+  .best { grid-template-columns: 1fr; }
+  .best .productImage { height: 280px; }
+  .best .productImage img { max-height: 280px; }
+  .productBody { padding: 24px 20px; }
+  .resultHeading { align-items: flex-start; flex-direction: column; }
+  .note { padding: 20px; }
+  .resultActions { flex-direction: column; }
+  .resultActions .button { width: 100%; }
+  .learn { padding-top: 38px; }
+}
+@media (prefers-reduced-motion: reduce) { .finder * { transition: none; } }
+@media print {
+  :global(body) { background: #fff !important; }
+  :global(body header),:global(body footer),:global(body [data-cart-drawer]),:global(body [data-cookie-banner]) { display: none !important; }
+  .finder { max-width: none; padding: 0; font-size: 10pt; color: #111 !important; }
+  .finder * { color: #111 !important; border-color: #aaa !important; background: transparent !important; }
+  .modeBar,.hero,.button,.learn,.resultActions,.disclosure details { display: none !important; }
+  .best { grid-template-columns: 30% 1fr; }
+  .productBody { padding: 16px; }
+  .note,.best,.card { break-inside: avoid; }
+  .productImage img { height: 220px; }
+  .productBody h2 { font-size: 24pt; }
+  .note h3 { font-size: 14pt; }
+}
