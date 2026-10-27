@@ -8,8 +8,8 @@ import type { Catalogue } from './types'
 /** Strict read: do not turn snapshot/demo products into orderable recommendations during an outage. */
 export async function loadGearCatalogue(locale: Locale): Promise<Catalogue | null> {
   try {
-    const raw = await fetchProducts({ requireComplete: true })
-    return connectCatalogue(raw.filter(p => p.status === 'publish').map(p => mapProduct(p, locale)))
+    const raw = await fetchProducts({ requireComplete: true, fresh: true })
+    return connectCatalogue(raw.filter(p => p.status === 'publish').map(p => ({ ...mapProduct(p, locale), stockStatus: p.stock_status })))
   } catch {
     console.error('[Gear Finder] Published catalogue is temporarily unavailable')
     return null

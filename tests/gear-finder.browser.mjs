@@ -64,4 +64,17 @@ try {
   console.log(`PASS ${locale} ${width}: both quizzes, local links, history, session retention, print, overflow`)
   await page.close()
  }
+ for(const locale of ['en','el'])for(const width of [1024,1100,1279,1280]){
+  const page=await browser.newPage({viewport:{width,height:900}})
+  page.setDefaultTimeout(15000)
+  await page.goto(base+(locale==='el'?'/el':'')+'/gear-finder')
+  if(width<1280)await page.getByRole('button',{name:locale==='el'?'Άνοιγμα μενού':'Open menu',exact:true}).click()
+  await page.getByRole('button',{name:locale==='el'?'Επιλογή γλώσσας: Ελληνικά':'Choose language: English',exact:true}).click()
+  for(const label of ['Switch language to English','Αλλαγή γλώσσας σε Ελληνικά']){
+   const bounds=await page.getByRole('link',{name:label,exact:true}).boundingBox()
+   assert.ok(bounds.x>=0 && bounds.x+bounds.width<=width,'language options must fit the tablet viewport')
+  }
+  await page.close()
+ }
+ console.log('PASS tablet/desktop navigation language menu bounds in both locales')
 }finally{await browser.close()}

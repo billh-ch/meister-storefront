@@ -13,14 +13,14 @@ test('gear finder maps only exact published catalogue identities and uses curren
   assert.equal(typeof catalogue?.connectCatalogue, 'function', 'native catalogue adapter must exist')
   const source = guide.PRODUCTS[0]
   const slug = decodeURIComponent(new URL(source.url).pathname.split('/').filter(Boolean).at(-1))
-  const raw = { id:'123', slug:encodeURIComponent(slug), category:'suits', name:'Current product', price:399, priceFrom:true, image:'/current.jpg', stockStatus:'instock' }
+  const raw = { id:'4781', slug:encodeURIComponent(slug), category:'suits', name:'Current product', price:399, priceFrom:true, image:'/current.jpg', stockStatus:'instock' }
   const result = catalogue.connectCatalogue([raw])
   assert.equal(result.suits.length,1)
   assert.deepEqual(result.suits[0].price,[399,399])
   assert.equal(result.suits[0].commerce.name,'Current product')
   assert.equal(result.suits[0].commerce.href,`/products/${encodeURIComponent(slug)}`)
   assert.equal(engine.rankSuits({use:'spear',temp:'unknown',care:'easy',budget:'350'},result.suits).matches.length,0)
-  for (const invalid of [[],[{...raw,slug:'similar-name'}],[{...raw,category:'accessories'}],[{...raw,price:0}],[{...raw,price:NaN}],[{...raw,id:'demo-123'}],[raw,{...raw,id:'124'}]]) {
+  for (const invalid of [[],[{...raw,id:'987654'}],[{...raw,category:'accessories'}],[{...raw,price:0}],[{...raw,price:NaN}],[{...raw,id:'demo-123'}],[{...raw,slug:''}],[raw,{...raw,id:'124'}]]) {
     assert.equal(catalogue.connectCatalogue(invalid).suits.length,0)
   }
   assert.equal(catalogue.connectCatalogue([{...raw,stockStatus:'outofstock'}]).suits[0].stock,'out')
@@ -79,4 +79,13 @@ test('gear finder routes and metadata retain locale and mode', async () => {
   const meta=buildPageMetadata({title:'Gear Finder — Wetsuits & Fins — Meister',description:'Guide',path:'/gear-finder',locale:'el'},{NEXT_PUBLIC_SITE_URL:'https://meister-storefront.vercel.app',VERCEL_ENV:'production'})
   assert.equal(meta.alternates.languages.el,'https://meister-storefront.vercel.app/el/gear-finder')
   assert.match(meta.title,/Οδηγός/)
+})
+
+test('curated model identity survives the live storefront migration to English product slugs', () => {
+  const raw={id:'4908',slug:'wetsuit-lined-open-cell-meister-fire-camo-3mm',category:'suits',name:'Current Fire Camo',price:320,priceFrom:false,image:'/fire.jpg',stockStatus:'instock'}
+  const result=catalogue.connectCatalogue([raw])
+  assert.equal(result.suits.length,1,'stable WooCommerce ID must map the migrated product')
+  assert.equal(result.suits[0].id,'fire')
+  assert.equal(result.suits[0].commerce.href,'/products/wetsuit-lined-open-cell-meister-fire-camo-3mm')
+  assert.equal(catalogue.connectCatalogue([{...raw,id:'999999'}]).suits.length,0,'do not guess model identity from similar names')
 })

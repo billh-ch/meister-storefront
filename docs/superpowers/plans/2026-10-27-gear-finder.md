@@ -11,7 +11,7 @@
 - Preserve approved questions, wording and matching rules from Site version 2.
 - English /gear-finder, Greek /el/gear-finder; use existing locale-specific fonts.
 - No WordPress edits, new database, analytics, or production deployment.
-- Exact slug identity; never sell snapshot or fallback catalogue data.
+- Stable verified WooCommerce ID identity; never sell snapshot, stale-on-error or fallback catalogue data.
 
 ## Review Focus
 - Catalogue outage or missing/duplicate identity: explicit unavailable state, no stale purchase links.
