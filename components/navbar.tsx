@@ -158,7 +158,7 @@ export default function Navbar() {
           {NAV_LINKS.map(({ label, href }) => {
             // A native entry resets the hash-selected quiz while retaining its tab session.
             const NavLink = href === '/gear-finder' ? 'a' : Link
-            return <li key={label}>
+            return <li key={label} className="relative not-first:before:pointer-events-none not-first:before:absolute not-first:before:top-1/2 not-first:before:-left-2 not-first:before:h-3 not-first:before:w-px not-first:before:-translate-y-1/2 not-first:before:bg-white/50">
               <NavLink
                 href={localePath(href)}
                 className="text-sm font-bold tracking-wider text-white transition-colors duration-150 hover:text-[#FFD700]"
@@ -324,7 +324,7 @@ export default function Navbar() {
           style={{ backgroundColor: '#111111' }}
         >
           <div className="px-4 pt-2"><LanguageSwitch /></div>
-          <ul className="flex flex-col px-6 py-4" role="list">
+          <ul className="flex flex-col divide-y divide-white/20 px-6 py-4" role="list">
             {NAV_LINKS.map(({ label, href }) => {
               const NavLink = href === '/gear-finder' ? 'a' : Link
               return <li key={label}>
