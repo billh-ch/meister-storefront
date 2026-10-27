@@ -1,0 +1,13 @@
+# Storefront Gear Finder
+
+Approved in conversation on 27 October 2026. Source: Meister Gear Finder Site version 2, commit 99516e3f0b1502c275e0c6a001f1877f89469e69. The published source and user's local zip are equivalent.
+
+Integrate the approved six-question wetsuit and seven-question fin guide directly into the Next.js storefront, at /gear-finder and /el/gear-finder. Preserve bilingual questions, model facts, matching scores, thermal/stiffness guidance, explanatory and care/fit copy. Use storefront fonts, dark/gold palette, shared navigation/footer and responsive accessible controls. No iframe, new database, AI service, WordPress changes, or customer-answer collection.
+
+Navigation includes Gear Finder on desktop and mobile. Relevant wetsuit/fin PDPs link near buying options to the matching #wetsuits/#fins mode, retaining locale. Each finder retains its answers during the open page session; browser Back/Forward selects the mode. Session storage retains answers across the existing locale selector's full-page navigation, and clears when the tab session ends. No account synchronization.
+
+Resolve the curated models by their exact canonical source slugs against the existing published WooCommerce catalogue. Prices, stock, names, imagery and internal PDP destinations come from that catalogue. Unmatched/unpublished products cannot become purchasable recommendations; catalogue outages are explicit and never silently use snapshot prices or mock inventory. Keep model suitability facts/ranking separate from volatile commerce fields. Current price is a starting-price cap, never a quote for the final configuration. Filter out unavailable models before ranking. Preserve no-match, unknown-temperature and cold-water routes, fit cautions, alternatives, editable answers, full range and printing.
+
+Approaches: Native storefront integration is chosen as proposed and approved; an external link retains a separate experience and access restrictions; an iframe cannot reliably share navigation, locale or product data. Preview only, with production release separate.
+
+Validation: preserve rule output against the approved engine across all 2,160 suit and 4,860 fin combinations; catalogue identity/price/stock/outage checks; complete bilingual mobile/desktop browser journeys, correct mode PDP links, locale routing/metadata, keyboard focus and print layout; full unit suite, lint and TypeScript.
