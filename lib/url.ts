@@ -3,16 +3,21 @@
  * Deliberately NOT derived from the request's `Host`/`X-Forwarded-*`
  * headers — those are attacker-controllable, and a forged Host header
  * could steer where Stripe redirects a customer after a real payment.
- * `VERCEL_URL`/`VERCEL_PROJECT_PRODUCTION_URL` are Vercel-injected runtime
- * env vars, not headers, so they can't be spoofed by an incoming request;
- * localhost is the only manual fallback needed, for local dev.
+ * Vercel's injected deployment variables take precedence. NEXT_PUBLIC_SITE_URL
+ * supplies the trusted origin on Cloudflare; local development uses
+ * localhost. None of these settings can be supplied by an incoming request.
  */
-export function getBaseUrl(): string {
-  if (process.env.VERCEL_ENV === 'production' && process.env.VERCEL_PROJECT_PRODUCTION_URL) {
-    return `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`
+import { getPublicSiteUrl } from './seo/site'
+
+export function getBaseUrl(env: NodeJS.ProcessEnv = process.env): string {
+  if (env.VERCEL_ENV === 'production' && env.VERCEL_PROJECT_PRODUCTION_URL) {
+    return `https://${env.VERCEL_PROJECT_PRODUCTION_URL}`
   }
-  if (process.env.VERCEL_URL) {
-    return `https://${process.env.VERCEL_URL}`
+  if (env.VERCEL_URL) {
+    return `https://${env.VERCEL_URL}`
   }
+  // Workers has no Vercel-injected deployment origin. Use a trusted setting,
+  // while retaining preview isolation on Vercel when SEO points at production.
+  if (env.NEXT_PUBLIC_SITE_URL) return getPublicSiteUrl(env).origin
   return 'http://localhost:3000'
 }

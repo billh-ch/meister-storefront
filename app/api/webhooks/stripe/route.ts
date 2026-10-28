@@ -8,7 +8,7 @@ import { randomUUID } from 'node:crypto'
 import type { Redis } from '@upstash/redis'
 import { lockerFromStripeMetadata, requiresBoxNowLocker } from '@/lib/checkout/box-now'
 
-// Stripe's SDK needs Node crypto for signature verification, not Edge.
+// Retain Node support for Vercel; async verification also supports Workers' Web Crypto.
 export const runtime = 'nodejs'
 export const maxDuration = 60
 
@@ -61,7 +61,7 @@ export async function POST(request: Request) {
 
   let event: Stripe.Event
   try {
-    event = stripe.webhooks.constructEvent(rawBody, signature, webhookSecret)
+    event = await stripe.webhooks.constructEventAsync(rawBody, signature, webhookSecret)
   } catch {
     return NextResponse.json({ error: 'Invalid signature' }, { status: 400 })
   }

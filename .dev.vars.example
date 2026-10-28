@@ -1,0 +1,8 @@
+# Local Cloudflare runtime only. Copy to .dev.vars before building.
+# Generate a separate SESSION_SECRET with: openssl rand -base64 32
+SESSION_SECRET=
+VERCEL_ENV=preview
+NEXT_PUBLIC_USE_MOCK_DATA=true
+# Optional local webhook crypto fixtures; these cannot contact Stripe.
+STRIPE_SECRET_KEY=sk_test_cloudflare_fixture_only
+STRIPE_WEBHOOK_SECRET=whsec_cloudflare_local_fixture_only
