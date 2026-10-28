@@ -207,10 +207,13 @@ connection or load test):
 | --- | --- | --- |
 | Warm homepage time to first byte | 5.53 / 5.77 s | 0.226 / 0.201 s |
 | Warm shop time to first byte | Not recorded | 0.577 / 0.472 s |
+| Previously unvisited product, then repeat | Not recorded | 1.903 / 0.364 s |
 | Fire Camo photo at 640px | 158,138-byte original | 39,258-byte WebP |
 | Accessories category photo at 640px | 3,843,162-byte original | 69,164-byte WebP |
 
-These warm samples do not guarantee uncached performance: expired/missing data
+The product sample was `/products/speargun-pathos-laser-evo-pro`; its first visit
+is not proof of a fully cold Cloudflare isolate. Warm samples do not guarantee
+uncached performance: expired/missing data
 still needs the Pi and its internet connection. The homepage retained noindex
 and private/no-store headers after deployment. The hosted browser passed actual
 fins/wetsuit selection, optimized images, server-priced €400 cart, GR→CY→GR
