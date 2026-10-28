@@ -40,8 +40,12 @@
 - [ ] Install only actual secrets through approved secure mechanisms; deploy the dedicated test Worker without touching production.
 - [ ] Verify public deployment, inspect CPU/errors and run permitted end-to-end tests. Report pass/fail/missing-secret limits separately.
 
-Connection active; dedicated empty Worker created with no existing name collision.
-The account subscription list had no paid Workers plan. Deployment is blocked
-by a 403 from the connection-provider transport. Local shopping, locale,
-wishlist and compare checks passed. Real-service Redis/WooCommerce and hosted
-CPU checks remain incomplete; no payment fulfillment claim is made.
+Connection active; the dedicated Worker is deployed at
+https://meister-storefront-test.hbill5488.workers.dev using fixture data.
+The connection-provider 403 cleared, the user initialized workers.dev and
+connected GitHub, and the trigger was corrected to the Cloudflare branch/build.
+The account has no paid Workers plan. Hosted shopping, locale, wishlist,
+compare and mobile variants passed. A unique test session secret is installed.
+Initial CPU/errors were inspected; high CPU quantiles require further Free-plan
+reliability assessment. Real-service Redis/WooCommerce and Stripe fulfillment
+remain unverified; the final two tasks remain incomplete for that reason.

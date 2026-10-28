@@ -38,6 +38,27 @@ on Workers; retain it for this test environment.
 ## Hosted deployment
 
 Use only the dedicated `meister-storefront-test` Worker and its workers.dev URL.
+The fixture preview is online at
+<https://meister-storefront-test.hbill5488.workers.dev>.
+It uses sample products and blocks payment creation. Vercel production and DNS
+remain unchanged.
+
+Cloudflare Workers Builds is connected to `billh-ch/meister-storefront`:
+
+| Setting | Value |
+| --- | --- |
+| Branch | `feat/cloudflare-preview` |
+| Build command | `NEXT_PUBLIC_USE_MOCK_DATA=true VERCEL_ENV=preview pnpm run build:vinext` |
+| Deploy command | `pnpm run deploy:vinext` |
+| Root directory | `/` |
+| Build tools | `NODE_VERSION=24.19.0`, `PNPM_VERSION=11.19.0` |
+| Build watch exclusions | `docs/*`, `tests/*` |
+
+Build `77932512-9c8a-4752-afc6-f9412a90e404` succeeded on application commit
+`33f16bbafc7934539a6cc02c5ad20ae162924c9e`. A new unique `SESSION_SECRET` was
+generated directly into an encrypted Worker binding, separate from production.
+Documentation and test-only changes do not rebuild the unchanged application.
+
 With an authorized local Wrangler login, deployment is:
 
 ```sh
@@ -86,6 +107,17 @@ Local Workers browser checks passed shopping/cart/server actions, delivery
 refresh/retry, English/Greek fonts and locale navigation, account protection,
 guest wishlist and compare at mobile and desktop sizes.
 
+The same hosted preview passed shopping/cart/server actions, mock delivery
+refresh/retry and blocked fixture payments, English/Greek locale and typography,
+guest wishlist, compare and mobile variant selection. The hosted shopping test
+waits for client scripts before clicking an SSR-rendered button. An initial
+early click did not invoke a handler; a hydrated request completed with HTTP 200.
+Some existing sample Unsplash product-image URLs fail independently of hosting;
+the sample catalog is not evidence that real product photos are unavailable.
+A browser on the hosted preview loaded three actual public Pi product-photo
+originals and the homepage hero/community image assets successfully, bypassing
+the paid image optimizer. The homepage also returned the expected noindex header.
+
 The local webhook fixture uses the deliberately invalid Stripe key and fixture
 signing secret in `.dev.vars.example`. It verifies a signed `ping` event and
 rejects tampering without calling Stripe, Redis or WooCommerce. Workers selects
@@ -93,14 +125,23 @@ Stripe's Web Crypto provider, so the handler uses `constructEventAsync`; Vercel'
 Node provider supports the same method. Payment return URLs retain Vercel's
 deployment-origin precedence; Workers falls back to `NEXT_PUBLIC_SITE_URL`.
 
-The Cloudflare connection succeeded and an empty dedicated test Worker was
-created. Upload is currently blocked by a 403 response from the connection
-provider. There is no public deployment URL yet. No paid Workers subscription
-was enabled, and the account had no paid Workers plan in its subscription list.
+The earlier connection-provider 403 cleared. After the user initialized the
+workers.dev address and connected GitHub, the configured Workers build deployed
+successfully. No paid Workers subscription was enabled; the account subscription
+list still contained only the existing zero-cost Teams Free plan.
+
+Initial hosted analytics (17:00–17:03 UTC on 2026-10-28) reported 602 successful
+invocations and six client disconnects, with zero execution errors. Successful
+invocations had a median CPU time of 9.674 ms and a 99th percentile of 124.735 ms.
+GraphQL reports these values in microseconds. This is a small browser-test sample,
+not a load test. Cloudflare allows rollover CPU time, so high quantiles can exceed
+the normal Free limit without immediate errors. These measurements do not yet
+establish reliable Free-plan suitability for the real storefront.
 
 These checks do not prove live Stripe payment fulfillment, WooCommerce order
 creation, account sign-in against the Pi, Redis connectivity or a traffic-level
-performance target. Those require the real test integrations above.
+performance target. Those require the real test integrations above. The signed
+webhook crypto check ran locally; no Stripe webhook endpoint was added or changed.
 
 Workers Free has a daily request allowance and a per-request CPU limit. Static
 assets and dynamic render requests have different costs. A successful local

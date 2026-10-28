@@ -24,6 +24,8 @@ try {
   }
   await page.setViewportSize({ width: 390, height: 844 })
   await page.goto(`${baseURL}/shop`)
+  // Hosted SSR can render the button before client scripts attach its handler.
+  await page.waitForLoadState('networkidle')
   const card = page.locator('article').filter({ has: page.getByRole('button', { name: /Add .* to cart/ }) }).first()
   await card.getByRole('button', { name: /Add .* to cart/ }).click()
   await page.waitForFunction(() => document.body.textContent.includes('ADDED TO CART'))
