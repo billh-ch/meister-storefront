@@ -22,6 +22,7 @@
   "workers_dev": true,
   "upload_source_maps": false,
   "preview_urls": true,
+  "keep_vars": false,
   "kv_namespaces": [{ "binding": "VINEXT_KV_CACHE", "id": "0140aec8011f44d7915a23eec1c7154f" }],
   "vars": {
     "VERCEL_ENV": "preview",
@@ -30,8 +31,8 @@
     "NEXT_PUBLIC_SITE_URL": "https://meister-storefront-test.hbill5488.workers.dev",
     "STRIPE_CHECKOUT_ORIGIN": "https://meister-storefront-test.hbill5488.workers.dev",
     "STRIPE_EXPECTED_MODE": "test",
-    "REDIS_ENV_PREFIX": "",
-    "CHECKOUT_PAYMENTS_ENABLED": "false",
+    "REDIS_ENV_PREFIX": "checkout_",
+    "CHECKOUT_PAYMENTS_ENABLED": "true",
     "PRERENDER_PRODUCTS": "false"
   },
   "observability": {
