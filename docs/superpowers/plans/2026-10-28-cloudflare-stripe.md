@@ -12,8 +12,19 @@ Goal: enable existing hosted Stripe checkout in test mode only after credentials
 
 Constraints: no managed outbound-proxy placeholders exported as real credentials, no secret output/source files, no paid upgrade, no live credentials, no production changes. Test Woo order creation is an expected transactional side effect of checkout verification; identify test data explicitly. Free CPU suitability remains a separate launch blocker.
 
-Status: steps1–2 complete, step3 Stripe key/separate signed webhook complete and
-Redis awaiting user-supplied write-only values. Step4 complete:180 tests, both
-builds, types/lint, independent review and hosted signature/isolation/payment-off
-checks passed. Deployed6d66cff/2301f62 in buildc9d0705f-d418-479c-b3d9-b30ce18a81c6.
-Step5 remains blocked by missing KV_REST_API_URL/TOKEN; payment creation stays off.
+Status: steps1–5 complete. Active Redis write/read/delete and shared Vercel/
+Cloudflare receipt probes passed. Encrypted checkout_ aliases replaced plaintext
+settings, and test checkout is enabled. The actual mobile Stripe sandbox payment
+created WooCommerce test order4918 (TEST DO NOT FULFIL), showed its confirmation
+and cleared the cart. Replaying its signed paid event returned duplicate and
+retained the same order. No real charge, shipment or production cutover occurred.
+
+The real flow exposed a stale header badge. A hosted browser test reproduced
+missing confirmation notification (RED), and independent review identified an
+older count response overwriting the new count. A deterministic held-response
+test reproduced actual1 versus expected0 (RED). Confirmation notification and
+navbar request-generation guards fixed both cases. Both hosted browser cases
+passed GREEN on application commitf528084/build2af88635-07f7-48ff-beb8-0d6a00c30540.
+All180 unit tests, both builds and type checks passed. ESLint exited0 with one
+unused existing suppression warning in navbar.tsx; no errors. No review findings
+remain unresolved. Live payments and Free CPU reliability remain separate gates.

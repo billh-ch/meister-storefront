@@ -339,6 +339,14 @@ PAID_TEST_SESSION_ID=cs_test_... CHROMIUM_PATH=/usr/bin/chromium \
   node tests/checkout-confirmation.browser.mjs
 ```
 
+The two hosted regression cases passed on commitf528084/build
+2af88635-07f7-48ff-beb8-0d6a00c30540: stale responses cannot restore the old badge,
+and confirmation itself clears the header and remembered count without reload.
+All180 unit tests, native/Workers production builds and types passed. ESLint
+exited0 with no errors and one unused existing suppression warning at
+`components/navbar.tsx:63`. The independent review's count-race and test-ordering
+findings were fixed with actual hosted RED→GREEN reproductions.
+
 ### Completed fixture checks
 
 The compatibility scanner reported 97% support: 17 supported items and one
