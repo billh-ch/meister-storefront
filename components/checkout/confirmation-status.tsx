@@ -3,6 +3,7 @@ import { useTranslation } from '@/components/i18n/locale-provider'
 
 import { useEffect, useState } from 'react'
 import Link from '@/components/i18n/localized-link'
+import { notifyCartUpdated } from '@/lib/cart/client-events'
 
 const MONO = 'var(--font-space-mono), monospace'
 const DISPLAY = 'var(--font-dela-gothic), sans-serif'
@@ -63,6 +64,7 @@ export default function ConfirmationStatus({
           if (cancelled) return
           if (data.found && data.order) {
             setOrder(data.order)
+            notifyCartUpdated()
             return
           }
           attempts += 1

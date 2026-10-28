@@ -48,8 +48,8 @@ on Workers; retain it for this test environment.
 Use only the dedicated `meister-storefront-test` Worker and its workers.dev URL.
 The WooCommerce preview is online at
 <https://meister-storefront-test.hbill5488.workers.dev>.
-It reads the existing Pi catalog and blocks payment creation. Vercel production and DNS
-remain unchanged.
+It reads the existing Pi catalog and supports Stripe sandbox checkout. Live
+payments remain blocked. Vercel production and DNS remain unchanged.
 
 Cloudflare Workers Builds is connected to `billh-ch/meister-storefront`:
 
@@ -226,11 +226,12 @@ production builds, type checking and lint passed.
 
 Cloudflare Free can host a commercial storefront within its service terms and
 usage limits. This particular preview is **not ready to accept paid orders**.
-Payments are deliberately disabled. Stripe test credentials and a separate
-Cloudflare webhook are installed; the active Redis pair is still missing. Before
-cutover, finish the test payment/webhook/idempotency configuration and verify a complete test payment creates
-the correct WooCommerce order, dashboard/account history and confirmation. Test
-webhook retries for duplicate protection before configuring live credentials.
+Only Stripe sandbox payments are enabled. The active Redis connection and a
+separate Cloudflare webhook are installed; a real sandbox card payment created
+WooCommerce order4918 and returned to its confirmation. A signed webhook replay
+was ignored as a duplicate. Before live cutover, configure the intended live
+Stripe business account, live credentials/webhook and verify signed-in order
+history and actual confirmation-email delivery. These were not tested here.
 Production also needs the chosen domain, production indexing configuration and
 an always-available Pi/internet connection. Existing Vercel production is untouched.
 
@@ -275,28 +276,68 @@ these new optional guards are unset. All180 unit tests, both production builds,
 lint and type checks passed; an independent review found no regressions and
 independently reran33 focused tests.
 
-The remaining setup is **KV_REST_API_URL and KV_REST_API_TOKEN** as encrypted
-Worker secrets. Use the REST URL and writable REST token from the same active
+At this preparation stage, the remaining setup was **KV_REST_API_URL and
+KV_REST_API_TOKEN**. Use the REST URL and writable REST token from the same active
 Upstash database supplying Vercel's `restore_KV_REST_API_URL` and
 `restore_KV_REST_API_TOKEN`, not the older archived unprefixed integration.
 Vercel marks that active pair sensitive/write-only, so it cannot be read back
-through the API. Obtain the values from the active Upstash database's Connect/
-REST API panel; do not paste them into chat. `REDIS_ENV_PREFIX` is explicitly empty
-on Cloudflare because the copied secret names are unprefixed.
+through the API. For a Vercel-created account, open Vercel → Storage → the named
+database and use its connection credentials or Open in Upstash/Manage through
+Vercel SSO. A direct Upstash login may not show that managed account. Do not paste
+values into chat. The initial unprefixed configuration is superseded by the
+encrypted aliases described below.
 
 Sharing this Redis database is intentional: the existing Vercel webhook also
 receives this account's test payments, and both endpoints must use the same
 `stripe:pi:<paymentIntent>` locks to avoid overlapping WooCommerce writes.
 Cloudflare's new endpoint additionally ignores unrelated storefront events.
 
-`CHECKOUT_PAYMENTS_ENABLED=false` remains in source and build/runtime settings.
-The hosted endpoint was verified still blocking payment creation. After the
-Redis pair is installed, verify connectivity and shared locks before enabling
-test sessions. Then verify the session's origin metadata and success/cancel URLs,
-one actual test payment → exactly one Woo order → confirmation receipt, and
-retry protection. Test payments create transactional WooCommerce records using
-the existing fulfillment code, so identify test data and prevent it from being
-shipped. Live activation and Free CPU reliability remain separate launch gates.
+At this stage, `CHECKOUT_PAYMENTS_ENABLED=false` was retained and verified before
+activating test sessions. Live activation and Free CPU reliability remain
+separate launch gates.
+
+### Stripe sandbox activation
+
+Commit83ba7b4 deployed successfully in build43e83c6c-bcf4-4c1d-baa5-ec82ed668153.
+`CHECKOUT_PAYMENTS_ENABLED=true` enables sandbox checkout only; the test-key,
+test-event and storefront-origin guards remain configured. Redis uses the active
+Vercel-managed `upstash-kv-amethyst-bridge` resource. A disposable write/read/delete
+probe passed; both Vercel and Cloudflare read the same temporary receipt, proving
+the shared database required for cross-endpoint locks. The probe was removed.
+
+The supplied settings had been plaintext. They were copied directly to encrypted
+`checkout_KV_REST_API_URL` and `checkout_KV_REST_API_TOKEN` bindings, with
+`REDIS_ENV_PREFIX=checkout_` in build/runtime configuration. `keep_vars=false`
+removed the plaintext unprefixed entries on deployment while preserving all
+encrypted secrets. The prefix changes environment-variable selection only;
+Redis payment lock/receipt key names remain identical to Vercel's.
+
+The actual mobile storefront flow selected fins4869, size39–40, €80 and free local
+pickup. The server-created Checkout Session was independently verified as
+`livemode=false`, EUR8000 cents, the correct item/selection and exact Cloudflare
+success/cancel URLs and origin metadata. Stripe's hosted UI accepted its public
+4242 sandbox card. The paid session created WooCommerce order **4918**, marked
+with customer name **TEST DO NOT FULFIL** and a `.invalid` test email. No real
+money was charged or shipment requested. The browser returned to THANK YOU with
+the real order number, and its cart API was empty.
+
+After the automatic webhook had created the order, replaying the actual signed
+paid event returned200 with `note=duplicate`; the receipt still pointed to4918.
+Stripe reported zero pending webhook deliveries. The endpoint signing secret was
+recovered transiently from its original idempotent creation response for this
+test; no endpoint was created or rotated. Secrets were not printed or committed.
+
+This run exposed stale header counts after the confirmation cleared the cart.
+Confirmation now broadcasts the existing cart-updated event, and the navbar
+ignores count responses superseded by a newer request. The browser regression
+reuses a previously paid test session, gates real responses to reproduce the
+out-of-order race, and creates no new payment or order:
+
+```sh
+PAID_TEST_SESSION_ID=cs_test_... CHROMIUM_PATH=/usr/bin/chromium \
+  TEST_BASE_URL=https://meister-storefront-test.hbill5488.workers.dev \
+  node tests/checkout-confirmation.browser.mjs
+```
 
 ### Completed fixture checks
 

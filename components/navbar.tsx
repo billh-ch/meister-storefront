@@ -68,10 +68,13 @@ export default function Navbar() {
   // this corrects the sessionStorage-seeded count above once the real
   // fetch lands.
   useEffect(() => {
+    let countRequest = 0
     const fetchCount = () => {
+      const request = ++countRequest
       fetch('/api/cart/count')
         .then((res) => res.json())
         .then((data: { count: number }) => {
+          if (request !== countRequest) return
           setCartCount(data.count)
           sessionStorage.setItem(CART_COUNT_STORAGE_KEY, String(data.count))
         })
@@ -80,7 +83,10 @@ export default function Navbar() {
 
     fetchCount()
     window.addEventListener(CART_UPDATED_EVENT, fetchCount)
-    return () => window.removeEventListener(CART_UPDATED_EVENT, fetchCount)
+    return () => {
+      countRequest++
+      window.removeEventListener(CART_UPDATED_EVENT, fetchCount)
+    }
   }, [])
 
   // Clear any pending debounce/fetch on unmount so a slow response can't
