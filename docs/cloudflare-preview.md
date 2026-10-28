@@ -44,9 +44,9 @@ on Workers; retain it for this test environment.
 ## Hosted deployment
 
 Use only the dedicated `meister-storefront-test` Worker and its workers.dev URL.
-The fixture preview is online at
+The WooCommerce preview is online at
 <https://meister-storefront-test.hbill5488.workers.dev>.
-It uses sample products and blocks payment creation. Vercel production and DNS
+It reads the existing Pi catalog and blocks payment creation. Vercel production and DNS
 remain unchanged.
 
 Cloudflare Workers Builds is connected to `billh-ch/meister-storefront`:
@@ -54,14 +54,14 @@ Cloudflare Workers Builds is connected to `billh-ch/meister-storefront`:
 | Setting | Value |
 | --- | --- |
 | Branch | `feat/cloudflare-preview` |
-| Build command | `NEXT_PUBLIC_USE_MOCK_DATA=true VERCEL_ENV=preview pnpm run build:vinext` |
+| Build command | `NEXT_PUBLIC_USE_MOCK_DATA=false VERCEL_ENV=preview pnpm run build:vinext` |
 | Deploy command | `pnpm run deploy:vinext` |
 | Root directory | `/` |
 | Build tools | `NODE_VERSION=24.19.0`, `PNPM_VERSION=11.19.0` |
 | Build watch exclusions | `docs/*`, `tests/*` |
 
-Build `77932512-9c8a-4752-afc6-f9412a90e404` succeeded on application commit
-`33f16bbafc7934539a6cc02c5ad20ae162924c9e`. A new unique `SESSION_SECRET` was
+Real-catalog build `68ade7ff-e4a1-42ea-8334-b24057b58347` succeeded on application
+commit `77df1a3394a8b0a4f4b1a8e857dddb19fb11c1f5`. A new unique `SESSION_SECRET` was
 generated directly into an encrypted Worker binding, separate from production.
 Documentation and test-only changes do not rebuild the unchanged application.
 
@@ -117,6 +117,11 @@ Only these three additional Worker secrets are needed for this catalog stage:
 values from Vercel's project environment settings into the dedicated Worker's
 **Settings → Variables and Secrets**, choosing **Secret**. Do not post values in
 chat, reuse production's session secret, or install Stripe/Redis settings yet.
+All three have now been installed and verified as encrypted `secret_text`
+bindings. The user's original dashboard entries were plaintext; a sample-mode
+redeploy cleared the conflicting entries before the same values were installed
+as secrets. Credentials were not printed, written to the repository, or exported
+to the managed workspace. Temporary remote credential copies were cleared.
 
 The public backend origin is `https://rpiwordpress.kudu-ulmer.ts.net:8443`.
 `CHECKOUT_PAYMENTS_ENABLED=false` blocks both checkout entry points before any
@@ -124,16 +129,34 @@ customer, cart/backend or Stripe access, independently of the catalog mode.
 The flag is server-only; leaving it unset preserves existing Vercel behavior.
 Both languages and entry points are covered by tests; all 169 unit tests pass.
 
-Until the three secrets are installed, retain `NEXT_PUBLIC_USE_MOCK_DATA=true`
-and the current fixture build command. Once they are confirmed, switch that flag
-to false in the root Wrangler config **and** the Cloudflare build command and
-build environment, then deploy the matching source commit. The public backend
+The current hosted build uses `NEXT_PUBLIC_USE_MOCK_DATA=false` in the root
+Wrangler config, Cloudflare build command and build environment. The public backend
 origin must match at build and runtime. Do not switch only a runtime public
 flag: Vite compiles public environment variables into the server/client output.
 
-Verify real published catalog IDs, variants, localized content and photos, then
-guest cart and Greece shipping quotes. Confirm the payment-off response and
-inspect hosted errors/CPU. Real orders and Stripe setup are separate work.
+Verified against WooCommerce: 83 published products. Hosted checks passed for
+fins 4869 (€80, size39–40) and wetsuit4908 (€320, sizeS), direct public Pi photos,
+retained options and a €400 guest-cart subtotal. These two legacy products have
+empty variation metadata; the existing supported parent/selected-options path
+preserves choices and lets WooCommerce resolve its own variation for shipping.
+
+With both products, Greece quotes returned flat_rate:1 (€3), local_pickup:2 (€0)
+and box_now_delivery (€2). Cyprus returned flat_rate:3 (€5); a second Greece
+request reproduced the original three methods. The mobile checkout displayed
+the real Greece options. Greek product4908 rendered its published translated
+title at390px and1440px without overflow or page errors.
+
+The hosted payment endpoint returned the explicit payment-off message before
+cart/customer/Stripe access. No order, Stripe session or shipment was created;
+shipping used throwaway WooCommerce guest carts. No WordPress settings, DNS or
+Vercel production deployment were changed.
+
+Initial real-catalog analytics (18:48–18:52 UTC on 2026-10-28) reported 51
+successful invocations and one client disconnect with zero execution errors.
+Successful-request median CPU was27.475ms andp99 was204.681ms. The preview
+functions, but these exceed the Free plan's normal CPU allowance; rollover can
+mask enforcement in a small sample. Optimize and validate reliability before
+considering production migration. No paid Workers plan was enabled.
 
 ### Completed fixture checks
 

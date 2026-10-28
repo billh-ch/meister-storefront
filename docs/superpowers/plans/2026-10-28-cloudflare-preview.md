@@ -60,10 +60,15 @@ exported. Preserve the working fixture deployment until those secrets exist.
 - [x] Inspect existing Worker bindings and the backend's public reachability.
 - [x] Add an independent server-side payment-off guard before disabling mock data;
   verify both checkout entry points and Greek/English errors with real code tests.
-- [ ] Install/verify the three actual WooCommerce secret bindings, configure the
+- [x] Install/verify the three actual WooCommerce secret bindings, configure the
   known public backend origin at build/runtime and switch mock mode off together.
-- [ ] Deploy the Cloudflare branch and verify real product/variant/Greek content,
+- [x] Deploy the Cloudflare branch and verify real product/variant/Greek content,
   photos, cart and Greece shipping from the hosted Worker. Do not enable Stripe,
   place an order, edit WordPress, change production or activate a paid plan.
 
-Credential request pending: Cloudflare currently has only SESSION_SECRET.
+WooCommerce stage complete: three encrypted credentials verified; backend has83
+published products. Real-catalog build68ade7ff-e4a1-42ea-8334-b24057b58347 on
+77df1a3 succeeded. Hosted fins/wetsuit options, photos, server-priced cart,
+GR→CY→GR delivery, mobile checkout and Greek mobile/desktop product checks
+passed. Payments remain explicitly disabled. High CPU quantiles require further
+Free-plan optimization and reliability testing before any production migration.
