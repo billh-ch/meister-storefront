@@ -18,19 +18,26 @@ No paid plan, production/DNS/WordPress changes, live payments or credential expo
 - Generated asset routing bypasses Worker CPU; no source image loss or stale filename reuse.
 
 ### Task 1: Catalog cache and public media inventory
-- [ ] Add meaningful tests for media projection/allowlist and retain cache-bypass regression checks; run RED.
-- [ ] Configure supported KV adapter/binding and build a strict published-media endpoint with no private fields.
-- [ ] Run tests/build, deploy preview, verify cache entries and strict catalog behavior.
+- [x] Add meaningful tests for media projection/allowlist and retain cache-bypass regression checks; run RED.
+- [x] Configure supported KV adapter/binding and build a strict published-media endpoint with no private fields.
+- [x] Run tests/build, deploy preview, verify cache entries and strict catalog behavior.
 Expected: shared cache warms without changing guest cart, private routes or payment-off behavior.
 
 ### Task 2: Responsive generated assets
-- [ ] Test custom loader selection, version mismatch/original fallback and standard Next Image output; run RED.
-- [ ] Generate validated photo variants and local compressed assets using Sharp, with bounded downloads and public metadata only.
-- [ ] Wire custom image loader and CSS backgrounds; build, verify representative photo sizes and UI.
+- [x] Test custom loader selection, version mismatch/original fallback and actual responsive component output; run RED. vinext ignores the global Next loader, so StoreImage emits native responsive markup.
+- [x] Generate validated photo variants and local compressed assets using Sharp, with bounded downloads and public metadata only.
+- [x] Wire custom image loader and CSS backgrounds; build, verify representative photo sizes and UI.
 Expected: real images stay available, smaller encoded bytes, no Vercel image optimizer dependency.
 
 ### Task 3: Hosted verification and commercial readiness
-- [ ] Independent review, fix important issues and run applicable full suite/types/lint/builds.
-- [ ] Deploy and repeat timing, locale, photos, cart, Greece/Cyprus shipping and disabled-payments checks.
-- [ ] Document measured improvements, remaining CPU/free quota constraints and exact missing payment/fulfillment setup.
+- [x] Independent review, fix important issues and run applicable full suite/types/lint/builds.
+- [x] Deploy and repeat timing, locale, photos, cart, Greece/Cyprus shipping and disabled-payments checks.
+- [x] Document measured improvements, remaining CPU/free quota constraints and exact missing payment/fulfillment setup.
 Expected: evidence-backed report, no premature production or selling-ready claim.
+
+Completed in commits5d11544/f738661; hosted buildf7d36f42-43ff-4ae8-83a2-325ef7778b3a.
+All177 unit tests, builds, types/lint and hosted cart/shipping/locale/image-gallery checks passed.
+Two review findings fixed with regression tests: bounded stale entries after KV write
+quota failure, and original-image fallback after missing derivative/failed regeneration.
+No deferred review findings. Remaining production work is explicit in docs/cloudflare-preview.md:
+Free CPU reliability remains unproven and payment/fulfillment integration remains disabled.

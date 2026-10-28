@@ -36,8 +36,10 @@ TEST_BASE_URL=http://localhost:8787 node tests/compare.browser.mjs
 TEST_BASE_URL=http://localhost:8787 node tests/cloudflare-runtime.mjs
 ```
 
-Original images are served directly without paid image transformations. No
-Cloudflare Images, R2, D1 or paid Workers subscription is required by this config.
+Responsive WebP images are generated at build time and served as static assets;
+unknown/new images fall back to their original URL. No Cloudflare Images, R2, D1
+or paid Workers subscription is required by this config. Public catalog fetches
+use a dedicated Workers KV namespace; this is separate from payment idempotency Redis.
 `VERCEL_ENV=preview` also activates the storefront's existing noindex protection
 on Workers; retain it for this test environment.
 
@@ -157,6 +159,93 @@ Successful-request median CPU was27.475ms andp99 was204.681ms. The preview
 functions, but these exceed the Free plan's normal CPU allowance; rollover can
 mask enforcement in a small sample. Optimize and validate reliability before
 considering production migration. No paid Workers plan was enabled.
+
+### Performance improvements — 2026-10-28
+
+Application commit `f738661` deployed successfully in Workers build
+`f7d36f42-43ff-4ae8-83a2-325ef7778b3a`. It adds a supported KV data adapter and
+responsive static WebP assets. Vercel main remains at `c0fb563`; no production,
+DNS, WordPress settings or paid subscriptions were changed.
+
+Only explicitly cached public catalog/detail fetches use `VINEXT_KV_CACHE`
+(`meister-storefront-test-catalog`). Cart, customer, shipping, order and fresh
+checkout price/stock reads retain their existing cache bypass. Shopper HTML is
+still private/no-store. Existing 30/60-second fetch revalidation is preserved;
+the adapter's physical entry TTL is 120 seconds, with 30-second KV read caching.
+This bounds retention after rejected refresh writes, at the cost of origin
+misses after idle expiry. KV propagation and stale-while-revalidate can add lag.
+The product-webhook handler exists, but no WooCommerce webhook was installed and
+`WC_WEBHOOK_SECRET` is not configured here; instant invalidation is not verified.
+
+KV Free includes 100,000 reads and 1,000 writes per day. Excess operations fail,
+without enabling a paid plan. Cache read failures go to origin; a rejected refresh
+write can keep an existing entry until its physical expiry. Do not describe every
+quota failure as an immediate origin fallback.
+
+`scripts/prepare-images.mjs` generated 809 WebP files from 212 published product
+photos and nine local images, at widths up to 320/640/960/1600px without enlarging
+small originals. The approximately 27 MB of generated assets are committed so a
+fresh build retains the current variants. The preview build's public
+`MEDIA_MANIFEST_URL` points at `/api/catalog/media`; that endpoint projects only
+published upload URLs and validated attachment modification dates, with no private
+product fields or credentials. Downloads are restricted by origin/path, MIME,
+byte/pixel limits, redirect rejection, timeouts and concurrency.
+
+`StoreImage` emits native responsive `srcset` markup because this vinext version
+ignores the global Next loader and its per-image loader omits responsive output.
+The shared selector uses exact versioned source URLs. New/changed/unrecognized
+photos load their original immediately and acquire generated variants on the
+next deployment; no scheduled rebuild was added. Missing derivative recovery
+failure removes the mapping so the original remains usable. Original files are
+preserved. Hash-named `/optimized/*` assets bypass the Worker and were verified
+with `image/webp` and `public, max-age=31536000, immutable` headers.
+
+Measurements from the same managed execution location (not a Greek customer
+connection or load test):
+
+| Sample | Before | After |
+| --- | --- | --- |
+| Warm homepage time to first byte | 5.53 / 5.77 s | 0.226 / 0.201 s |
+| Warm shop time to first byte | Not recorded | 0.577 / 0.472 s |
+| Fire Camo photo at 640px | 158,138-byte original | 39,258-byte WebP |
+| Accessories category photo at 640px | 3,843,162-byte original | 69,164-byte WebP |
+
+These warm samples do not guarantee uncached performance: expired/missing data
+still needs the Pi and its internet connection. The homepage retained noindex
+and private/no-store headers after deployment. The hosted browser passed actual
+fins/wetsuit selection, optimized images, server-priced €400 cart, GR→CY→GR
+shipping, mobile checkout, Greek pages at390/1440px and a blocked payment attempt.
+Card-image touch swiping, desktop/keyboard controls and nested carousel behavior
+also passed against the hosted real catalog. All177 unit tests, native and Workers
+production builds, type checking and lint passed.
+
+### Commercial readiness
+
+Cloudflare Free can host a commercial storefront within its service terms and
+usage limits. This particular preview is **not ready to accept paid orders**.
+Payments are deliberately disabled, and Stripe/Redis bindings are absent. Before
+cutover, install isolated test payment/webhook/idempotency settings, explicitly
+configure the intended public origin, and verify a complete test payment creates
+the correct WooCommerce order, dashboard/account history and confirmation. Test
+webhook retries for duplicate protection before configuring live credentials.
+Production also needs the chosen domain, production indexing configuration and
+an always-available Pi/internet connection. Existing Vercel production is untouched.
+
+Free-plan reliability is a separate outstanding issue. A small post-deployment
+sample at20:00–20:03 UTC reported20 successful invocations, one client disconnect
+and zero execution errors, with successful-request median CPU49.281ms andp99
+272.368ms. A later20:03–20:05 UTC sample improved to median11.311ms andp99
+211.640ms across103 successful invocations, one client disconnect and zero
+execution errors. Both samples exceed Workers Free's normal10ms allowance;
+rollover means a working preview is not evidence of reliable Free operation under
+traffic. Static optimized assets avoid this CPU cost, but dynamic rendering still
+needs further CPU profiling/architectural work or an appropriate paid allowance.
+No paid upgrade was made. Cloudflare currently lists Workers Paid from$5/month
+plus usage, if that route is later chosen; it is not required to view this preview.
+
+References: [Workers pricing](https://developers.cloudflare.com/workers/platform/pricing/),
+[Workers limits](https://developers.cloudflare.com/workers/platform/limits/) and
+[KV pricing](https://developers.cloudflare.com/kv/platform/pricing/).
 
 ### Completed fixture checks
 
