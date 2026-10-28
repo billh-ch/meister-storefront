@@ -23,6 +23,8 @@
   "vars": {
     "VERCEL_ENV": "preview",
     "NEXT_PUBLIC_USE_MOCK_DATA": "true",
+    "NEXT_PUBLIC_WC_URL": "https://rpiwordpress.kudu-ulmer.ts.net:8443",
+    "CHECKOUT_PAYMENTS_ENABLED": "false",
     "PRERENDER_PRODUCTS": "false"
   },
   "observability": {

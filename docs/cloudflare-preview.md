@@ -17,6 +17,12 @@ NEXT_PUBLIC_USE_MOCK_DATA=true VERCEL_ENV=preview pnpm run build:vinext
 pnpm run start:vinext --port 8787
 ```
 
+Run native Next and vinext builds sequentially: both generate
+`.next/types/routes.d.ts`, with different type exports. Concurrent builds can
+overwrite each other's generated types. After switching back to native Next,
+`pnpm exec next typegen` refreshes its types before a standalone TypeScript check;
+the native build also regenerates them.
+
 Vite copies local `.dev.vars` to the generated server directory. Both paths are
 ignored by git. Never copy development secrets or environment files into an upload.
 
@@ -99,6 +105,37 @@ credentials into chat or commit them. No real-service verification is complete
 until these settings and their resulting requests have been checked.
 
 ## Validation and limits
+
+### Connecting the real catalog while keeping payments off
+
+The user authorized connecting the existing WooCommerce catalog after reviewing
+the fixture preview. The Pi's protected API is reachable over public HTTPS;
+unauthenticated product requests return HTTP 401 as expected.
+
+Only these three additional Worker secrets are needed for this catalog stage:
+`WC_CONSUMER_KEY`, `WC_CONSUMER_SECRET`, and `WC_PROXY_TOKEN`. Copy their existing
+values from Vercel's project environment settings into the dedicated Worker's
+**Settings → Variables and Secrets**, choosing **Secret**. Do not post values in
+chat, reuse production's session secret, or install Stripe/Redis settings yet.
+
+The public backend origin is `https://rpiwordpress.kudu-ulmer.ts.net:8443`.
+`CHECKOUT_PAYMENTS_ENABLED=false` blocks both checkout entry points before any
+customer, cart/backend or Stripe access, independently of the catalog mode.
+The flag is server-only; leaving it unset preserves existing Vercel behavior.
+Both languages and entry points are covered by tests; all 169 unit tests pass.
+
+Until the three secrets are installed, retain `NEXT_PUBLIC_USE_MOCK_DATA=true`
+and the current fixture build command. Once they are confirmed, switch that flag
+to false in the root Wrangler config **and** the Cloudflare build command and
+build environment, then deploy the matching source commit. The public backend
+origin must match at build and runtime. Do not switch only a runtime public
+flag: Vite compiles public environment variables into the server/client output.
+
+Verify real published catalog IDs, variants, localized content and photos, then
+guest cart and Greece shipping quotes. Confirm the payment-off response and
+inspect hosted errors/CPU. Real orders and Stripe setup are separate work.
+
+### Completed fixture checks
 
 The compatibility scanner reported 97% support: 17 supported items and one
 partial item for image optimization. This app uses direct originals instead.

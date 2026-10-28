@@ -401,6 +401,7 @@ export const shopperGreek: Record<string, string> = {
   "Could not calculate delivery. Please try again.": "Δεν ήταν δυνατός ο υπολογισμός παράδοσης. Δοκιμάστε ξανά.",
   "This option is out of stock. Please update or remove this item.": "Αυτή η επιλογή δεν είναι διαθέσιμη. Ενημερώστε ή αφαιρέστε το προϊόν.",
   "Payments are unavailable in mock-data mode. Connect WooCommerce to continue.": "Οι πληρωμές δεν είναι διαθέσιμες στην προεπισκόπηση με δοκιμαστικά προϊόντα.",
+  "Payments are currently unavailable. Please try again later.": "Οι πληρωμές δεν είναι διαθέσιμες αυτήν τη στιγμή. Δοκιμάστε ξανά αργότερα.",
   "Please enter your email address.": "Συμπληρώστε τη διεύθυνση email σας.",
   "Your cart has changed — please review it before checking out.": "Το καλάθι σας άλλαξε. Ελέγξτε το πριν ολοκληρώσετε την παραγγελία.",
   "Your cart or product prices have changed. Please review your cart before paying.": "Το καλάθι ή οι τιμές προϊόντων άλλαξαν. Ελέγξτε το καλάθι πριν πληρώσετε.",

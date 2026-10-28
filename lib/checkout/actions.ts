@@ -61,6 +61,9 @@ export async function createCheckoutSessionAction(
   if (process.env.NEXT_PUBLIC_USE_MOCK_DATA === 'true') {
     return { error: t('Payments are unavailable in mock-data mode. Connect WooCommerce to continue.') }
   }
+  if (process.env.CHECKOUT_PAYMENTS_ENABLED === 'false') {
+    return { error: t('Payments are currently unavailable. Please try again later.') }
+  }
   const session = await getSession()
   const wcCustomerId = session.wcCustomerId
   const isGuest = !wcCustomerId

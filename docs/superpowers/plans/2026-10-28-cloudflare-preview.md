@@ -49,3 +49,21 @@ compare and mobile variants passed. A unique test session secret is installed.
 Initial CPU/errors were inspected; high CPU quantiles require further Free-plan
 reliability assessment. Real-service Redis/WooCommerce and Stripe fulfillment
 remain unverified; the final two tasks remain incomplete for that reason.
+
+## Connect the real WooCommerce catalog
+
+The user authorized this next stage after reviewing the hosted fixture preview.
+Use the same Pi backend and catalog. Runtime WooCommerce secrets must be supplied
+securely to the Worker; the managed workspace's proxy placeholders cannot be
+exported. Preserve the working fixture deployment until those secrets exist.
+
+- [x] Inspect existing Worker bindings and the backend's public reachability.
+- [x] Add an independent server-side payment-off guard before disabling mock data;
+  verify both checkout entry points and Greek/English errors with real code tests.
+- [ ] Install/verify the three actual WooCommerce secret bindings, configure the
+  known public backend origin at build/runtime and switch mock mode off together.
+- [ ] Deploy the Cloudflare branch and verify real product/variant/Greek content,
+  photos, cart and Greece shipping from the hosted Worker. Do not enable Stripe,
+  place an order, edit WordPress, change production or activate a paid plan.
+
+Credential request pending: Cloudflare currently has only SESSION_SECRET.

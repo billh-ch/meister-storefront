@@ -124,3 +124,26 @@ test('direct checkout action retains the legacy argument positions and rejects m
 test('legacy delivery action reports invalid address using customer validation copy', async () => fixture('flat_rate', async () => {
   await assert.rejects(getShippingMethodsAction({ country: 'ZZ' }), { message: 'Please check your delivery country and address.' })
 }))
+
+for (const [locale, message] of [
+  ['en', 'Payments are currently unavailable. Please try again later.'],
+  ['el', 'Οι πληρωμές δεν είναι διαθέσιμες αυτήν τη στιγμή. Δοκιμάστε ξανά αργότερα.'],
+]) {
+  test(`disabled payments block both checkout entry points before customer/backend access (${locale})`, async () => fixture('flat_rate', async (state, request) => {
+    const previous = process.env.CHECKOUT_PAYMENTS_ENABLED
+    process.env.CHECKOUT_PAYMENTS_ENABLED = 'false'
+    let sessionReads = 0
+    Object.defineProperty(globalThis.boxNowSessionFixture, 'session', { get() { sessionReads++; return { wcCustomerId: 901 } } })
+    try {
+      assert.deepEqual(await createCheckoutSessionAction(address, 'flat_rate:3', undefined, undefined, locale), { error: message })
+      const response = await POST(request(undefined, locale))
+      assert.deepEqual(await response.json(), { error: message })
+      assert.equal(sessionReads, 0, 'Do not read or modify customer data when payments are disabled')
+      assert.equal(state.sessions.length, 0, 'Do not create any Stripe session')
+      assert.equal(state.lookups, 0, 'Do not request any backend data')
+    } finally {
+      if (previous === undefined) delete process.env.CHECKOUT_PAYMENTS_ENABLED
+      else process.env.CHECKOUT_PAYMENTS_ENABLED = previous
+    }
+  }))
+}
