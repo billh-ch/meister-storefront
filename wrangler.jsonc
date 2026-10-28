@@ -30,6 +30,7 @@
     "NEXT_PUBLIC_SITE_URL": "https://meister-storefront-test.hbill5488.workers.dev",
     "STRIPE_CHECKOUT_ORIGIN": "https://meister-storefront-test.hbill5488.workers.dev",
     "STRIPE_EXPECTED_MODE": "test",
+    "REDIS_ENV_PREFIX": "",
     "CHECKOUT_PAYMENTS_ENABLED": "false",
     "PRERENDER_PRODUCTS": "false"
   },
