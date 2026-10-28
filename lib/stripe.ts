@@ -9,10 +9,12 @@ let _stripe: Stripe | null = null
  * guessing a version string by hand.
  */
 export function getStripe(): Stripe {
-  if (_stripe) return _stripe
-
   const key = process.env.STRIPE_SECRET_KEY
   if (!key) throw new Error('STRIPE_SECRET_KEY is not configured')
+  if (process.env.STRIPE_EXPECTED_MODE === 'test' && !/^[sr]k_test_/.test(key)) {
+    throw new Error('This checkout requires a Stripe test key')
+  }
+  if (_stripe) return _stripe
 
   _stripe = new Stripe(key)
   return _stripe

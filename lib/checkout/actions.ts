@@ -188,6 +188,7 @@ export async function createCheckoutSessionAction(
     const baseUrl = getBaseUrl()
 
     const checkoutSession = await stripe.checkout.sessions.create({
+      integration_identifier: 'meister_storefront_nxqvkmpr',
       mode: 'payment',
       locale,
       line_items: lineItems,
@@ -198,6 +199,7 @@ export async function createCheckoutSessionAction(
       success_url: `${baseUrl}${localePath('/checkout/confirmation', locale)}?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${baseUrl}${localePath('/checkout', locale)}`,
       metadata: {
+        storefrontOrigin: baseUrl,
         locale,
         // Empty string for a guest — the webhook reads this back and treats
         // a blank/zero value as "guest order" (customer_id 0 in WooCommerce).

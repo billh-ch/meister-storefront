@@ -27,6 +27,9 @@
     "VERCEL_ENV": "preview",
     "NEXT_PUBLIC_USE_MOCK_DATA": "false",
     "NEXT_PUBLIC_WC_URL": "https://rpiwordpress.kudu-ulmer.ts.net:8443",
+    "NEXT_PUBLIC_SITE_URL": "https://meister-storefront-test.hbill5488.workers.dev",
+    "STRIPE_CHECKOUT_ORIGIN": "https://meister-storefront-test.hbill5488.workers.dev",
+    "STRIPE_EXPECTED_MODE": "test",
     "CHECKOUT_PAYMENTS_ENABLED": "false",
     "PRERENDER_PRODUCTS": "false"
   },

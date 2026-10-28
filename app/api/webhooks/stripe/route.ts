@@ -71,6 +71,13 @@ export async function POST(request: Request) {
   }
 
   const checkoutSession = event.data.object as Stripe.Checkout.Session
+  if (process.env.STRIPE_EXPECTED_MODE === 'test' && event.livemode !== false) {
+    return NextResponse.json({ received: true, note: 'different payment mode' })
+  }
+  const expectedOrigin = process.env.STRIPE_CHECKOUT_ORIGIN
+  if (expectedOrigin && checkoutSession.metadata?.storefrontOrigin !== expectedOrigin) {
+    return NextResponse.json({ received: true, note: 'different storefront' })
+  }
   if (checkoutSession.payment_status === 'unpaid') {
     return NextResponse.json({ received: true, note: 'unpaid' })
   }

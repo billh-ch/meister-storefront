@@ -173,3 +173,37 @@ test('paid signed-in sessions attach the WooCommerce order to the customer accou
   assert.equal(db.orders[0].customer_id, 6)
   assert.deepEqual(db.orders[0].line_items[0].meta_data, [{key: 'Μέγεθος', value: 'M'}])
 }))
+
+test('scoped preview webhooks ignore sessions from other storefronts before touching Redis', async () => withBackend(async db => {
+  process.env.STRIPE_CHECKOUT_ORIGIN = 'https://preview.fixture.example'
+  db.redisDown = true
+  try {
+    for (const storefrontOrigin of [undefined, 'https://other.fixture.example']) {
+      const response = await POST(paidRequest('pi_foreign', { metadata: { storefrontOrigin } }))
+      assert.equal(response.status, 200)
+      assert.equal((await response.json()).note, 'different storefront')
+    }
+    assert.equal(db.orders.length, 0)
+  } finally { delete process.env.STRIPE_CHECKOUT_ORIGIN }
+}))
+
+test('test-only webhooks ignore live events and accept their own paid test session', async () => withBackend(async db => {
+  process.env.STRIPE_EXPECTED_MODE = 'test'
+  process.env.STRIPE_CHECKOUT_ORIGIN = 'https://preview.fixture.example'
+  try {
+    const request = paidRequest('pi_own_test')
+    const event = await request.json()
+    event.data.object.metadata.storefrontOrigin = process.env.STRIPE_CHECKOUT_ORIGIN
+    const send = async livemode => {
+      const body = JSON.stringify({ ...event, livemode })
+      return POST(new Request(request.url, { method: 'POST', body, headers: { 'stripe-signature': stripe.webhooks.generateTestHeaderString({ payload: body, secret: 'whsec_fixture' }) } }))
+    }
+    assert.equal((await send(true)).status, 200)
+    assert.equal(db.orders.length, 0)
+    assert.equal((await send(false)).status, 200)
+    assert.equal(db.orders.length, 1)
+  } finally {
+    delete process.env.STRIPE_EXPECTED_MODE
+    delete process.env.STRIPE_CHECKOUT_ORIGIN
+  }
+}))
