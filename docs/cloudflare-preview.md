@@ -94,7 +94,7 @@ Set these server secrets through Cloudflare's encrypted environment settings:
 | WC_PROXY_TOKEN | Pi's protected API proxy credential |
 | STRIPE_SECRET_KEY | Verified Stripe test/sandbox secret key |
 | STRIPE_WEBHOOK_SECRET | Secret of a separate test webhook endpoint |
-| KV_REST_API_URL / KV_REST_API_TOKEN | Isolated test Redis database credentials |
+| KV_REST_API_URL / KV_REST_API_TOKEN | Active Redis credentials shared with the existing Vercel webhook locks |
 
 Public configuration additionally needs `NEXT_PUBLIC_WC_URL`,
 `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` (test key), and optionally
@@ -226,9 +226,9 @@ production builds, type checking and lint passed.
 
 Cloudflare Free can host a commercial storefront within its service terms and
 usage limits. This particular preview is **not ready to accept paid orders**.
-Payments are deliberately disabled, and Stripe/Redis bindings are absent. Before
-cutover, install isolated test payment/webhook/idempotency settings, explicitly
-configure the intended public origin, and verify a complete test payment creates
+Payments are deliberately disabled. Stripe test credentials and a separate
+Cloudflare webhook are installed; the active Redis pair is still missing. Before
+cutover, finish the test payment/webhook/idempotency configuration and verify a complete test payment creates
 the correct WooCommerce order, dashboard/account history and confirmation. Test
 webhook retries for duplicate protection before configuring live credentials.
 Production also needs the chosen domain, production indexing configuration and
@@ -249,6 +249,54 @@ plus usage, if that route is later chosen; it is not required to view this previ
 References: [Workers pricing](https://developers.cloudflare.com/workers/platform/pricing/),
 [Workers limits](https://developers.cloudflare.com/workers/platform/limits/) and
 [KV pricing](https://developers.cloudflare.com/kv/platform/pricing/).
+
+### Stripe preview preparation — 2026-10-28
+
+Application commits `6d66cff`/`2301f62` deployed in successful build
+`c9d0705f-d418-479c-b3d9-b30ce18a81c6`. The existing portable Stripe test key was
+verified against account `acct_1U7BqPGbOGPKGWDR` and transferred directly into an
+encrypted Worker secret. This account has live charging disabled. No account
+switch, live credentials, real payment, order or shipment was created.
+
+The separate test webhook `we_1UVeEIGbOGPKGWDRzB0gy7r7` points to
+`https://meister-storefront-test.hbill5488.workers.dev/api/webhooks/stripe` for
+`checkout.session.completed` and `checkout.session.async_payment_succeeded`.
+Its newly generated signing secret was installed directly as an encrypted
+`STRIPE_WEBHOOK_SECRET`; temporary credential copies were cleared. Existing
+Vercel webhook endpoints were preserved. Hosted signed ping returned200,
+tampering400, and foreign storefront/live events were acknowledged and ignored
+before Redis/WooCommerce access. These checks do not prove payment fulfillment.
+
+`STRIPE_EXPECTED_MODE=test` refuses live/unknown API keys and live webhook events.
+New sessions carry `metadata.storefrontOrigin`; the new endpoint requires an exact
+match with `STRIPE_CHECKOUT_ORIGIN`. The intended workers.dev public origin is
+configured at both build and runtime. Existing Vercel behavior is retained when
+these new optional guards are unset. All180 unit tests, both production builds,
+lint and type checks passed; an independent review found no regressions and
+independently reran33 focused tests.
+
+The remaining setup is **KV_REST_API_URL and KV_REST_API_TOKEN** as encrypted
+Worker secrets. Use the REST URL and writable REST token from the same active
+Upstash database supplying Vercel's `restore_KV_REST_API_URL` and
+`restore_KV_REST_API_TOKEN`, not the older archived unprefixed integration.
+Vercel marks that active pair sensitive/write-only, so it cannot be read back
+through the API. Obtain the values from the active Upstash database's Connect/
+REST API panel; do not paste them into chat. `REDIS_ENV_PREFIX` is explicitly empty
+on Cloudflare because the copied secret names are unprefixed.
+
+Sharing this Redis database is intentional: the existing Vercel webhook also
+receives this account's test payments, and both endpoints must use the same
+`stripe:pi:<paymentIntent>` locks to avoid overlapping WooCommerce writes.
+Cloudflare's new endpoint additionally ignores unrelated storefront events.
+
+`CHECKOUT_PAYMENTS_ENABLED=false` remains in source and build/runtime settings.
+The hosted endpoint was verified still blocking payment creation. After the
+Redis pair is installed, verify connectivity and shared locks before enabling
+test sessions. Then verify the session's origin metadata and success/cancel URLs,
+one actual test payment → exactly one Woo order → confirmation receipt, and
+retry protection. Test payments create transactional WooCommerce records using
+the existing fulfillment code, so identify test data and prevent it from being
+shipped. Live activation and Free CPU reliability remain separate launch gates.
 
 ### Completed fixture checks
 

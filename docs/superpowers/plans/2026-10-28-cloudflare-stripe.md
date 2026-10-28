@@ -11,3 +11,9 @@ Goal: enable existing hosted Stripe checkout in test mode only after credentials
 5. After user supplies Redis and its connectivity is verified, enable test checkout, verify hosted cart → Stripe test session → return origin, then complete one test payment and verify exactly one WooCommerce order/receipt and retry protection. No real charges or shipments. If credentials or payment completion remain unavailable, keep payments off and report the exact blocker.
 
 Constraints: no managed outbound-proxy placeholders exported as real credentials, no secret output/source files, no paid upgrade, no live credentials, no production changes. Test Woo order creation is an expected transactional side effect of checkout verification; identify test data explicitly. Free CPU suitability remains a separate launch blocker.
+
+Status: steps1–2 complete, step3 Stripe key/separate signed webhook complete and
+Redis awaiting user-supplied write-only values. Step4 complete:180 tests, both
+builds, types/lint, independent review and hosted signature/isolation/payment-off
+checks passed. Deployed6d66cff/2301f62 in buildc9d0705f-d418-479c-b3d9-b30ce18a81c6.
+Step5 remains blocked by missing KV_REST_API_URL/TOKEN; payment creation stays off.
