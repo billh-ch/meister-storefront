@@ -7,6 +7,8 @@ const nextConfig: NextConfig = {
     return [...buildIndexingHeaders(), ...buildAgentNegotiationHeaders()];
   },
   images: {
+    // Vercel returns HTTP 402 for uncached image transforms; serve available originals.
+    unoptimized: true,
     remotePatterns: [
       {
         protocol: "https",
