@@ -3,7 +3,7 @@ import { useLocale, useTranslation } from '@/components/i18n/locale-provider'
 
 import CompareNavLink from './compare/nav-link'
 import WishlistNavLink from './wishlist/nav-link'
-import Image from 'next/image'
+import Image from '@/components/store-image'
 import Link from '@/components/i18n/localized-link'
 import LanguageSwitch from '@/components/i18n/language-switch'
 import { useLocalePath } from '@/components/i18n/locale-provider'

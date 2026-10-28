@@ -1,5 +1,5 @@
 import { getTranslator } from '@/lib/i18n/server'
-import Image from 'next/image'
+import Image from '@/components/store-image'
 import Link from '@/components/i18n/localized-link'
 
 /** Brand story and community photograph from https://meister.gr/about-us. */

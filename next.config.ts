@@ -7,15 +7,16 @@ const nextConfig: NextConfig = {
     return [...buildIndexingHeaders(), ...buildAgentNegotiationHeaders()];
   },
   images: {
-    // Vercel returns HTTP 402 for uncached image transforms; serve available originals.
-    unoptimized: true,
+    // Pre-generated responsive files avoid runtime image transformation quotas.
+    loader: 'custom',
+    loaderFile: './lib/images/loader.ts',
+    deviceSizes: [320, 640, 960, 1280, 1600],
     remotePatterns: [
       {
         protocol: "https",
         hostname: "rpiwordpress.kudu-ulmer.ts.net",
         port: "8443",
         pathname: "/wp-content/uploads/**",
-        search: "",
       },
       {
         protocol: "https",

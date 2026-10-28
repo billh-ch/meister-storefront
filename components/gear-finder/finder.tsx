@@ -1,6 +1,6 @@
 'use client'
 
-import Image from 'next/image'
+import Image from '@/components/store-image'
 import { useEffect, useRef, useState, useSyncExternalStore } from 'react'
 import { useLocale, useTranslation } from '@/components/i18n/locale-provider'
 import { QUESTIONS, FIN_QUESTIONS } from '@/lib/gear-finder/reference'

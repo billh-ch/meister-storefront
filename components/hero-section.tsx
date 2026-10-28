@@ -1,4 +1,5 @@
 import { getTranslator } from '@/lib/i18n/server'
+import imageLoader from '@/lib/images/loader'
 import Link from '@/components/i18n/localized-link'
 
 export default async function HeroSection() {
@@ -9,7 +10,7 @@ export default async function HeroSection() {
       className="relative flex h-screen w-full flex-col items-center justify-center overflow-hidden px-6"
       style={{
         backgroundColor: '#1B1B18',
-        backgroundImage: 'url(/images/hero-sectio-image.JPEG)',
+        backgroundImage: `url(${imageLoader({ src: '/images/hero-sectio-image.JPEG', width: 1600 })})`,
         backgroundSize: 'cover',
         backgroundPosition: 'center',
       }}

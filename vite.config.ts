@@ -5,11 +5,12 @@ import { createHash } from "node:crypto";
 import { patchCssModules } from "vite-css-modules";
 import path from "node:path";
 import { kvDataAdapter } from "@vinext/cloudflare/cache/kv-data-adapter";
+import { catalogCacheOptions } from './lib/cache/catalog-policy';
 
 export default defineConfig({
   plugins: [
     patchCssModules({ exportMode: "default" }),
-    vinext({ cache: { data: kvDataAdapter({ appPrefix: 'meister-catalog-v1', ttlSeconds: 3600, entryCacheTtlSeconds: 30 }) } }),
+    vinext({ cache: { data: kvDataAdapter(catalogCacheOptions) } }),
     cloudflare({
       viteEnvironment: {
         name: "rsc",

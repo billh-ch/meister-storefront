@@ -1,7 +1,7 @@
 'use client'
 import { useLocale, useTranslation } from '@/components/i18n/locale-provider'
 
-import Image from 'next/image'
+import Image from '@/components/store-image'
 import Link from '@/components/i18n/localized-link'
 import { useEffect, useId, useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'

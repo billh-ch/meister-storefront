@@ -1,7 +1,7 @@
 'use client'
 import { useTranslation } from '@/components/i18n/locale-provider'
 
-import Image from 'next/image'
+import Image from '@/components/store-image'
 import Link from '@/components/i18n/localized-link'
 import useEmblaCarousel from 'embla-carousel-react'
 import { useCallback, useEffect, useMemo, useState } from 'react'

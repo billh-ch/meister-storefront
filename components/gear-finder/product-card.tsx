@@ -1,4 +1,4 @@
-import Image from 'next/image'
+import Image from '@/components/store-image'
 import Link from '@/components/i18n/localized-link'
 import { formatPrice } from '@/lib/mock-data'
 import type { LiveSuit, LiveFin, Mode } from '@/lib/gear-finder/types'

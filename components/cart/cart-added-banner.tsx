@@ -3,7 +3,7 @@ import { useTranslation } from '@/components/i18n/locale-provider'
 
 import { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
-import Image from 'next/image'
+import Image from '@/components/store-image'
 import { CART_ADDED_EVENT, openCartDrawer, type CartAddedDetail } from '@/lib/cart/client-events'
 
 export default function CartAddedBanner() {

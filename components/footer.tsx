@@ -1,5 +1,6 @@
 import { getTranslator, getLocale } from '@/lib/i18n/server'
-import Image from 'next/image'
+import imageLoader from '@/lib/images/loader'
+import Image from '@/components/store-image'
 import Marquee from './marquee'
 import Link from '@/components/i18n/localized-link'
 import { BUSINESS_CONTACT } from '@/lib/agents/content'
@@ -29,7 +30,7 @@ export default async function Footer() {
     <footer
       className="relative w-full"
       style={{
-        backgroundImage: 'url(/images/footer-section-image.JPG)',
+        backgroundImage: `url(${imageLoader({ src: '/images/footer-section-image.JPG', width: 1600 })})`,
         backgroundSize: 'cover',
         backgroundPosition: 'center',
         backgroundAttachment: 'fixed',

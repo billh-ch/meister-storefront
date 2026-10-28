@@ -2,7 +2,7 @@
 import { useTranslation, useLocale } from '@/components/i18n/locale-provider'
 
 import Link from '@/components/i18n/localized-link'
-import Image from 'next/image'
+import Image from '@/components/store-image'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { stripLocale } from '@/lib/i18n'
 import { usePathname } from 'next/navigation'
