@@ -11,7 +11,7 @@ export function mapProduct(product: WcProduct, locale: string = 'en'): Product {
   const content = getProductContent(product, locale)
   const seen = new Set<string>()
   const gallery = product.images.flatMap(image => {
-    const src = resolveImageUrl(image.src)
+    const src = resolveImageUrl(image.src, image.date_modified)
     if (!src || seen.has(src)) return []
     seen.add(src)
     return [{ src, alt: image.alt?.trim() || content.name }]

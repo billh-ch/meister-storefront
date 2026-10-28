@@ -4,6 +4,7 @@ export interface WcImage {
   id: number
   src: string
   alt?: string
+  date_modified?: string
 }
 
 export interface WcCategory {

@@ -1,10 +1,12 @@
+import { imageVersion } from '../../images/version'
+
 /**
  * WooCommerce returns media URLs on the store's internal siteurl (e.g. a
  * LocalWP `*.local` domain), which only resolves on the machine running
  * WordPress. Rewrite to the WC base URL's origin (the ngrok tunnel) so
  * images are reachable from wherever this app runs.
  */
-export function resolveImageUrl(rawUrl: string): string {
+export function resolveImageUrl(rawUrl: string, modified?: string): string {
   const baseUrl = process.env.NEXT_PUBLIC_WC_URL
   if (!baseUrl || !rawUrl) return rawUrl
 
@@ -13,6 +15,8 @@ export function resolveImageUrl(rawUrl: string): string {
     const base = new URL(baseUrl)
     image.protocol = base.protocol
     image.host = base.host
+    const version = imageVersion(modified)
+    if (version) image.searchParams.set('v', version)
     return image.toString()
   } catch {
     return rawUrl

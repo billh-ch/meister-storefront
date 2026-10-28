@@ -39,7 +39,7 @@ function mapVariant(variation: WcVariation): ProductVariant {
       : price,
     onSale: variation.on_sale,
     stockStatus: toStockStatus(variation.stock_status),
-    image: variation.image?.src ? resolveImageUrl(variation.image.src) : null,
+    image: variation.image?.src ? resolveImageUrl(variation.image.src, variation.image.date_modified) : null,
     // Normalised to { attributeName: chosenOption } so the selector can match
     // a combination directly. WooCommerce returns `attributes: []` on some
     // variations whose data was never re-saved in WP admin — those simply
@@ -122,7 +122,7 @@ export function mapProductDetail(
   const salePrice = wc.sale_price ? toNumber(wc.sale_price) : null
 
   const gallery = wc.images.map((image) => ({
-    src: resolveImageUrl(image.src),
+    src: resolveImageUrl(image.src, image.date_modified),
     alt: image.alt?.trim() || content.name,
   }))
 

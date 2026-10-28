@@ -20,6 +20,7 @@
   "workers_dev": true,
   "upload_source_maps": false,
   "preview_urls": true,
+  "kv_namespaces": [{ "binding": "VINEXT_KV_CACHE", "id": "0140aec8011f44d7915a23eec1c7154f" }],
   "vars": {
     "VERCEL_ENV": "preview",
     "NEXT_PUBLIC_USE_MOCK_DATA": "false",
