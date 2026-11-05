@@ -88,6 +88,6 @@
 - [x] Package plugin and verify allowlist/ZIP reproducibility, all PHP lint/tests, Node suite, types, lint and native/vinext builds.
 - [x] Inspect current Cloudflare runtime backend read-only; attempt authorized protected reads, record any missing administration/VPN access; perform actual installation/preview sandbox validation only when safe access and isolated receivers are established.
 - [x] Obtain required fresh whole-change review; fix material findings with regression tests and record remaining infrastructure blockers accurately.
-- [ ] Commit and push feature branch (repository convention); do not promote to production or enable unverified flow. Provide concrete installation handoff/artifact if remote administration is unavailable.
+- [x] Commit and push feature branch (repository convention); do not promote to production or enable unverified flow. Provide concrete installation handoff/artifact if remote administration is unavailable.
 
 Status: source, local integration, independent review and packaging complete. Owner-backend installation and isolated Stripe sandbox verification remain blocked by unavailable private administration; follow the concrete local-Codex handoff before activation.
