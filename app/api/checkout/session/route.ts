@@ -1,3 +1,4 @@
+import { promotionsEnabled } from '@/lib/promotions/client'
 import { inputTranslator, requestLocaleSchema } from '@/lib/i18n/request'
 import { z } from 'zod'
 import { addressSchema } from '@/lib/address/schema'
@@ -9,6 +10,7 @@ const checkoutSessionSchema = z.object({
   locale: requestLocaleSchema,
   address: addressSchema,
   deliveryMethodId: z.string().min(1).max(150),
+  promotion: z.object({ reference: z.uuid(), total: z.number().int().nonnegative() }).optional(),
   expected: z.object({ cartSignature: z.string().min(1).max(16000), shippingCost: z.number().finite().nonnegative() }),
   boxNowLocker: boxNowLockerSelectionSchema.optional(),
 })
@@ -25,7 +27,14 @@ export async function POST(request: Request) {
   const parsed = checkoutSessionSchema.safeParse(input)
   if (!parsed.success) return Response.json({ error: t('Please fill in every required field.') }, { status: 400, headers })
   try {
-    const { address, deliveryMethodId, expected, boxNowLocker, locale } = parsed.data
+    const { address, deliveryMethodId, expected, boxNowLocker, locale, promotion } = parsed.data
+    if (promotionsEnabled()) {
+      if (!promotion) return Response.json({ error: t('Please refresh your order total before paying.'), refreshShipping: true }, { status: 409, headers })
+      const [{ createPromotionsCheckout }, { ensurePromotionSession }, { promotionRequest }] = await Promise.all([import('@/lib/promotions/checkout'), import('@/lib/promotions/session'), import('@/lib/promotions/request')])
+      const session = await ensurePromotionSession()
+      await promotionRequest(new Request(request.url, { method: 'POST', headers: request.headers, body }), session.owner!, 60)
+      return Response.json(await createPromotionsCheckout({ address, reference: promotion.reference, expectedTotal: promotion.total, deliveryMethodId, locale, locker: boxNowLocker }), { headers })
+    }
     return Response.json(await createCheckoutSessionAction(address, deliveryMethodId, expected, boxNowLocker, locale), { headers })
   } catch {
     return Response.json({ error: t('Could not prepare checkout. Please try again.') }, { status: 503, headers })

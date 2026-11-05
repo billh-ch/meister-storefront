@@ -1,3 +1,4 @@
+import { promotionsGreek } from './dictionaries/promotions'
 import { coreGreek } from './dictionaries/core'
 import { countriesGreek } from './dictionaries/countries'
 import { contentGreek } from './dictionaries/content'
@@ -9,7 +10,7 @@ export { isLocale, validateLocale, localePath, stripLocale, localeFromPath, isSh
 export type { Locale } from './paths'
 export type TranslationValues = Record<string, string | number>
 export type Translator = (source: string, values?: TranslationValues) => string
-const greek: Record<string, string> = { ...coreGreek, ...seoGreek, ...shopperGreek, ...contentGreek, ...countriesGreek, ...gearFinderGreek }
+const greek: Record<string, string> = { ...coreGreek, ...seoGreek, ...shopperGreek, ...contentGreek, ...countriesGreek, ...gearFinderGreek, ...promotionsGreek }
 /** Fallback leaves untranslated catalog/brand text intact; interpolation is plain text. */
 export function translate(locale: Locale, source: string, values?: TranslationValues): string {
   // Legacy state stores and cart selections carry complete source sentences.

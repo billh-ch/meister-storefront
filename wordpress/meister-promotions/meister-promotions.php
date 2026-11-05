@@ -5,6 +5,7 @@
  * Version: 1.0.0
  * Requires PHP: 8.1
  * Requires Plugins: woocommerce
+ * WC requires at least: 9.5.2
  * Text Domain: meister-promotions
  */
 if (!defined('ABSPATH')) { exit; }

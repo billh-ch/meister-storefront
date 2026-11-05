@@ -56,6 +56,13 @@ final class Meister_Promotions_Engine {
         return ['sets'=>$low, 'quantities'=>$low ? $try($low) : []];
     }
 
+    /** Amount-only refunds are allocated using the original gross merchandise/order ratio. */
+    public static function net_merchandise(int $merchandise,int $orderTotal,array $refunds): int {
+        if(array_sum(array_column($refunds,'total')) >= $orderTotal && $orderTotal>0){return 0;}
+        $net=$merchandise;
+        foreach($refunds as $refund){$known=max(0,$refund['merchandise']);$unallocated=max(0,$refund['total']-$known-max(0,$refund['shipping']));$share=$orderTotal>0?intdiv($unallocated*$merchandise+intdiv($orderTotal,2),$orderTotal):0;$net-=$known+$share;}
+        return max(0,$net);
+    }
     /** Largest remainder, stable input ordering for tied cents. */
     public static function allocate(int $saving, array $weights): array {
         $sum = array_sum($weights); $saving = max(0,min($saving,$sum)); $out = []; $remainders = [];

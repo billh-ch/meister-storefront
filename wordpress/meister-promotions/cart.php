@@ -5,9 +5,9 @@ final class Meister_Promotions_Cart {
     private static array $internal_allocations=[];
     public static function boot(): void {
         add_filter('woocommerce_get_shop_coupon_data',static function($data,$code) { return self::$internal_code && $code===self::$internal_code ? ['discount_type'=>'fixed_product','amount'=>0,'individual_use'=>true] : $data; },10,2);
-        add_filter('woocommerce_coupon_get_discount_amount',static function($discount,$amount,$item,$single,$coupon) {
-            return self::$internal_code && $coupon->get_code()===self::$internal_code ? (self::$internal_allocations[$item['key']] ?? 0)/100 : $discount;
-        },999,5);
+    }
+    public static function discount_amount($discount,$amount,$item,$single,$coupon) {
+        return self::$internal_code && $coupon->get_code()===self::$internal_code ? (self::$internal_allocations[$item['key']] ?? 0)/100 : $discount;
     }
     public static function quote(array $input): array {
         $result=self::evaluate($input,static fn($q)=>$q);
@@ -15,6 +15,9 @@ final class Meister_Promotions_Cart {
         $result['reference']=$reference;$result['expiresAt']=$expires;
         Meister_Promotions_Store::put('quote:'.$reference,['owner'=>Meister_Promotions_Store::owner($input['owner']),'input'=>$input,'quote'=>$result],$expires);
         return $result;
+    }
+    public static function stored_quote(array $r): array {
+        $stored=Meister_Promotions_Store::get('quote:'.($r['reference']??''));if(!$stored || !hash_equals($stored['owner'],Meister_Promotions_Store::owner($r['owner']??''))){throw new InvalidArgumentException('Quote expired.');}return $stored['quote'];
     }
     public static function validate(array $input): array {
         Meister_Promotions_Store::owner($input['owner']??'');
@@ -70,12 +73,12 @@ final class Meister_Promotions_Cart {
             WC()->shipping()->reset_shipping();WC()->cart=new WC_Cart();$cart=WC()->cart;
             foreach ($input['items'] as $i=>$item) {
                 $product=wc_get_product($item['productId']); if (!$product || !$product->is_purchasable()) { throw new RuntimeException('A product is unavailable. Please review your cart.'); }
-                $attributes=[];foreach ($item['attributes']??[] as $k=>$v) {$attributes[str_starts_with($k,'attribute_')?$k:'attribute_'.sanitize_title($k)]=$v;}
+                $attributes=self::variation_attributes($product,$item['attributes']??[]);
                 $variationId=$item['variationId']??0;
                 if ($product->is_type('variable') && !$variationId) { $variationId=WC_Data_Store::load('product')->find_matching_product_variation($product,$attributes); }
                 if ($product->is_type('variable') && !$variationId) { throw new RuntimeException('Please choose valid product options.'); }
-                if ($variationId) { $variation=wc_get_product($variationId);if (!$variation || $variation->get_parent_id()!==$product->get_id()) { throw new InvalidArgumentException('Invalid product variation.'); } }
-                $key=$cart->add_to_cart($product->get_id(),$item['quantity'],$variationId,$attributes,['meister_line'=>(string)$i]);
+                if ($variationId) { $variation=wc_get_product($variationId);if (!$variation || $variation->get_parent_id()!==$product->get_id()) { throw new InvalidArgumentException('Invalid product variation.'); }$attributes=array_replace($variation->get_variation_attributes(),$attributes); }
+                $key=$cart->add_to_cart($product->get_id(),$item['quantity'],$variationId,$attributes,['meister_line'=>(string)$i,'meister_display'=>$input['labels'][$i]??null]);
                 if (!$key) { throw new RuntimeException('A product is unavailable. Please review your cart.'); }
             }
             $cart->calculate_totals();
@@ -85,6 +88,7 @@ final class Meister_Promotions_Cart {
                 $lines=self::export_lines($cart);$match=Meister_Promotions_Engine::bundle_sets($lines,$rule);$weights=[];
                 foreach ($cart->get_cart() as $key=>$line) { $n=$match['quantities'][$key]??0;if ($n) {$weights[$key]=(int)round((float)$line['data']->get_price()*100*$n);} }
                 $saving=$rule['type']==='percent'?(int)round(array_sum($weights)*(float)$rule['amount']/100):(int)round((float)$rule['amount']*100*$match['sets']);
+                add_filter('woocommerce_coupon_get_discount_amount',[self::class,'discount_amount'],999,5);
                 self::$internal_code='meister-internal-'.wp_generate_uuid4();self::$internal_allocations=Meister_Promotions_Engine::allocate($saving,$weights);
                 $cart->apply_coupon(self::$internal_code);
                 $promotion=['type'=>'bundle','id'=>$rule['id'],'label'=>$rule['name'],'version'=>(string)$rule['version'],'campaign'=>'bundle:'.$rule['id'],'influencer'=>''];
@@ -109,10 +113,38 @@ final class Meister_Promotions_Cart {
             $subtotal=(int)round(((float)$cart->get_subtotal()+(float)$cart->get_subtotal_tax())*100);
             $q=['version'=>1,'currency'=>'EUR','minorUnit'=>2,'backendId'=>get_option('meister_promotions_backend_id'),'subtotal'=>$subtotal,'discount'=>$subtotal-$merchandise,'shipping'=>$shipping,'total'=>$total,'tax'=>(int)round((float)$cart->get_total_tax()*100),'lines'=>$lines,'methods'=>$methods,'shippingId'=>$shippingId,'promotion'=>$promotion,'provisional'=>empty($input['email'])];
             return $callback($q,$cart);
-        } finally { self::$internal_code='';self::$internal_allocations=[];[WC()->session,WC()->customer,WC()->cart]=$old;wp_set_current_user($oldUser);wc_clear_notices(); }
+        } finally { remove_filter('woocommerce_coupon_get_discount_amount',[self::class,'discount_amount'],999);self::$internal_code='';self::$internal_allocations=[];if(WC()->session){wc_clear_notices();}[WC()->session,WC()->customer,WC()->cart]=$old;wp_set_current_user($oldUser); }
+    }
+    private static function variation_attributes(WC_Product $product,array $provided): array {
+        $out=[];
+        foreach($provided as $name=>$value){
+            $name=preg_replace('/^attribute_/','',$name);$matched=false;
+            foreach($product->get_attributes() as $attribute){
+                if(!$attribute->get_variation()){continue;}$raw=$attribute->get_name();$label=wc_attribute_label($raw,$product);
+                if(!in_array(sanitize_title($name),[sanitize_title($raw),sanitize_title($label)],true)){continue;}
+                if($attribute->is_taxonomy()){
+                    $term=get_term_by('slug',sanitize_title($value),$raw)?:get_term_by('name',$value,$raw);
+                    if(!$term || !in_array((int)$term->term_id,array_map('intval',$attribute->get_options()),true)){throw new InvalidArgumentException('Invalid product option.');}$value=$term->slug;
+                }else{
+                    $options=array_values(array_filter($attribute->get_options(),static fn($option)=>sanitize_title($option)===sanitize_title($value)));
+                    if(!$options){throw new InvalidArgumentException('Invalid product option.');}$value=$options[0];
+                }
+                $out['attribute_'.sanitize_title($raw)]=$value;$matched=true;break;
+            }
+            if(!$matched){throw new InvalidArgumentException('Unknown product option.');}
+        }
+        return $out;
     }
     private static function export_lines(WC_Cart $cart): array {
-        $lines=[];foreach ($cart->get_cart() as $key=>$l) { $lines[]=['key'=>$key,'productId'=>(int)$l['product_id'],'variationId'=>(int)$l['variation_id'],'quantity'=>(int)$l['quantity'],'name'=>wp_strip_all_tags($l['data']->get_name()),'subtotal'=>(int)round(((float)$l['line_subtotal']+(float)$l['line_subtotal_tax'])*100),'total'=>(int)round(((float)$l['line_total']+(float)$l['line_tax'])*100)]; }return $lines;
+        $lines=[];
+        foreach($cart->get_cart() as $key=>$l){
+            $parent=wc_get_product($l['product_id']);$attributes=[];
+            foreach($l['variation'] as $raw=>$value){if($value===''){continue;}$raw=preg_replace('/^attribute_/','',$raw);$term=taxonomy_exists($raw)?get_term_by('slug',$value,$raw):false;$attributes[wc_attribute_label($raw,$parent)]=$term?$term->name:$value;}
+            $display=$l['meister_display']??null;if(is_array($display) && is_array($display['attributes']??null)){$attributes=$display['attributes'];}
+            $name=is_array($display) && is_string($display['name']??null)?$display['name']:$parent->get_name();
+            $lines[]=['key'=>$key,'productId'=>(int)$l['product_id'],'variationId'=>(int)$l['variation_id'],'quantity'=>(int)$l['quantity'],'name'=>wp_strip_all_tags($name),'attributes'=>$attributes,'subtotal'=>(int)round(((float)$l['line_subtotal']+(float)$l['line_subtotal_tax'])*100),'total'=>(int)round(((float)$l['line_total']+(float)$l['line_tax'])*100)];
+        }
+        return $lines;
     }
 }
 final class Meister_Promotions_Coupon_Error extends RuntimeException {}

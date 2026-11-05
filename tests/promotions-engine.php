@@ -15,4 +15,9 @@ expect(Meister_Promotions_Engine::allocate(0,['a'=>0]),['a'=>0],'zero base');
 foreach ([['requirements'=>[]], ['requirements'=>[['productId'=>1,'quantity'=>0],['productId'=>2,'quantity'=>1]]], ['requirements'=>[['productId'=>1,'quantity'=>1],['productId'=>1,'quantity'=>1]]]] as $invalid) {
   try { Meister_Promotions_Engine::validate_rule($invalid); throw new RuntimeException('invalid rule accepted'); } catch (InvalidArgumentException $e) {}
 }
-echo "Promotion engine: 10 assertions passed\n";
+
+expect(Meister_Promotions_Engine::net_merchandise(10000,11000,[['total'=>550,'merchandise'=>0,'shipping'=>0]]),9500,'amount-only partial refund allocated proportionally');
+expect(Meister_Promotions_Engine::net_merchandise(10000,11000,[['total'=>11000,'merchandise'=>0,'shipping'=>0]]),0,'amount-only full refund clears net merchandise');
+expect(Meister_Promotions_Engine::net_merchandise(10000,11000,[['total'=>1000,'merchandise'=>0,'shipping'=>1000]]),10000,'shipping-only refund does not reduce merchandise');
+
+echo "Promotion engine assertions passed\n";

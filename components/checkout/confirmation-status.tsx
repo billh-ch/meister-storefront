@@ -22,7 +22,9 @@ interface GuestSignup {
 }
 
 interface ConfirmationStatusProps {
-  paymentIntentId: string
+  paymentIntentId?: string
+  attemptId?: string
+  guest?: boolean
   /** Present only for a guest checkout — drives the post-purchase
    *  "create an account" invitation and keeps the account links away from a
    *  page a guest can't load. */
@@ -45,6 +47,8 @@ function guestSignupHref({ first, last, email }: GuestSignup): string {
  */
 export default function ConfirmationStatus({
   paymentIntentId,
+  attemptId,
+  guest,
   guestSignup,
 }: ConfirmationStatusProps) {
   const t = useTranslation()
@@ -58,7 +62,7 @@ export default function ConfirmationStatus({
     let timeoutId: ReturnType<typeof setTimeout> | undefined
 
     const poll = () => {
-      fetch(`/api/orders/by-payment-intent?pi=${encodeURIComponent(paymentIntentId)}`)
+      fetch(attemptId ? `/api/orders/by-attempt?attempt=${encodeURIComponent(attemptId)}` : `/api/orders/by-payment-intent?pi=${encodeURIComponent(paymentIntentId ?? '')}`, { cache: 'no-store' })
         .then((res) => res.json())
         .then((data: { found: boolean; order?: OrderSummary }) => {
           if (cancelled) return
@@ -90,9 +94,9 @@ export default function ConfirmationStatus({
       cancelled = true
       clearTimeout(timeoutId)
     }
-  }, [paymentIntentId])
+  }, [paymentIntentId, attemptId])
 
-  const isGuest = Boolean(guestSignup)
+  const isGuest = guest ?? Boolean(guestSignup)
   const primaryHref = isGuest ? '/shop' : '/account'
   const primaryLabel = isGuest ? 'CONTINUE SHOPPING' : 'VIEW YOUR ORDERS'
 
@@ -130,10 +134,10 @@ export default function ConfirmationStatus({
     return (
       <>
         <h1 className="text-2xl text-white sm:text-3xl" style={{ fontFamily: DISPLAY, fontWeight: 800 }}>
-          {t("PAYMENT RECEIVED")}
+          {t(attemptId ? 'CHECKING YOUR ORDER' : 'PAYMENT RECEIVED')}
         </h1>
         <p className="mt-3 text-sm text-[#999999]" style={{ fontFamily: MONO }}>
-          {isGuest
+          {attemptId ? t('We could not confirm your order yet. Please check again shortly or contact us before trying another payment.') : isGuest
             ? t("We are still finalizing your order — we will email your confirmation shortly.")
             : t("We are still finalizing your order — check your account in a moment, or we will email your confirmation shortly.")}
         </p>

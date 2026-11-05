@@ -17,4 +17,22 @@ a_assert(Meister_Promotions_Attempts::event($event)['id'],$r['id'],'duplicate ev
 $c=new WC_Coupon($c->get_id());a_assert($c->get_usage_count(),1,'coupon used exactly once');
 Meister_Promotions_Attempts::event(array_merge($event,['state'=>'expired','paymentStatus'=>'unpaid']));a_assert(wc_get_order($r['id'])->is_paid(),true,'late expiry cannot cancel paid order');
 try {Meister_Promotions_Attempts::receipt($a['attemptId'],'stranger-'.wp_generate_uuid4());throw new RuntimeException('wrong owner accepted');}catch(InvalidArgumentException $e){}
-$p->delete(true);$c->delete(true);echo "Woo attempts integration: 8 assertions passed\n";
+$nextQuote=Meister_Promotions_Cart::quote(array_merge($in,['coupon'=>'']));
+$next=Meister_Promotions_Attempts::prepare(array_merge($request,['reference'=>$nextQuote['reference'],'attemptKey'=>wp_generate_uuid4()]));
+a_assert($next['orderId']!==$a['orderId'],true,'a paid attempt cannot trap a subsequent purchase');
+
+Meister_Promotions_Attempts::bind(['attemptId'=>$next['attemptId'],'owner'=>$owner,'sessionId'=>'cs_test_failure']);
+$failEvent=['attemptId'=>$next['attemptId'],'sessionId'=>'cs_test_failure','amount'=>1000,'currency'=>'eur','paymentStatus'=>'paid','paymentIntent'=>'pi_failure','state'=>'paid','mode'=>'test'];
+$injected=static function(){throw new RuntimeException('Injected payment completion failure');};add_action('woocommerce_pre_payment_complete',$injected);
+$threw=false;try{Meister_Promotions_Attempts::event($failEvent);}catch(Throwable $e){$threw=true;}remove_action('woocommerce_pre_payment_complete',$injected);
+a_assert($threw,true,'payment_complete false remains retryable');a_assert(Meister_Promotions_Store::get('attempt:'.$next['attemptId'])['state'],'open','completion failure cannot mark ledger paid');
+$review=Meister_Promotions_Attempts::event(array_merge($failEvent,['amount'=>999]));a_assert($review['state'],'review','mismatch persists operational review');a_assert(Meister_Promotions_Store::get('attempt:'.$next['attemptId'])['state'],'review','review survives transaction boundary');
+
+$terminalOwner='terminal-'.wp_generate_uuid4();$terminalInput=array_merge($in,['owner'=>$terminalOwner,'coupon'=>'']);$tq=Meister_Promotions_Cart::quote($terminalInput);$ta=Meister_Promotions_Attempts::prepare(array_merge($request,['owner'=>$terminalOwner,'reference'=>$tq['reference'],'attemptKey'=>wp_generate_uuid4()]));Meister_Promotions_Attempts::bind(['attemptId'=>$ta['attemptId'],'owner'=>$terminalOwner,'sessionId'=>'cs_test_terminal']);
+$tf=['attemptId'=>$ta['attemptId'],'sessionId'=>'cs_test_terminal','amount'=>1000,'currency'=>'eur','paymentStatus'=>'unpaid','paymentIntent'=>'pi_terminal','state'=>'failed','mode'=>'test','terminalConfirmed'=>true];Meister_Promotions_Attempts::event($tf);
+$late=Meister_Promotions_Attempts::event(array_merge($tf,['state'=>'processing']));a_assert($late['state'],'failed','late unpaid completion cannot resurrect failed attempt');
+$latePaid=Meister_Promotions_Attempts::event(array_merge($tf,['state'=>'paid','paymentStatus'=>'paid']));a_assert($latePaid['state'],'review','paid after capacity release requires review');a_assert(Meister_Promotions_Store::get('attempt:'.$ta['attemptId'])['state'],'review','late paid review durable');
+
+$zero=new WC_Product_Simple();$zero->set_name('Zero fixture');$zero->set_regular_price('0');$zero->set_virtual(true);$zero->set_status('publish');$zero->save();$zeroOwner='zero-'.wp_generate_uuid4();$zq=Meister_Promotions_Cart::quote(['owner'=>$zeroOwner,'email'=>'zero@fixture.invalid','address'=>['country'=>'GR'],'items'=>[['productId'=>$zero->get_id(),'quantity'=>1]]]);$za=Meister_Promotions_Attempts::prepare(['owner'=>$zeroOwner,'reference'=>$zq['reference'],'attemptKey'=>wp_generate_uuid4(),'address'=>['country'=>'GR'],'origin'=>'https://zero.fixture.invalid','mode'=>'test']);
+Meister_Promotions_Attempts::event(['attemptId'=>$za['attemptId'],'sessionId'=>'zero_'.$za['attemptId'],'amount'=>0,'currency'=>'eur','paymentStatus'=>'no_payment_required','paymentIntent'=>'','state'=>'paid','mode'=>'test']);$zo=wc_get_order($za['orderId']);a_assert($zo->get_payment_method_title(),'No payment required','zero order does not claim a Stripe charge');a_assert($zo->get_transaction_id(),'','zero order has no invented transaction');a_assert((bool)$zo->get_date_paid(),true,'zero order reaches paid fulfillment state');$zero->delete(true);
+$p->delete(true);$c->delete(true);echo "Woo attempt lifecycle integration assertions passed\n";

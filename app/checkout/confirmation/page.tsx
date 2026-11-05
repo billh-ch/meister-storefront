@@ -19,7 +19,7 @@ export async function generateMetadata(): Promise<Metadata> { return {
 } }
 
 interface ConfirmationPageProps {
-  searchParams: Promise<{ session_id?: string }>
+  searchParams: Promise<{ session_id?: string; attempt?: string }>
 }
 
 /**
@@ -34,13 +34,17 @@ interface ConfirmationPageProps {
 export default async function ConfirmationPage({ searchParams }: ConfirmationPageProps) {
   const t = await getTranslator()
 
-  const { session_id: sessionId } = await searchParams
+  const { session_id: sessionId, attempt } = await searchParams
 
   const isGuest = !(await getSession()).wcCustomerId
 
   let status: 'succeeded' | 'processing' | 'failed' | 'unknown' = 'unknown'
   let paymentIntentId: string | undefined
   let guestName: { first: string; last: string; email: string } | undefined
+
+  if (attempt && /^[a-f0-9]{64}$/.test(attempt)) {
+    return <main style={{ backgroundColor: 'var(--color-dark)' }}><Navbar /><div className="mx-auto max-w-xl px-4 py-24 text-center sm:px-6"><ConfirmationStatus attemptId={attempt} guest={isGuest} /></div><Footer /></main>
+  }
 
   if (sessionId) {
     try {

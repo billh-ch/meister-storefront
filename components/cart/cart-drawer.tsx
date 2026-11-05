@@ -11,12 +11,13 @@ import { cartLineKey } from '@/lib/cart/line-key'
 import { CART_OPEN_EVENT, CART_UPDATED_EVENT } from '@/lib/cart/client-events'
 import { formatPrice } from '@/lib/mock-data'
 import CartLineControls from './cart-line-controls'
+import PromotionSummary from './promotion-summary'
 import CartRecommendations from './cart-recommendations'
 
 const MONO = 'var(--font-space-mono), monospace'
 
 /** Native dialog provides modal focus trapping, Escape and focus restoration. */
-export default function CartDrawer() {
+export default function CartDrawer({ promotionsEnabled = false }: { promotionsEnabled?: boolean }) {
   const t = useTranslation()
   const locale = useLocale()
 
@@ -151,6 +152,7 @@ export default function CartDrawer() {
         </div>
         <footer className="flex flex-col gap-3 border-t border-white p-5">
           {cart && !error && <p className="flex justify-between text-sm"><span>{t("Subtotal")}</span><span>{formatPrice(cart.subtotal)}</span></p>}
+          {promotionsEnabled && cart && cart.lines.length > 0 && !loading && !error && <PromotionSummary key={JSON.stringify(cart.lines)} cartKey={JSON.stringify(cart.lines)} />}
           <p className="text-xs">{t("Delivery is calculated at checkout.")}</p>
           {checkoutAllowed && !loading && !mutationPending && !error && <Link href="/checkout" onClick={close} className="btn-gold px-4 py-3 text-center text-xs">{t("Checkout")}</Link>}
           <Link href="/cart" onClick={close} className="py-2 text-center text-xs underline">{t("View full cart")}</Link>

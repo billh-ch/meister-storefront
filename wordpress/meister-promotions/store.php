@@ -5,6 +5,7 @@ final class Meister_Promotions_Store {
     public static function install(): void {
         global $wpdb; require_once ABSPATH.'wp-admin/includes/upgrade.php';
         dbDelta('CREATE TABLE '.self::table()." (entry_key varchar(191) NOT NULL, payload longtext NOT NULL, expires bigint unsigned NOT NULL DEFAULT 0, updated bigint unsigned NOT NULL, PRIMARY KEY (entry_key), KEY expires (expires)) ".$wpdb->get_charset_collate().';');
+        if (!get_option('meister_promotions_identity_secret')) { add_option('meister_promotions_identity_secret',bin2hex(random_bytes(32)),'','no'); }
         if (!get_option('meister_promotions_backend_id')) { add_option('meister_promotions_backend_id',wp_generate_uuid4(),'','no'); }
     }
     public static function get(string $key): ?array {
@@ -21,9 +22,17 @@ final class Meister_Promotions_Store {
         if ((int)$wpdb->get_var($wpdb->prepare('SELECT GET_LOCK(%s,5)',$name))!==1) { throw new RuntimeException('Promotion processing is busy. Please retry.'); }
         try { return $fn(); } finally { $wpdb->get_var($wpdb->prepare('SELECT RELEASE_LOCK(%s)',$name)); }
     }
+    public static function identity_secret(): string {
+        $secret=(string)get_option('meister_promotions_identity_secret');if(strlen($secret)!==64 || !ctype_xdigit($secret)){throw new RuntimeException('Promotion identity storage is not initialized.');}return $secret;
+    }
+    public static function transaction(callable $fn) {
+        global $wpdb;if(false===$wpdb->query('START TRANSACTION')){throw new RuntimeException('Could not start promotion transaction.');}
+        try{$value=$fn();if(false===$wpdb->query('COMMIT')){throw new RuntimeException('Promotion commit failed.');}return $value;}
+        catch(Throwable $e){$wpdb->query('ROLLBACK');WC_Cache_Helper::invalidate_cache_group('coupons');throw $e;}
+    }
     public static function owner(string $owner): string {
         if (!preg_match('/^[a-zA-Z0-9_-]{16,100}$/',$owner)) { throw new InvalidArgumentException('Invalid checkout owner.'); }
-        return hash_hmac('sha256',$owner,wp_salt('auth'));
+        return hash_hmac('sha256',$owner,self::identity_secret());
     }
     public static function report(): array {
         global $wpdb;
@@ -33,8 +42,13 @@ final class Meister_Promotions_Store {
             $key=$r['campaign'].':'.$r['influencer'];
             if (!isset($groups[$key])) { $groups[$key]=['campaign'=>$r['campaign'],'influencer'=>$r['influencer'],'orders'=>0,'net'=>0,'discount'=>0]; }
             $net=0; foreach ($order->get_items() as $item) { $net+=(float)$item->get_total()+(float)$item->get_total_tax(); }
-            foreach ($order->get_refunds() as $refund) { foreach ($refund->get_items() as $item) { $net+=(float)$item->get_total()+(float)$item->get_total_tax(); } }
-            $groups[$key]['orders']++;$groups[$key]['net']+=max(0,(int)round($net*100));$groups[$key]['discount']+=$r['discount'];
+            $refunds=[];
+            foreach ($order->get_refunds() as $refund) {
+                $merch=0;$shipping=0;foreach($refund->get_items() as $item){$merch-=(float)$item->get_total()+(float)$item->get_total_tax();}foreach($refund->get_items('shipping') as $item){$shipping-=(float)$item->get_total()+(float)$item->get_total_tax();}
+                $refunds[]=['total'=>(int)round(abs((float)$refund->get_amount())*100),'merchandise'=>max(0,(int)round($merch*100)),'shipping'=>max(0,(int)round($shipping*100))];
+            }
+            $netMinor=Meister_Promotions_Engine::net_merchandise((int)round($net*100),(int)round((float)$order->get_total()*100),$refunds);
+            $groups[$key]['orders']++;$groups[$key]['net']+=$netMinor;$groups[$key]['discount']+=$r['discount'];
         }
         return array_values($groups);
     }

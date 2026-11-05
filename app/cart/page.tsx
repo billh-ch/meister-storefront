@@ -1,3 +1,4 @@
+import { promotionsEnabled } from '@/lib/promotions/client'
 import { getTranslator } from '@/lib/i18n/server'
 import { getLocale } from '@/lib/i18n/server'
 import { translate } from '@/lib/i18n'
@@ -70,6 +71,8 @@ export default async function CartPage() {
           </div>
         ) : (
           <CartShoppingLayout
+            promotionsEnabled={promotionsEnabled()}
+            cartIdentity={JSON.stringify(cart)}
             productIds={resolved.lines.map(line => line.productId)}
             subtotal={resolved.subtotal}
             hasPurchasableLines={hasPurchasableLines}

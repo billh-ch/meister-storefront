@@ -6,6 +6,8 @@ import Link from '@/components/i18n/localized-link'
 import Navbar from '@/components/navbar'
 import Footer from '@/components/footer'
 import SimpleBreadcrumbs from '@/components/collection/simple-breadcrumbs'
+import PromotionsForm from '@/components/checkout/promotions-form'
+import { promotionsEnabled } from '@/lib/promotions/client'
 import CheckoutForm from '@/components/checkout/checkout-form'
 import { getCart } from '@/lib/cart/cookie'
 import { resolveCartItems } from '@/lib/cart/resolve'
@@ -37,6 +39,7 @@ export default async function CheckoutPage() {
 
   const locale = await getLocale()
   const [cart, session] = await Promise.all([getCart(), getSession()])
+  const usePromotions = promotionsEnabled()
   const isGuest = !session.wcCustomerId
   const resolvedCart = await resolveCartItems(cart, locale).catch(() => null)
   const cartUnavailable = resolvedCart === null
@@ -58,6 +61,7 @@ export default async function CheckoutPage() {
   // server action's re-validation at submit time) can recover from it.
   const initialQuote: ShippingQuote = cartUnavailable || isEmpty || hasChanged
     ? { status: 'cart', error: 'Your saved cart needs attention before delivery can be calculated.', issues: checkoutCartIssues(resolved) }
+    : usePromotions ? { status: 'error', error: 'Updating your order total…' }
     : await quoteResolvedCart(
         resolved,
         {
@@ -119,7 +123,7 @@ export default async function CheckoutPage() {
                 {t("for faster checkout, or just continue below.")}
               </p>
             )}
-            <CheckoutForm
+            {usePromotions ? <PromotionsForm initialAddress={initialAddress} isGuest={isGuest} lines={resolved.lines} subtotal={resolved.subtotal} boxNowPartnerId={process.env.BOX_NOW_PARTNER_ID} /> : <CheckoutForm
               boxNowPartnerId={process.env.BOX_NOW_PARTNER_ID}
               key={checkoutCartSignature(resolved.lines)}
               initialAddress={initialAddress}
@@ -127,7 +131,7 @@ export default async function CheckoutPage() {
               lines={resolved.lines}
               subtotal={resolved.subtotal}
               initialQuote={initialQuote}
-            />
+            />}
           </div>
         )}
       </div>

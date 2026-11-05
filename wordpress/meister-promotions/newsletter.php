@@ -5,8 +5,9 @@ final class Meister_Promotions_Newsletter {
     public static function issue(string $email,bool $confirmed): array {
         $email=strtolower(trim($email));
         if (!$confirmed || !is_email($email)) { throw new InvalidArgumentException('A confirmed newsletter subscription is required.'); }
-        $identity=hash_hmac('sha256','newsletter-v1:'.$email,wp_salt('auth'));
+        $identity=hash_hmac('sha256','newsletter-v1:'.$email,Meister_Promotions_Store::identity_secret());
         return Meister_Promotions_Store::locked('welcome:'.$identity,static function() use($identity,$email) {
+            return Meister_Promotions_Store::transaction(static function() use($identity,$email) {
             $key='welcome:'.$identity; $existing=Meister_Promotions_Store::get($key); if ($existing) { return $existing; }
             $template=get_option('meister_promotions_welcome',[]);
             if (empty($template['enabled']) || !in_array($template['type']??'',['percent','fixed_cart'],true) || (float)($template['amount']??0)<=0 || ($template['type']==='percent' && (float)$template['amount']>100)) { throw new RuntimeException('Welcome issuance is not configured.'); }
@@ -19,6 +20,7 @@ final class Meister_Promotions_Newsletter {
             } elseif (!hash_equals((string)$coupon->get_meta('_meister_welcome_identity'),$identity)) { throw new RuntimeException('Welcome issuance conflict.'); }
             $result=['code'=>$coupon->get_code(),'couponId'=>$coupon->get_id(),'issuedAt'=>$coupon->get_date_created()->getTimestamp()];
             Meister_Promotions_Store::put($key,$result); return $result;
+            });
         });
     }
 }

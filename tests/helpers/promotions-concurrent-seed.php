@@ -1,0 +1,7 @@
+<?php
+if(get_option('blogname')!=='Promotions-Test'){throw new RuntimeException('Test site only.');}
+Meister_Promotions_Store::install();update_option('meister_promotions_rules',[]);update_option('woocommerce_calc_taxes','no');
+$kind=$args[0]??'both';$p=new WC_Product_Simple();$p->set_name('Concurrent stock fixture');$p->set_regular_price('10');$p->set_virtual(true);$p->set_manage_stock(!in_array($kind,['coupon','email'],true));$p->set_stock_quantity(1);$p->set_status('publish');$p->save();
+$c=new WC_Coupon();$c->set_code('concurrent-'.wp_generate_uuid4());$c->set_discount_type('percent');$c->set_amount(10);$c->set_usage_limit(in_array($kind,['stock','email'],true)?0:1);$c->set_usage_limit_per_user($kind==='email'?1:0);$c->save();
+$requests=[];foreach(['a','b'] as $key){$owner='concurrent-'.wp_generate_uuid4();$input=['owner'=>$owner,'email'=>($kind==='email'?'same':$key).'@fixture.invalid','address'=>['country'=>'GR'],'items'=>[['productId'=>$p->get_id(),'quantity'=>1]],'coupon'=>$c->get_code()];$q=Meister_Promotions_Cart::quote($input);$requests[$key]=['owner'=>$owner,'reference'=>$q['reference'],'attemptKey'=>wp_generate_uuid4(),'address'=>['country'=>'GR','first_name'=>'TEST','last_name'=>'DO NOT FULFIL'],'origin'=>'https://concurrent.fixture.invalid','mode'=>'test'];}
+file_put_contents('/tmp/promotions-concurrent.json',wp_json_encode(['requests'=>$requests,'productId'=>$p->get_id(),'couponId'=>$c->get_id()]));echo "Concurrent fixtures ready.\n";

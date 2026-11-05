@@ -4,17 +4,20 @@ import { useTranslation } from '@/components/i18n/locale-provider'
 import Link from '@/components/i18n/localized-link'
 import { useState, type ReactNode } from 'react'
 import { formatPrice } from '@/lib/mock-data'
+import PromotionSummary from './promotion-summary'
 import CartRecommendations from './cart-recommendations'
 
 interface CartShoppingLayoutProps {
   children: ReactNode
   productIds: string[]
   subtotal: number
+  cartIdentity?: string
+  promotionsEnabled?: boolean
   hasPurchasableLines: boolean
 }
 
 /** Share quick-add pending state with the full cart's checkout control. */
-export default function CartShoppingLayout({ children, productIds, subtotal, hasPurchasableLines }: CartShoppingLayoutProps) {
+export default function CartShoppingLayout({ children, productIds, subtotal, hasPurchasableLines, promotionsEnabled, cartIdentity }: CartShoppingLayoutProps) {
   const t = useTranslation()
 
   const [pending, setPending] = useState(false)
@@ -32,6 +35,7 @@ export default function CartShoppingLayout({ children, productIds, subtotal, has
             <span className="text-sm text-[#999999]">{t("SUBTOTAL")}</span>
             <span className="text-lg font-bold text-white">{formatPrice(subtotal)}</span>
           </div>
+          {promotionsEnabled && hasPurchasableLines && <PromotionSummary key={cartIdentity} cartKey={cartIdentity ?? `${productIds.join(',')}:${subtotal}`} />}
           <p className="text-xs text-[#999999]">{t("Shipping and any remaining total are calculated at checkout.")}</p>
           {checkoutAllowed ? (
             <Link href="/checkout" className="btn-gold flex h-12 w-full items-center justify-center text-xs tracking-[0.1em] uppercase">

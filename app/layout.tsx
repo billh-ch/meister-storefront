@@ -5,6 +5,8 @@ import { Cascadia_Mono, Space_Mono, Syne, Zalando_Sans_Expanded } from 'next/fon
 import './globals.css'
 import CompareProvider from '@/components/compare/provider'
 import WishlistProvider from '@/components/wishlist/provider'
+import CampaignCapture from '@/components/campaign-capture'
+import { promotionsEnabled } from '@/lib/promotions/client'
 import CartDrawer from '@/components/cart/cart-drawer'
 import CartAddedBanner from '@/components/cart/cart-added-banner'
 import { buildPageMetadata } from '@/lib/seo/metadata'
@@ -70,7 +72,7 @@ export default async function RootLayout({
       <body className="min-h-screen antialiased">
         <LocaleProvider locale={locale}>
           <WishlistProvider>
-            <CompareProvider>{children}<CartDrawer /><CartAddedBanner /></CompareProvider>
+            <CompareProvider>{promotionsEnabled() && <CampaignCapture />}{children}<CartDrawer promotionsEnabled={promotionsEnabled()} /><CartAddedBanner /></CompareProvider>
           </WishlistProvider>
         </LocaleProvider>
       </body>

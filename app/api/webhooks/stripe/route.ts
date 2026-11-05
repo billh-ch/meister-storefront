@@ -1,3 +1,4 @@
+import { handlePromotionEvent } from '@/lib/promotions/events'
 import { NextResponse } from 'next/server'
 import type Stripe from 'stripe'
 import { getStripe } from '@/lib/stripe'
@@ -64,6 +65,11 @@ export async function POST(request: Request) {
     event = await stripe.webhooks.constructEventAsync(rawBody, signature, webhookSecret)
   } catch {
     return NextResponse.json({ error: 'Invalid signature' }, { status: 400 })
+  }
+
+  if ((event.data.object as Stripe.Checkout.Session).metadata?.protocol === 'meister_promotions_v1') {
+    try { await handlePromotionEvent(event); return NextResponse.json({ received: true }) }
+    catch { return NextResponse.json({ error: 'Order confirmation is still processing.' }, { status: 503 }) }
   }
 
   if (event.type !== 'checkout.session.completed' && event.type !== 'checkout.session.async_payment_succeeded') {

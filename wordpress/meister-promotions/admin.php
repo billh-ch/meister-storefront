@@ -19,6 +19,13 @@ final class Meister_Promotions_Admin {
     private static function rules(): array { return get_option('meister_promotions_rules',[]); }
     private static function save(): string {
         check_admin_referer('meister_promotions_save');
+        if (isset($_POST['reconcile_now'])) {
+            $url=defined('MEISTER_PROMOTIONS_RECONCILE_URL')?MEISTER_PROMOTIONS_RECONCILE_URL:'';$secret=defined('MEISTER_PROMOTIONS_RECONCILE_SECRET')?MEISTER_PROMOTIONS_RECONCILE_SECRET:'';
+            if(!$url || parse_url($url,PHP_URL_SCHEME)!=='https' || strlen($secret)<32){throw new RuntimeException('The private reconciliation runner is not configured for this backend.');}
+            $response=wp_safe_remote_post($url,['timeout'=>55,'redirection'=>0,'headers'=>['Authorization'=>'Bearer '.$secret,'Content-Type'=>'application/json'],'body'=>'{}']);
+            if(is_wp_error($response) || wp_remote_retrieve_response_code($response)!==200){throw new RuntimeException('Reconciliation needs attention. Check the runner logs and the pending orders below.');}
+            return 'Reconciliation completed. Review the refreshed attempt states below.';
+        }
         if (isset($_POST['delete_rule'])) {
             $rules=self::rules(); unset($rules[sanitize_key($_POST['delete_rule'])]); update_option('meister_promotions_rules',$rules,false); return 'Bundle deleted.';
         }
@@ -72,6 +79,11 @@ final class Meister_Promotions_Admin {
         echo '<hr><h2>Newsletter welcome template</h2><p>One email-bound coupon per first confirmed newsletter subscription, including previous purchasers. Resubscribing does not issue another. No signup or email service is connected by this setting.</p><form method="post">'; wp_nonce_field('meister_promotions_save');
         echo '<p><label><input type="checkbox" name="welcome_enabled" '.checked(!empty($w['enabled']),true,false).'> Enable trusted issuance</label></p><select name="welcome_type"><option value="percent" '.selected($w['type']??'','percent',false).'>Percentage</option><option value="fixed_cart" '.selected($w['type']??'','fixed_cart',false).'>Euro discount</option></select> <input type="number" min="0.01" step="0.01" name="welcome_amount" required value="'.esc_attr($w['amount']??'').'"><p><label>Validity in days (0 = no expiry) <input type="number" min="0" max="3650" name="welcome_days" value="'.esc_attr($w['days']??0).'"></label></p>'; submit_button('Save welcome template','secondary','save_welcome'); echo '</form>';
         if (class_exists('Meister_Promotions_Attempts')) { echo '<hr><h2>Checkout health</h2><pre>'.esc_html(wp_json_encode(Meister_Promotions_Attempts::health(),JSON_PRETTY_PRINT)).'</pre>'; }
+        if(class_exists('Meister_Promotions_Attempts')) {
+            echo '<h2>Pending and review attempts</h2><p>Review a payment in Stripe before fulfillment. Reconciliation never invents a payment or issues an automatic refund.</p><form method="post">';wp_nonce_field('meister_promotions_save');submit_button('Reconcile now','secondary','reconcile_now',false);echo '</form><table class="widefat"><thead><tr><th>Order</th><th>State</th><th>Review reason</th><th>Attempt</th></tr></thead><tbody>';
+            foreach(Meister_Promotions_Attempts::pending() as $attempt){$order=wc_get_order($attempt['orderId']);echo '<tr><td><a href="'.esc_url($order?$order->get_edit_order_url():'#').'">#'.esc_html($attempt['number']).'</a></td><td>'.esc_html($attempt['state']).'</td><td>'.esc_html($attempt['reviewReason']??'').'</td><td>'.esc_html(substr($attempt['attemptId'],0,12)).'</td></tr>';}
+            echo '</tbody></table>';
+        }
         echo '<hr><h2>Campaign and influencer tracking</h2><p>Set identifiers on native coupons under Marketing → Coupons. Only the promotion actually redeemed is attributed.</p>';
         if (class_exists('Meister_Promotions_Store')) { self::report(); }
         echo '</div>';
