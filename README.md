@@ -1,36 +1,38 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Meister & Meister Dive — Storefront
 
-## Getting Started
+Headless diving-equipment storefront: Next.js 16 (App Router), React 19, Tailwind 4, TypeScript. Product, cart pricing, shipping and orders come from a self-hosted **WooCommerce** backend; payment is **Stripe** hosted Checkout. English and Greek (`/el`).
 
-First, run the development server:
+## Quick start (no backend needed)
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
+```sh
+pnpm install
+cp .env.example .env.local     # keep NEXT_PUBLIC_USE_MOCK_DATA=true
+# set SESSION_SECRET to 32+ random chars: openssl rand -base64 32
 pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open <http://localhost:3000>. Mock mode serves fixture products and refuses checkout.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+For a real catalog set `NEXT_PUBLIC_USE_MOCK_DATA=false` plus the WooCommerce, Stripe and Redis variables described in `.env.example`.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Testing
 
-## Learn More
+```sh
+pnpm test                 # unit tests
+pnpm lint
+pnpm exec tsc --noEmit
+pnpm test:browser         # Playwright; needs a mock-mode server, see tests/README.md
+```
 
-To learn more about Next.js, take a look at the following resources:
+## Hosting
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+- `main`: standard Next.js build, originally deployed on Vercel. Vercel Hobby is non-commercial, so commercial hosting needs a paid plan or another host.
+- `feat/cloudflare-preview`: parallel Cloudflare Workers build (vinext, beta) with a KV catalog cache and pre-generated images. This is the intended commercial host but is not merged yet. See `docs/cloudflare-preview.md` on that branch.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Where to read next
 
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- `CLAUDE.md` / `AGENTS.md` — architecture, conventions and gotchas for humans and coding agents
+- `components/CLAUDE.md` — component patterns
+- `lib/i18n/README.md` — adding translated strings
+- `docs/guides/` — agent readiness, BOX NOW, cache validation, Greek locale, SEO, product content
+- `tests/README.md` — test setup
