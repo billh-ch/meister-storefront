@@ -18,8 +18,9 @@ import { getShippingQuote } from './get-shipping-quote'
 import { checkoutCartSignature } from './model'
 import { lockerToStripeMetadata, type BoxNowLocker, type BoxNowLockerSelection } from './box-now'
 import { resolveCheckoutLocker } from './get-box-now-locker'
+import { validateCoupon } from '@/lib/coupons/validate'
 
-export type CreateCheckoutSessionResult = { url: string } | { error: string; refreshShipping?: boolean }
+export type CreateCheckoutSessionResult = { url: string } | { error: string; refreshShipping?: boolean; refreshCoupon?: boolean }
 
 /** Compatibility entry point for existing callers. New checkout clients use
  *  the stable shipping route; both read the shopper's server-side cart. */
@@ -50,9 +51,10 @@ export async function getShippingMethodsAction(input: ShippingAddressInput): Pro
 export async function createCheckoutSessionAction(
   input: AddressInput,
   deliveryMethodId: string,
-  expected?: { cartSignature: string; shippingCost: number },
+  expected?: { cartSignature: string; shippingCost: number; discount?: number },
   boxNowLocker?: BoxNowLockerSelection,
   localeInput?: unknown,
+  couponCode?: string,
 ): Promise<CreateCheckoutSessionResult> {
   const parsedLocale = requestLocaleSchema.safeParse(localeInput)
   if (!parsedLocale.success) return { error: 'Invalid language selection.' }
@@ -117,6 +119,20 @@ export async function createCheckoutSessionAction(
   const shipping = method.cost
   if (expected && Math.round(expected.shippingCost * 100) !== Math.round(shipping * 100)) {
     return { error: t('The delivery price has changed. Please review the updated total and continue.'), refreshShipping: true }
+  }
+
+  // Recomputed here from WooCommerce's live coupon and the live cart — the
+  // amount the shopper saw is only a consistency check, never the charge.
+  let discountCents = 0
+  let appliedCouponCode: string | undefined
+  if (couponCode) {
+    const coupon = await validateCoupon(couponCode, resolved, { email: parsed.data.email, customerId: wcCustomerId })
+    if (!coupon.ok) return { error: translate(locale, coupon.error, coupon.values), refreshCoupon: true }
+    discountCents = coupon.discountCents
+    appliedCouponCode = coupon.code
+  }
+  if (expected?.discount !== undefined && Math.round(expected.discount * 100) !== discountCents) {
+    return { error: t('The discount has changed. Please review the updated total and continue.'), refreshCoupon: true }
   }
 
   let locker: BoxNowLocker | undefined
@@ -184,10 +200,23 @@ export async function createCheckoutSessionAction(
     const stripe = getStripe()
     const baseUrl = getBaseUrl()
 
+    // A one-off Stripe discount for exactly the amount WooCommerce's coupon
+    // grants, so the hosted page and receipt show it. Single use.
+    const stripeCoupon = discountCents > 0
+      ? await stripe.coupons.create({
+          name: `${t('Discount code')} ${appliedCouponCode}`.slice(0, 40),
+          amount_off: discountCents,
+          currency: 'eur',
+          duration: 'once',
+          max_redemptions: 1,
+        })
+      : undefined
+
     const checkoutSession = await stripe.checkout.sessions.create({
       mode: 'payment',
       locale,
       line_items: lineItems,
+      ...(stripeCoupon ? { discounts: [{ coupon: stripeCoupon.id }] } : {}),
       // Guests give Stripe their email so it can send them a receipt and so
       // the confirmation page can recover it; logged-in shoppers already
       // have an account email on file.
@@ -203,6 +232,7 @@ export async function createCheckoutSessionAction(
         shippingMethodId: method.wcMethodId,
         shippingMethodTitle: method.title,
         shippingCost: String(shipping),
+        ...(appliedCouponCode ? { couponCode: appliedCouponCode, couponDiscount: String(discountCents / 100) } : {}),
         ship_email: parsed.data.email ?? '',
         ship_first_name: parsed.data.firstName,
         ship_last_name: parsed.data.lastName,

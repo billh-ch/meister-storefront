@@ -6,6 +6,7 @@ import type { CreateCheckoutSessionResult } from '@/lib/checkout/actions'
 import AddressFields from '@/components/address-fields'
 import DeliveryMethods from '@/components/checkout/delivery-methods'
 import OrderSummary from '@/components/checkout/order-summary'
+import CouponControl from '@/components/checkout/coupon-control'
 import type { AddressInput } from '@/lib/address/schema'
 import { addressFromFormData } from '@/lib/address/form-data'
 import type { ResolvedCartLine } from '@/lib/cart/resolve'
@@ -61,6 +62,9 @@ export default function CheckoutForm({
   const [country, setCountry] = useState(initialAddress?.country ?? 'GR')
   const [postcode, setPostcode] = useState(initialAddress?.postcode ?? '')
   const [boxNowLocker, setBoxNowLocker] = useState<BoxNowLocker | null>(null)
+  const [coupon, setCoupon] = useState<{ code: string; discount: number } | null>(null)
+  const [couponError, setCouponError] = useState('')
+  const [couponPending, setCouponPending] = useState(false)
   const methods = quote.status === 'ready' ? quote.methods : []
   const [selectedMethodId, setSelectedMethodId] = useState(() => pickDefaultMethodId(initialQuote.status === 'ready' ? initialQuote.methods : []))
   const preferredMethodId = useRef(selectedMethodId)
@@ -140,6 +144,27 @@ export default function CheckoutForm({
     }, ADDRESS_DEBOUNCE_MS)
   }
 
+  // The server re-validates and recomputes the discount at payment time; this
+  // only previews it. A refused code is cleared so the total never lies.
+  const applyCoupon = async (code: string) => {
+    setCouponPending(true)
+    setCouponError('')
+    try {
+      const email = formRef.current ? String(new FormData(formRef.current).get('email') ?? '').trim() : ''
+      const response = await fetch('/api/checkout/coupon', {
+        method: 'POST', cache: 'no-store', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ locale, code, ...(email ? { email } : {}) }), signal: AbortSignal.timeout(20_000),
+      })
+      const result: { ok: true; code: string; discount: number } | { ok: false; error: string } = await response.json()
+      if (result.ok) setCoupon({ code: result.code, discount: result.discount })
+      else { setCoupon(null); setCouponError(result.error) }
+    } catch {
+      setCouponError(t('Could not check this discount code. Please try again.'))
+    } finally {
+      setCouponPending(false)
+    }
+  }
+
   const selectedMethod = methods.find((method) => method.id === selectedMethodId)
   const deliveryReady = !shippingPending && quote.status === 'ready' && !!selectedMethod
   const needsLocker = requiresBoxNowLocker(country, selectedMethod?.wcMethodId)
@@ -156,13 +181,14 @@ export default function CheckoutForm({
       try {
         const response = await fetch('/api/checkout/session', {
           method: 'POST', cache: 'no-store', headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ locale, address: addressFromFormData(formData), deliveryMethodId, expected: { cartSignature, shippingCost: selectedMethod.cost }, ...(needsLocker && boxNowLocker ? { boxNowLocker: { id: boxNowLocker.id } } : {}) }),
+          body: JSON.stringify({ locale, address: addressFromFormData(formData), deliveryMethodId, expected: { cartSignature, shippingCost: selectedMethod.cost, discount: coupon?.discount ?? 0 }, ...(coupon ? { couponCode: coupon.code } : {}), ...(needsLocker && boxNowLocker ? { boxNowLocker: { id: boxNowLocker.id } } : {}) }),
           signal: AbortSignal.timeout(45_000),
         })
         const result: CreateCheckoutSessionResult = await response.json()
         if ('error' in result) {
           setError(result.error)
           if (result.refreshShipping) refreshShipping(true, addressFromFormData(formData))
+          if (result.refreshCoupon && coupon) void applyCoupon(coupon.code)
         } else if (result.url) {
           // Stripe Checkout requires navigation to its separate origin.
           setIsRedirecting(true)
@@ -225,7 +251,15 @@ export default function CheckoutForm({
         </fieldset>
 
         <div className="min-w-0 lg:col-start-2 lg:row-start-1 lg:row-span-2">
-          <OrderSummary lines={lines} subtotal={subtotal} shippingCost={deliveryReady ? selectedMethod?.cost : undefined} />
+          <CouponControl
+            applied={coupon}
+            pending={couponPending}
+            error={couponError}
+            disabled={isPending || isRedirecting}
+            onApply={code => void applyCoupon(code)}
+            onRemove={() => { setCoupon(null); setCouponError('') }}
+          />
+          <OrderSummary lines={lines} subtotal={subtotal} shippingCost={deliveryReady ? selectedMethod?.cost : undefined} discount={coupon?.discount} couponCode={coupon?.code} />
         </div>
         <div className="flex flex-col gap-3 lg:col-start-1 lg:row-start-2">
         {error && (

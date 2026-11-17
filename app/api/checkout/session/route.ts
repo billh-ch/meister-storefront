@@ -9,7 +9,8 @@ const checkoutSessionSchema = z.object({
   locale: requestLocaleSchema,
   address: addressSchema,
   deliveryMethodId: z.string().min(1).max(150),
-  expected: z.object({ cartSignature: z.string().min(1).max(16000), shippingCost: z.number().finite().nonnegative() }),
+  expected: z.object({ cartSignature: z.string().min(1).max(16000), shippingCost: z.number().finite().nonnegative(), discount: z.number().finite().nonnegative().optional() }),
+  couponCode: z.string().min(1).max(60).optional(),
   boxNowLocker: boxNowLockerSelectionSchema.optional(),
 })
 
@@ -25,8 +26,8 @@ export async function POST(request: Request) {
   const parsed = checkoutSessionSchema.safeParse(input)
   if (!parsed.success) return Response.json({ error: t('Please fill in every required field.') }, { status: 400, headers })
   try {
-    const { address, deliveryMethodId, expected, boxNowLocker, locale } = parsed.data
-    return Response.json(await createCheckoutSessionAction(address, deliveryMethodId, expected, boxNowLocker, locale), { headers })
+    const { address, deliveryMethodId, expected, boxNowLocker, locale, couponCode } = parsed.data
+    return Response.json(await createCheckoutSessionAction(address, deliveryMethodId, expected, boxNowLocker, locale, couponCode), { headers })
   } catch {
     return Response.json({ error: t('Could not prepare checkout. Please try again.') }, { status: 503, headers })
   }
