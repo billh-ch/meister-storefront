@@ -13,6 +13,9 @@ interface OrderSummaryProps {
   /** `undefined` when no delivery method is selected yet (or none exists
    *  for the country) — shown as "—" rather than a misleading €0. */
   shippingCost?: number
+  /** Euro discount from a validated coupon; the charged amount is recomputed server-side. */
+  discount?: number
+  couponCode?: string
 }
 
 /** The cart-lines + subtotal/shipping/total sidebar on `/checkout`. Moved out
@@ -21,10 +24,10 @@ interface OrderSummaryProps {
  *  method the shopper picks in that same form — a plain server-rendered
  *  total can't react to that; this can, since its parent owns the selection
  *  state and passes the resolved cost down as a prop each render. */
-export default function OrderSummary({ lines, subtotal, shippingCost }: OrderSummaryProps) {
+export default function OrderSummary({ lines, subtotal, shippingCost, discount = 0, couponCode }: OrderSummaryProps) {
   const t = useTranslation()
 
-  const total = subtotal + (shippingCost ?? 0)
+  const total = subtotal - discount + (shippingCost ?? 0)
 
   return (
     <div className="w-full lg:w-80 lg:flex-shrink-0" style={{ border: '1px solid #444444' }}>
@@ -54,6 +57,12 @@ export default function OrderSummary({ lines, subtotal, shippingCost }: OrderSum
           <span>{t("SUBTOTAL")}</span>
           <span>{formatPrice(subtotal)}</span>
         </div>
+        {discount > 0 && (
+          <div className="flex items-center justify-between gap-3 text-xs" style={{ fontFamily: MONO, color: '#999999' }}>
+            <span className="min-w-0 break-words">{t("DISCOUNT")}{couponCode ? ` (${couponCode})` : ''}</span>
+            <span className="whitespace-nowrap text-[#FFD700]">− {formatPrice(discount)}</span>
+          </div>
+        )}
         <div className="flex items-center justify-between text-xs" style={{ fontFamily: MONO, color: '#999999' }}>
           <span>{t("SHIPPING")}</span>
           <span>

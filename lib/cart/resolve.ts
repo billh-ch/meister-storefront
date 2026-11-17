@@ -27,6 +27,8 @@ export interface ResolvedCartLine {
    *  travel as order line meta. */
   variantAttributes: Record<string, string>
   stockStatus: StockStatus
+  /** Currently discounted by WooCommerce — lets coupons honour "exclude sale items". */
+  onSale: boolean
   purchasable: boolean
 }
 
@@ -83,6 +85,7 @@ export async function resolveCartItems(cart: CartItem[], locale: string = 'en'):
       attributes,
       variantAttributes: Object.fromEntries(Object.entries(variant?.attributes ?? {}).filter(([, value]) => value)),
       stockStatus,
+      onSale: variant?.onSale ?? product.onSale,
       checkoutIssue: issue,
       purchasable: !issue && stockStatus !== 'outofstock',
     })

@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server'
 import type Stripe from 'stripe'
 import { getStripe } from '@/lib/stripe'
 import { getRedis } from '@/lib/redis'
-import { createOrder, type WcAddress } from '@/lib/woocommerce/queries/create-order'
+import { addOrderNote, createOrder, type WcAddress } from '@/lib/woocommerce/queries/create-order'
 import { findOrderByPayment } from '@/lib/woocommerce/queries/find-order-by-payment'
 import { randomUUID } from 'node:crypto'
 import type { Redis } from '@upstash/redis'
@@ -119,8 +119,14 @@ export async function POST(request: Request) {
       throw new Error('Checkout Session cart contents are invalid')
     }
 
+    const couponDiscount = Number(metadata.couponDiscount)
+    const coupon = metadata.couponCode && Number.isFinite(couponDiscount) && couponDiscount > 0
+      ? { code: metadata.couponCode, discount: couponDiscount }
+      : undefined
+
     const input = {
       customerId: wcCustomerId || undefined,
+      coupon,
       lineItems: lines.map((line) => ({
         productId: Number(line.p),
         variationId: line.v ? Number(line.v) : undefined,
@@ -148,6 +154,19 @@ export async function POST(request: Request) {
     const existing = await findOrderByPayment(input, checkoutSession.created)
     stage = 'woo-create'
     const order = existing ?? await createOrder(input)
+
+    // WooCommerce re-prices the order itself, so for a discounted order check
+    // it agrees with what Stripe actually charged. A difference (rounding on
+    // VAT-inclusive prices, a changed coupon) never blocks the order; it is
+    // flagged on the order for the shop team instead. Best effort.
+    if (!existing && coupon && typeof checkoutSession.amount_total === 'number') {
+      // Whole cents: euro floats can turn a one-cent difference into 0.00999….
+      const paid = checkoutSession.amount_total / 100
+      if (Math.round(Number(order.total) * 100) !== checkoutSession.amount_total) {
+        console.warn('[stripe webhook]', { paymentIntentId, orderId: order.id, note: 'coupon-total-mismatch' })
+        await addOrderNote(order.id, `Total check: Stripe charged €${paid.toFixed(2)} but WooCommerce computed €${Number(order.total).toFixed(2)} with discount code ${coupon.code}. Please review before fulfilling.`).catch(() => undefined)
+      }
+    }
 
     // Lets the confirmation page resolve a guest's order — it has no session
     // to scope `getOrdersByCustomer` by. Short TTL: only needed for the

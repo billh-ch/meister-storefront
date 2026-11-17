@@ -51,6 +51,8 @@ export interface CreateOrderInput {
    *  existed. */
   shippingLine?: CreateOrderShippingLine
   boxNowLocker?: BoxNowLocker
+  /** Native WooCommerce coupon, already validated and charged by Stripe. */
+  coupon?: { code: string; discount: number }
 }
 
 export interface WcCreatedOrder {
@@ -72,7 +74,35 @@ export interface WcCreatedOrder {
  * succeed against fake data.
  */
 export async function createOrder(input: CreateOrderInput): Promise<WcCreatedOrder> {
-  return wcMutate<WcCreatedOrder>('/orders', 'POST', {
+  if (!input.coupon) return wcMutate<WcCreatedOrder>('/orders', 'POST', orderBody(input))
+  try {
+    // WooCommerce applies the coupon itself and records its usage.
+    return await wcMutate<WcCreatedOrder>('/orders', 'POST', { ...orderBody(input), coupon_lines: [{ code: input.coupon.code }] })
+  } catch (error) {
+    // The customer has already paid the discounted amount. If WooCommerce now
+    // refuses the coupon (for example its last use was just taken), the order
+    // must still be created at the paid price. Only a definite 4xx answer is
+    // retried — a timeout may have committed and is reconciled by the caller.
+    if (!(error instanceof Error) || !/request failed: 4\d\d\b/.test(error.message)) throw error
+    const { code, discount } = input.coupon
+    return wcMutate<WcCreatedOrder>('/orders', 'POST', {
+      ...orderBody(input),
+      fee_lines: [{ name: `Discount code ${code}`, total: (-discount).toFixed(2), tax_status: 'none' }],
+      meta_data: [
+        ...(orderBody(input).meta_data ?? []),
+        { key: 'meister_coupon_fallback', value: `${code}: WooCommerce rejected the coupon after payment; discount applied as a fee. VAT lines not reduced.` },
+      ],
+    })
+  }
+}
+
+/** Visible to the shop team only. */
+export async function addOrderNote(orderId: number, note: string): Promise<void> {
+  await wcMutate(`/orders/${orderId}/notes`, 'POST', { note, customer_note: false })
+}
+
+function orderBody(input: CreateOrderInput) {
+  return {
     customer_id: input.customerId ?? 0,
     line_items: input.lineItems.map((item) => ({
       product_id: item.productId,
@@ -101,5 +131,5 @@ export async function createOrder(input: CreateOrderInput): Promise<WcCreatedOrd
     set_paid: true,
     transaction_id: input.transactionId,
     status: 'processing',
-  })
+  } as { meta_data?: { key: string; value: unknown }[] } & Record<string, unknown>
 }

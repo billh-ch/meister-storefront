@@ -29,7 +29,7 @@ function paidRequest(pi, overrides = {}) {
 }
 async function withBackend(run) {
   const originalFetch = globalThis.fetch
-  const db = { redis: new Map(), orders: [], redisDown: false, failMapping: false, ambiguousWrite: false, pendingOrder: null, writes: 0, omitPaginationHeaders: false }
+  const db = { notes: [], rejectCoupon: false, orderTotal: '323.00', redis: new Map(), orders: [], redisDown: false, failMapping: false, ambiguousWrite: false, pendingOrder: null, writes: 0, omitPaginationHeaders: false }
   function command([name, key, value, ...flags]) {
     switch (String(name).toLowerCase()) {
       case 'get': return db.redis.get(key) ?? null
@@ -65,10 +65,15 @@ async function withBackend(run) {
     assert.equal(url.hostname, 'woo.fixture.example')
     assert.equal(new Headers(init.headers).get('X-Meister-API-Key'), 'fixture-proxy')
     assert.equal(init.cache, 'no-store')
+    if (init.method === 'POST' && url.pathname.endsWith('/notes')) {
+      db.notes.push(JSON.parse(init.body))
+      return Response.json({ id: 1 }, { status: 201 })
+    }
     if (init.method === 'POST') {
-      db.writes++
       const input = JSON.parse(init.body)
-      const order = { ...input, id: 440 + db.writes, number: String(440 + db.writes), total: '323.00' }
+      if (db.rejectCoupon && input.coupon_lines) return Response.json({ code: 'woocommerce_rest_invalid_coupon' }, { status: 400, statusText: 'Bad Request' })
+      db.writes++
+      const order = { ...input, id: 440 + db.writes, number: String(440 + db.writes), total: db.orderTotal }
       if (db.ambiguousWrite) { db.pendingOrder = order; throw new DOMException('Timed out', 'TimeoutError') }
       db.orders.push(order)
       return Response.json(order, { status: 201 })
@@ -172,4 +177,41 @@ test('paid signed-in sessions attach the WooCommerce order to the customer accou
   assert.equal(response.status, 200)
   assert.equal(db.orders[0].customer_id, 6)
   assert.deepEqual(db.orders[0].line_items[0].meta_data, [{key: 'Μέγεθος', value: 'M'}])
+}))
+
+function couponRequest(pi, amountTotal) {
+  const request = paidRequest(pi)
+  return request.json().then(event => {
+    Object.assign(event.data.object, { amount_total: amountTotal })
+    Object.assign(event.data.object.metadata, { couponCode: 'TESTCOUPON', couponDiscount: '10' })
+    const body = JSON.stringify(event)
+    return new Request(request.url, { method: 'POST', body, headers: { 'stripe-signature': stripe.webhooks.generateTestHeaderString({ payload: body, secret: 'whsec_fixture' }) } })
+  })
+}
+test('a discounted paid session sends the native coupon to WooCommerce and stays quiet when totals agree', async () => withBackend(async db => {
+  assert.equal((await POST(await couponRequest('pi_fixture_coupon', 32300))).status, 200)
+  assert.deepEqual(db.orders[0].coupon_lines, [{ code: 'TESTCOUPON' }])
+  assert.equal(db.orders[0].fee_lines, undefined)
+  assert.equal(db.notes.length, 0)
+}))
+test('a discounted order whose Woo total differs from the Stripe charge is flagged for review, not blocked', async () => withBackend(async db => {
+  db.orderTotal = '322.99'
+  assert.equal((await POST(await couponRequest('pi_fixture_coupon_mismatch', 32300))).status, 200)
+  assert.equal(db.orders.length, 1)
+  assert.equal(db.notes.length, 1)
+  assert.match(db.notes[0].note, /TESTCOUPON/)
+  assert.equal(db.notes[0].customer_note, false)
+}))
+test('if Woo refuses the coupon after payment the order is still created at the paid price', async () => withBackend(async db => {
+  db.rejectCoupon = true
+  assert.equal((await POST(await couponRequest('pi_fixture_coupon_rejected', 32300))).status, 200)
+  assert.equal(db.orders.length, 1)
+  assert.equal(db.orders[0].coupon_lines, undefined)
+  assert.deepEqual(db.orders[0].fee_lines, [{ name: 'Discount code TESTCOUPON', total: '-10.00', tax_status: 'none' }])
+  assert.match(db.orders[0].meta_data.find(entry => entry.key === 'meister_coupon_fallback').value, /TESTCOUPON/)
+}))
+test('an undiscounted paid session is unchanged by the coupon feature', async () => withBackend(async db => {
+  assert.equal((await POST(paidRequest('pi_fixture_no_coupon'))).status, 200)
+  assert.equal(db.orders[0].coupon_lines, undefined)
+  assert.equal(db.notes.length, 0)
 }))

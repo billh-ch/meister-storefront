@@ -35,11 +35,12 @@ The Cloudflare branch is a parallel build (`build:vinext`, `deploy:vinext`, `wra
 - **i18n** — `lib/i18n/` (dictionaries, paths). Greek product translations come from WooCommerce (`docs/frontend-product-translations.md`).
 - **Agent readiness** — `/.well-known/mcp` (MCP server, `lib/agents/mcp.ts`), `/llms.txt`, `/docs/*`, `Accept: text/markdown` negotiation. See `docs/guides/agent-readiness.md`.
 - **SEO** — `lib/seo/`; sitemap, robots, structured data. Non-production deployments must be `noindex` (driven by `VERCEL_ENV` / `NEXT_PUBLIC_SITE_URL`; see `lib/seo/site.ts`).
+- **Discount codes** — native WooCommerce coupons (percent / fixed cart only) validated live in `lib/coupons/`; the discount is recomputed server-side when the Stripe session is created and the paid webhook creates the Woo order with `coupon_lines`. Unsupported coupon settings are rejected, not ignored. See `docs/guides/coupons.md`.
 - **Features** — gear finder (`lib/gear-finder`, `docs/gear-finder.md`), compare, wishlist, BOX NOW (`docs/guides/box-now-checkout.md`).
 
 ## On `feat/cloudflare-preview` only
 
-- **Promotions** — WooCommerce plugin `wordpress/meister-promotions` + `lib/promotions/*` + `app/api/promotions/*`. Coupons, selected-product bundles, newsletter codes. Gated by `PROMOTIONS_ENABLED=false`; the plugin is **not installed** on the Pi yet. See `docs/guides/promotions-operations.md`.
+- **Promotions** (a larger custom engine; superseded for now by the native coupons above) — WooCommerce plugin `wordpress/meister-promotions` + `lib/promotions/*` + `app/api/promotions/*`. Coupons, selected-product bundles, newsletter codes. Gated by `PROMOTIONS_ENABLED=false`; the plugin is **not installed** on the Pi yet. See `docs/guides/promotions-operations.md`.
 - `CHECKOUT_PAYMENTS_ENABLED=false` blocks all checkout entry points (catalog-only preview).
 - `STRIPE_EXPECTED_MODE` refuses keys of the wrong mode. Live payments are not authorized on the preview.
 - Images are pre-generated at build (`scripts/prepare-images.mjs`) and served by a custom loader, to avoid image-transformation quotas.
