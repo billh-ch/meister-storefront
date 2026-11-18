@@ -63,7 +63,7 @@ export function layout(opts: {
  <tr><td style="background:${c.card};">
   <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:${c.card};">
    <tr><td style="padding:24px 28px 8px;"><table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr>
-     <td valign="middle" style="font-family:${display};font-size:12px;letter-spacing:3px;font-weight:bold;color:${c.gold};">MEISTER &amp; MEISTER DIVE</td>
+     <td valign="middle" style="font-family:${display};font-size:12px;letter-spacing:3px;font-weight:bold;color:${c.gold};">MEISTER DIVING</td>
      <td valign="middle" align="right" width="110" style="padding-left:12px;"><img src="${emailAssetBase()}/email/meister-logo.png" alt="Meister" width="110" style="display:block;width:110px;max-width:110px;height:auto;border:0;font-family:${display};font-size:12px;font-weight:bold;color:${c.gold};"></td></tr></table></td></tr>
    ${hero}
    <tr><td style="padding:20px 28px 0;"><h1 style="margin:0;font-family:${display};font-size:24px;line-height:1.25;font-weight:800;letter-spacing:0.5px;text-transform:uppercase;color:${c.text};">${escapeHtml(opts.heading)}</h1>
