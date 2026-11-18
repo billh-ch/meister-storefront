@@ -23,6 +23,7 @@ export interface EmailOrder {
   shipping_lines?: { method_id?: string; method_title?: string }[]
   coupon_lines?: { code?: string }[]
   fee_lines?: { name?: string; total?: string }[]
+  refunds?: { id?: number; total?: string }[]
   meta_data?: EmailOrderMeta[]
 }
 
@@ -66,4 +67,12 @@ export function heroImage(order: EmailOrder): { src: string; alt: string } | und
   if (!item) return undefined
   const src = resolveImageUrl(item.image!.src!)
   try { return new URL(src).protocol === 'https:' ? { src, alt: item.name || '' } : undefined } catch { return undefined }
+}
+
+/** Total refunded so far in cents. WooCommerce lists refund totals as negative strings. */
+export function refundedCents(order: EmailOrder): number {
+  return (order.refunds ?? []).reduce((sum, refund) => {
+    const n = Number.parseFloat(refund.total ?? '')
+    return sum + (Number.isFinite(n) ? Math.round(Math.abs(n) * 100) : 0)
+  }, 0)
 }

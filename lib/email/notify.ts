@@ -3,9 +3,10 @@ import { getRedis } from '@/lib/redis'
 import { addOrderNote } from '@/lib/woocommerce/queries/create-order'
 import { fetchWcCustomerById } from '@/lib/woocommerce/queries/get-customer-by-id'
 import { orderAlertRecipient } from './config'
-import { metaValue, orderNumber, type EmailOrder } from './order'
+import { metaValue, orderNumber, refundedCents, type EmailOrder } from './order'
 import { sendEmail } from './resend'
-import { buildOrderCompleted, buildOrderConfirmation } from './templates/customer'
+import { buildOrderCancelled, buildOrderCompleted, buildOrderConfirmation, buildOrderRefunded } from './templates/customer'
+import { buildWelcome, type WelcomeOffer } from './templates/account'
 import { buildOwnerAlert } from './templates/owner'
 
 export type Outcome = 'sent' | 'duplicate' | 'skipped' | 'failed'
@@ -97,4 +98,52 @@ export async function notifyOrderCompleted(order: EmailOrder, deps: NotifyDeps =
     order, deps, label: `The "completed" email for order ${orderNumber(order)}`, claimKey: `email:order-completed:${order.id}`, idempotencyKey: `order-completed-${order.id}`,
     to: () => recipientFor(order, undefined, deps), build: () => buildOrderCompleted(order, locale),
   })
+}
+
+/** Cancellation email, once per order, when WooCommerce reports it cancelled. */
+export async function notifyOrderCancelled(order: EmailOrder, deps: NotifyDeps = realDeps): Promise<Outcome> {
+  if (!process.env.RESEND_API_KEY) return 'skipped'
+  const locale = localeOf(metaValue(order, 'meister_locale'))
+  return sendOnce({
+    order, deps, label: `The "cancelled" email for order ${orderNumber(order)}`, claimKey: `email:order-cancelled:${order.id}`, idempotencyKey: `order-cancelled-${order.id}`,
+    to: () => recipientFor(order, undefined, deps), build: () => buildOrderCancelled(order, locale),
+  })
+}
+
+/** Refund email, once per Stripe refund. `order` must already include this refund. */
+export async function notifyOrderRefunded(
+  order: EmailOrder,
+  refund: { id: string; amountCents: number },
+  deps: NotifyDeps = realDeps,
+): Promise<Outcome> {
+  if (!process.env.RESEND_API_KEY) return 'skipped'
+  const locale = localeOf(metaValue(order, 'meister_locale'))
+  const total = Math.round((Number.parseFloat(order.total ?? '') || 0) * 100)
+  const full = total > 0 && Math.max(refundedCents(order), refund.amountCents) >= total
+  return sendOnce({
+    order, deps, label: `The refund email (${refund.id})`, claimKey: `email:refund:${refund.id}`, idempotencyKey: `refund-${refund.id}`,
+    to: () => recipientFor(order, undefined, deps), build: () => buildOrderRefunded(order, locale, { amountCents: refund.amountCents, full }),
+  })
+}
+
+/** Welcome email, once per customer. Not tied to an order, so failures are only logged. */
+export async function notifyWelcome(
+  input: { customerId: number; email: string; firstName?: string; locale?: unknown; offer?: WelcomeOffer | null },
+  deps: NotifyDeps = realDeps,
+): Promise<Outcome> {
+  if (!process.env.RESEND_API_KEY) return 'skipped'
+  if (!looksLikeEmail(input.email)) return 'skipped'
+  const claimKey = `email:welcome:${input.customerId}`
+  try {
+    if (!(await deps.claim(claimKey, NINETY_DAYS))) return 'duplicate'
+    const message = buildWelcome({ firstName: input.firstName, locale: localeOf(input.locale), offer: input.offer })
+    const result = await deps.send({ to: input.email.trim(), ...message, idempotencyKey: `welcome-${input.customerId}` })
+    if (result.ok) return 'sent'
+    await deps.release(claimKey)
+    console.error('[email]', { customerId: input.customerId, label: 'welcome', error: result.error })
+    return 'failed'
+  } catch (error) {
+    console.error('[email]', { customerId: input.customerId, label: 'welcome', error: error instanceof Error ? error.name : 'UnknownError' })
+    return 'failed'
+  }
 }

@@ -8,6 +8,10 @@ The storefront sends three emails through [Resend](https://resend.com), from the
 | "Your order is on its way" / "ready for pickup" (with tracking) | WooCommerce reports the order **completed** | Customer | Language stored on the order (`meister_locale` order meta); English for older orders |
 | New-order alert | Same moment as the confirmation | Shop owner (`ORDER_ALERT_EMAIL`, default `info@dive-meister.com`) | English |
 
+| "Your order has been cancelled" | WooCommerce reports the order **cancelled** (same webhook as completed) | Customer | Order's stored language |
+| "Your refund has been issued" | A refund is created in the **Stripe dashboard** (`refund.created` event), partial or full | Customer | Order's stored language |
+| Welcome (with the welcome coupon) | Right after a customer account is created | The new customer | Language of the page they signed up on |
+
 Customers can reply to any customer email; replies go to `info@dive-meister.com` (`EMAIL_REPLY_TO`).
 
 WooCommerce's own customer emails are not in use (the Pi sends none), so there are no duplicates. If you ever enable them, turn off the matching ones.
@@ -24,6 +28,16 @@ WooCommerce's own customer emails are not in use (the Pi sends none), so there a
    Redeploy after changing variables.
 
 Without `RESEND_API_KEY` nothing is sent and nothing breaks.
+
+## Refunds, cancellations and the welcome gift
+
+**Refunds are made in the Stripe dashboard only.** Stripe sends `refund.created` to `/api/webhooks/stripe`; the storefront then records the refund on the WooCommerce order (no money moves there: WooCommerce is only a record, and a full refund turns the order to *Refunded*) and emails the customer once per refund, partial or full. Refunding inside WooCommerce moves no money and sends nothing, so don't. One-time setup: in the Stripe dashboard open the webhook endpoint that points at `/api/webhooks/stripe` and add the event **`refund.created`** (same endpoint, same signing secret). The order is found through a payment→order lookup stored when the order was created; older orders are found by searching WooCommerce by the customer's email. If recording in WooCommerce fails, the customer is still emailed and a private note asks you to add the refund by hand.
+
+**Cancellations** are sent when you set an order to *Cancelled* in WooCommerce. The email promises a refund if the customer already paid and says a separate email follows; issue the refund in Stripe to send it.
+
+**Welcome gift.** The welcome email advertises a normal WooCommerce coupon, named by the Vercel variable `WELCOME_COUPON_CODE` (for example `WELCOME5`). Create it under WooCommerce → Marketing → Coupons: discount type *Percentage discount*, amount `5`, *Individual use only*, *Usage limit per user* `1`. The email shows the percentage straight from the coupon, and omits the gift if the coupon is missing, drafted, expired, used up, or not a percentage coupon, so it never promises something checkout would refuse. Sign-up does not verify email ownership, so the welcome email is limited to 5 per client per hour, and a determined person could still make several accounts for several 5% codes.
+
+Turn off WooCommerce's own *Refunded order*, *Cancelled order* and *New account* emails (WooCommerce → Settings → Emails) so customers never get duplicates.
 
 ## Entering tracking details
 
@@ -64,4 +78,4 @@ Writes sample HTML files (EN/EL) and sends nothing. Open them in a browser.
 
 ## Code map
 
-`lib/email/` — `resend.ts` (client), `templates/` (customer + owner), `notify.ts` (once-only sending), `tracking.ts`, `config.ts` · `lib/woocommerce/order-webhook.ts` and `app/api/webhooks/woocommerce/orders/route.ts` (completed webhook) · `app/api/webhooks/stripe/route.ts` (confirmation) · `lib/i18n/dictionaries/emails.ts` (Greek copy, needs the owner's review).
+`lib/email/` — `resend.ts` (client), `templates/` (customer, account, owner), `notify.ts` (once-only sending), `tracking.ts`, `config.ts`, `send-welcome.ts`, `welcome-offer.ts` · `lib/refunds/` (Stripe refund handling) · `lib/woocommerce/order-webhook.ts` and `app/api/webhooks/woocommerce/orders/route.ts` (completed webhook) · `app/api/webhooks/stripe/route.ts` (confirmation) · `lib/i18n/dictionaries/emails.ts` (Greek copy, needs the owner's review).

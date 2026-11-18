@@ -40,13 +40,15 @@ export function receiptDate(iso: string | undefined) {
 export function layout(opts: {
   locale: Locale; preheader: string; heading: string; subtitle?: string; date?: string
   hero?: { src: string; alt: string }; body: string; footer?: boolean
+  /** Replaces the default "not a tax invoice" line (for emails that are not about an order). */
+  footerNote?: string
 }) {
   const t = (source: string, values?: Record<string, string | number>) => translate(opts.locale, source, values)
   const seller = sellerIdentity()
   const display = opts.locale === 'el' ? c.displayEl : c.displayEn
   const footer = opts.footer === false ? '' : `
     <tr><td style="padding:20px 28px 28px;font-size:11px;line-height:1.7;color:${c.muted};">
-      <p style="margin:0 0 8px;">${escapeHtml(t('This email confirms activity on your order. It is not a tax invoice or receipt.'))}</p>
+      <p style="margin:0 0 8px;">${escapeHtml(opts.footerNote ?? t('This email confirms activity on your order. It is not a tax invoice or receipt.'))}</p>
       <p style="margin:0;">${escapeHtml(seller.legalName)}${seller.vatNumber ? ` · ${escapeHtml(t('VAT No. {vat}', { vat: seller.vatNumber }))}` : ''}<br>
       ${escapeHtml(seller.address)}<br>
       ${escapeHtml(seller.telephone)} · <a href="mailto:${escapeHtml(seller.email)}" style="color:${c.muted};">${escapeHtml(seller.email)}</a><br>

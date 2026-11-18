@@ -249,3 +249,14 @@ test('an email outage never blocks or fails the order, and is noted on it', asyn
     assert.ok(db.notes.some(entry => /could not be sent/.test(entry.note)))
   } finally { delete process.env.RESEND_API_KEY }
 }))
+
+test('the paid-order webhook remembers which WooCommerce order a payment belongs to, for later refunds', async () => withBackend(async db => {
+  const response = await POST(paidRequest('pi_fixture_lookup'))
+  assert.equal(response.status, 200)
+  assert.equal(db.redis.get('stripe:order-by-pi:pi_fixture_lookup'), String(db.orders[0].id))
+}))
+test('unrelated Stripe event types are acknowledged without touching WooCommerce', async () => withBackend(async db => {
+  const body = JSON.stringify({ id: 'evt_other', object: 'event', type: 'charge.succeeded', livemode: false, data: { object: { id: 'ch_1' } } })
+  const response = await POST(new Request('https://store.fixture.example/api/webhooks/stripe', { method: 'POST', body, headers: { 'stripe-signature': stripe.webhooks.generateTestHeaderString({ payload: body, secret: 'whsec_fixture' }) } }))
+  assert.equal(response.status, 200); assert.equal(db.orders.length, 0)
+}))

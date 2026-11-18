@@ -4,6 +4,7 @@ import { getTranslator, getLocale } from '@/lib/i18n/server'
 import { localePath } from '@/lib/i18n'
 
 import { redirect } from 'next/navigation'
+import { scheduleWelcomeEmail } from '@/lib/email/send-welcome'
 import {
   createWcCustomer,
   DuplicateEmailError,
@@ -36,6 +37,9 @@ export async function registerAction(input: {
     // them, so there's no reason to force a second round-trip through the
     // login form right after signup.
     await startSession(wcCustomerId)
+    // Welcome email (with the current welcome coupon, if any) after the
+    // response is sent. Best effort: it can never slow down or fail sign-up.
+    await scheduleWelcomeEmail({ customerId: wcCustomerId, email: parsed.data.email, firstName: parsed.data.firstName, locale: await getLocale() }).catch(() => undefined)
     return { ok: true }
   } catch (error) {
     if (error instanceof DuplicateEmailError) {
