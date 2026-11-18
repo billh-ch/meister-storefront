@@ -30,5 +30,6 @@ export const emailsGreek: Record<string, string> = {
   'your order {number} has been dispatched.': 'η παραγγελία σας {number} έχει αποσταλεί.',
   'Tracking': 'Παρακολούθηση',
   'Tracking number: {number}': 'Αριθμός αποστολής: {number}',
+  'Thank you for your purchase!': 'Ευχαριστούμε για την αγορά σας!',
   'Track your parcel': 'Παρακολούθηση δέματος',
 }

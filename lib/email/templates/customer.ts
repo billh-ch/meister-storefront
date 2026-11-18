@@ -1,7 +1,7 @@
 import { translate, type Locale } from '@/lib/i18n'
 import { emailTheme as c, sellerIdentity } from '../config'
-import { addressLines, button, escapeHtml, formatDate, formatMoney, layout, linesHtml, paragraph, section } from '../html'
-import { metaValue, orderNumber, orderTotals, type EmailOrder } from '../order'
+import { addressLines, button, escapeHtml, formatMoney, layout, linesHtml, paragraph, receiptDate, section } from '../html'
+import { heroImage, metaValue, orderNumber, orderTotals, type EmailOrder } from '../order'
 import { extractTracking } from '../tracking'
 
 export interface BuiltEmail { subject: string; html: string; text: string }
@@ -17,8 +17,8 @@ function itemsHtml(order: EmailOrder, locale: Locale) {
   const totals = orderTotals(order)
   const money = (value: number) => formatMoney(value, order.currency, locale)
   const rows = totals.lines.map(line => `<tr>
-    <td style="padding:8px 0;border-bottom:1px dashed ${c.line};vertical-align:top;color:${c.text};">${escapeHtml(`${line.quantity} × ${line.name}`)}${line.options.length ? `<br><span style="font-size:12px;color:${c.muted};">${escapeHtml(line.options.join(' · '))}</span>` : ''}</td>
-    <td align="right" style="padding:8px 0 8px 12px;border-bottom:1px dashed ${c.line};vertical-align:top;white-space:nowrap;color:${c.text};">${escapeHtml(money(line.gross))}</td></tr>`).join('')
+    <td style="padding:8px 0;border-bottom:1px solid ${c.line};vertical-align:top;color:${c.text};">${escapeHtml(`${line.quantity} × ${line.name}`)}${line.options.length ? `<br><span style="font-size:12px;color:${c.muted};">${escapeHtml(line.options.join(' · '))}</span>` : ''}</td>
+    <td align="right" style="padding:8px 0 8px 12px;border-bottom:1px solid ${c.line};vertical-align:top;white-space:nowrap;color:${c.text};">${escapeHtml(money(line.gross))}</td></tr>`).join('')
   return { totals, money, rows }
 }
 
@@ -27,7 +27,7 @@ function totalsRows(order: EmailOrder, locale: Locale) {
   const { totals, money } = itemsHtml(order, locale)
   const code = order.coupon_lines?.find(line => line.code)?.code
   const row = (label: string, value: string, strong = false) =>
-    `<tr><td style="padding:4px 0;${strong ? `font-weight:bold;font-size:16px;color:${c.text};border-top:1px dashed ${c.line};` : ''}">${escapeHtml(label)}</td><td align="right" style="padding:4px 0;${strong ? `font-weight:bold;font-size:16px;color:${c.gold};border-top:1px dashed ${c.line};` : ''}">${escapeHtml(value)}</td></tr>`
+    `<tr><td style="padding:4px 0;${strong ? `font-weight:bold;font-size:15px;color:${c.text};border-top:1px solid ${c.line};border-bottom:1px solid ${c.line};` : ''}">${escapeHtml(label)}</td><td align="right" style="padding:4px 0;${strong ? `font-weight:bold;font-size:22px;color:${c.text};border-top:1px solid ${c.line};border-bottom:1px solid ${c.line};` : ''}">${escapeHtml(value)}</td></tr>`
   const plain: string[] = [`${t('Items')}: ${money(totals.itemsCents)}`]
   let html = row(t('Items'), money(totals.itemsCents))
   if (totals.discountCents > 0) {
@@ -68,16 +68,16 @@ export function buildOrderConfirmation(order: EmailOrder, locale: Locale): Built
   const heading = t('Thank you for your order')
   const intro = `${greeting(order, locale)} ${t("we've received your payment and your order is being prepared.")}`
   const body = paragraph(intro) +
-    `<p style="margin:0 0 4px;color:${c.text};"><strong>${escapeHtml(t('Order {number}', { number }))}</strong> · ${escapeHtml(formatDate(order.date_created_gmt || order.date_created, locale))}</p>` +
     section(t('Your items'), `<table role="presentation" width="100%" cellpadding="0" cellspacing="0">${rows}</table>`) + totals.html +
     delivery.html + section(t('Payment'), paragraph(t('Paid online by card.')).replace('margin:0 0 12px', 'margin:0')) +
-    `<p style="margin:24px 0 0;color:${c.muted};">${escapeHtml(contactLine(locale))}</p>`
+    `<p style="margin:28px 0 0;text-align:center;font-size:16px;font-style:italic;color:${c.text};">${escapeHtml(t('Thank you for your purchase!'))}</p>` +
+    `<p style="margin:16px 0 0;color:${c.muted};font-size:12px;">${escapeHtml(contactLine(locale))}</p>`
   const text = [
     heading, '', intro, '', t('Order {number}', { number }), '',
     ...orderTotals(order).lines.map(l => `${l.quantity} x ${l.name}${l.options.length ? ` (${l.options.join(', ')})` : ''}`), '',
     ...totals.plain, '', `${delivery.title}:`, ...(delivery.method ? [delivery.method] : []), ...delivery.where, '', contactLine(locale),
   ].join('\n')
-  return { subject: t('Order {number} confirmed — Meister & Meister Dive', { number }), html: layout({ locale, preheader: t('Thank you for your order.'), heading, body }), text }
+  return { subject: t('Order {number} confirmed — Meister & Meister Dive', { number }), html: layout({ locale, preheader: t('Thank you for your order.'), heading, subtitle: t('Order {number}', { number }), date: receiptDate(order.date_created_gmt || order.date_created), hero: heroImage(order), body }), text }
 }
 
 export function buildOrderCompleted(order: EmailOrder, locale: Locale): BuiltEmail {
@@ -93,7 +93,8 @@ export function buildOrderCompleted(order: EmailOrder, locale: Locale): BuiltEma
   const itemLines = orderTotals(order).lines
   const body = paragraph(intro) + trackingHtml + delivery.html +
     section(t('Your items'), `<p style="margin:0;">${linesHtml(itemLines.map(l => `${l.quantity} × ${l.name}${l.options.length ? ` (${l.options.join(', ')})` : ''}`))}</p>`) +
-    `<p style="margin:24px 0 0;color:${c.muted};">${escapeHtml(contactLine(locale))}</p>`
+    `<p style="margin:28px 0 0;text-align:center;font-size:16px;font-style:italic;color:${c.text};">${escapeHtml(t('Thank you for your purchase!'))}</p>` +
+    `<p style="margin:16px 0 0;color:${c.muted};font-size:12px;">${escapeHtml(contactLine(locale))}</p>`
   const text = [
     heading, '', intro, '',
     ...(tracking.length ? [`${t('Tracking')}:`, ...tracking.flatMap(e => [`${e.carrier ? `${e.carrier}: ` : ''}${t('Tracking number: {number}', { number: e.number })}`, ...(e.url ? [e.url] : [])]), ''] : []),
@@ -101,5 +102,5 @@ export function buildOrderCompleted(order: EmailOrder, locale: Locale): BuiltEma
     ...itemLines.map(l => `${l.quantity} x ${l.name}`), '', contactLine(locale),
   ].join('\n')
   const subject = pickup ? t('Your order {number} is ready for pickup', { number }) : t('Your order {number} is on its way', { number })
-  return { subject, html: layout({ locale, preheader: heading, heading, body }), text }
+  return { subject, html: layout({ locale, preheader: heading, heading, subtitle: t('Order {number}', { number }), date: receiptDate(order.date_created_gmt || order.date_created), hero: heroImage(order), body }), text }
 }

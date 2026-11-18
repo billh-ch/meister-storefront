@@ -1,3 +1,5 @@
+import { resolveImageUrl } from '@/lib/woocommerce/mappers/resolve-image-url'
+
 /** The part of a WooCommerce REST v3 order payload the emails read. Every
  *  field is optional on purpose: email must degrade, never throw. */
 export interface EmailAddress {
@@ -17,7 +19,7 @@ export interface EmailOrder {
   payment_method_title?: string
   billing?: EmailAddress
   shipping?: EmailAddress
-  line_items?: { name?: string; quantity?: number; subtotal?: string; subtotal_tax?: string; total?: string; total_tax?: string; meta_data?: EmailOrderMeta[] }[]
+  line_items?: { image?: { src?: string }; name?: string; quantity?: number; subtotal?: string; subtotal_tax?: string; total?: string; total_tax?: string; meta_data?: EmailOrderMeta[] }[]
   shipping_lines?: { method_id?: string; method_title?: string }[]
   coupon_lines?: { code?: string }[]
   fee_lines?: { name?: string; total?: string }[]
@@ -57,3 +59,11 @@ export function orderTotals(order: EmailOrder) {
 }
 /** WooCommerce display values can contain markup; emails show plain text. */
 export const stripTags = (value: string) => value.replace(/<[^>]*>/g, '').trim()
+
+/** First product photo for the email header. Rewritten to the reachable WooCommerce origin; https only. */
+export function heroImage(order: EmailOrder): { src: string; alt: string } | undefined {
+  const item = order.line_items?.find(line => typeof line.image?.src === 'string' && line.image.src)
+  if (!item) return undefined
+  const src = resolveImageUrl(item.image!.src!)
+  try { return new URL(src).protocol === 'https:' ? { src, alt: item.name || '' } : undefined } catch { return undefined }
+}

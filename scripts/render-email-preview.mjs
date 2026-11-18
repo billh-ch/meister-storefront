@@ -1,7 +1,13 @@
 // Renders sample order emails to HTML files for design review (sends nothing).
 // Usage: node scripts/render-email-preview.mjs <output-dir>
 import { mkdirSync, writeFileSync } from 'node:fs'
-import { join } from 'node:path'
+import { join, resolve } from 'node:path'
+import { pathToFileURL } from 'node:url'
+
+// Local previews load the receipt edge (and a stand-in product photo) from ./public instead of the live site.
+const publicUrl = pathToFileURL(resolve('public')).href
+process.env.EMAIL_ASSET_BASE_URL = publicUrl
+const PHOTO = 'https://photos.example/fins.jpg'
 import '../tests/helpers/typescript-imports.mjs'
 const { buildOrderConfirmation, buildOrderCompleted } = await import('../lib/email/templates/customer.ts')
 const { buildOwnerAlert } = await import('../lib/email/templates/owner.ts')
@@ -15,7 +21,7 @@ const order = {
   billing: { first_name: 'Maria', last_name: 'Papadopoulou', email: 'maria@example.com', phone: '+30 210 0000000' },
   shipping: { first_name: 'Maria', last_name: 'Papadopoulou', address_1: 'Leoforos Athinon 1', city: 'Athens', postcode: '10558', country: 'GR' },
   line_items: [
-    { name: 'Carbon Blade Fins', quantity: 1, subtotal: '80.65', subtotal_tax: '19.35', meta_data: [{ key: 'Size', value: '42-43', display_key: 'Size', display_value: '42-43' }] },
+    { name: 'Carbon Blade Fins', image: { src: PHOTO }, quantity: 1, subtotal: '80.65', subtotal_tax: '19.35', meta_data: [{ key: 'Size', value: '42-43', display_key: 'Size', display_value: '42-43' }] },
     { name: 'Neoprene Hood 3mm', quantity: 2, subtotal: '0', subtotal_tax: '0' },
   ],
   shipping_lines: [{ method_id: 'flat_rate', method_title: 'Courier delivery' }],
@@ -29,5 +35,5 @@ const files = {
   'completed-el.html': buildOrderCompleted(order, 'el').html,
   'owner-alert.html': buildOwnerAlert(order).html,
 }
-for (const [name, html] of Object.entries(files)) writeFileSync(join(dir, name), html)
+for (const [name, html] of Object.entries(files)) writeFileSync(join(dir, name), html.replaceAll(PHOTO, `${publicUrl}/images/diving-fins-category-image.jpg`))
 console.log(`Wrote ${Object.keys(files).length} previews to ${dir}`)
