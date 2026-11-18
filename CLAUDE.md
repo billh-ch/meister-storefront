@@ -36,6 +36,7 @@ The Cloudflare branch is a parallel build (`build:vinext`, `deploy:vinext`, `wra
 - **Agent readiness** — `/.well-known/mcp` (MCP server, `lib/agents/mcp.ts`), `/llms.txt`, `/docs/*`, `Accept: text/markdown` negotiation. See `docs/guides/agent-readiness.md`.
 - **SEO** — `lib/seo/`; sitemap, robots, structured data. Non-production deployments must be `noindex` (driven by `VERCEL_ENV` / `NEXT_PUBLIC_SITE_URL`; see `lib/seo/site.ts`).
 - **Discount codes** — native WooCommerce coupons (percent / fixed cart only) validated live in `lib/coupons/`; the discount is recomputed server-side when the Stripe session is created and the paid webhook creates the Woo order with `coupon_lines`. Unsupported coupon settings are rejected, not ignored. See `docs/guides/coupons.md`.
+- **Order emails** — Resend from `orders.meister.gr`: confirmation + owner alert from the Stripe webhook after the Woo order exists, "completed" (with tracking) from a signed WooCommerce `order.updated` webhook (`app/api/webhooks/woocommerce/orders`). Never blocks or fails an order; once-only via Redis + Resend idempotency keys. See `docs/guides/order-emails.md`.
 - **Features** — gear finder (`lib/gear-finder`, `docs/gear-finder.md`), compare, wishlist, BOX NOW (`docs/guides/box-now-checkout.md`).
 
 ## On `feat/cloudflare-preview` only

@@ -29,7 +29,7 @@ function paidRequest(pi, overrides = {}) {
 }
 async function withBackend(run) {
   const originalFetch = globalThis.fetch
-  const db = { notes: [], rejectCoupon: false, orderTotal: '323.00', redis: new Map(), orders: [], redisDown: false, failMapping: false, ambiguousWrite: false, pendingOrder: null, writes: 0, omitPaginationHeaders: false }
+  const db = { emails: [], resendFails: false, notes: [], rejectCoupon: false, orderTotal: '323.00', redis: new Map(), orders: [], redisDown: false, failMapping: false, ambiguousWrite: false, pendingOrder: null, writes: 0, omitPaginationHeaders: false }
   function command([name, key, value, ...flags]) {
     switch (String(name).toLowerCase()) {
       case 'get': return db.redis.get(key) ?? null
@@ -61,6 +61,11 @@ async function withBackend(run) {
         return { result: encoded ? Buffer.from(result).toString('base64') : result }
       } catch { return { error: 'interrupted' } } }
       return Response.json(Array.isArray(body[0]) ? body.map(execute) : execute(body))
+    }
+    if (url.hostname === 'api.resend.com') {
+      if (db.resendFails) return new Response('{}', { status: 500 })
+      db.emails.push({ headers: init.headers, body: JSON.parse(init.body) })
+      return Response.json({ id: `em_fixture_${db.emails.length}` })
     }
     assert.equal(url.hostname, 'woo.fixture.example')
     assert.equal(new Headers(init.headers).get('X-Meister-API-Key'), 'fixture-proxy')
@@ -214,4 +219,33 @@ test('an undiscounted paid session is unchanged by the coupon feature', async ()
   assert.equal((await POST(paidRequest('pi_fixture_no_coupon'))).status, 200)
   assert.equal(db.orders[0].coupon_lines, undefined)
   assert.equal(db.notes.length, 0)
+}))
+
+function localizedRequest(pi, locale) {
+  const request = paidRequest(pi)
+  return request.json().then(event => {
+    event.data.object.metadata.locale = locale
+    const body = JSON.stringify(event)
+    return new Request(request.url, { method: 'POST', body, headers: { 'stripe-signature': stripe.webhooks.generateTestHeaderString({ payload: body, secret: 'whsec_fixture' }) } })
+  })
+}
+test('a paid order emails the customer and the owner, remembers the language, and a retry does not email again', async () => withBackend(async db => {
+  process.env.RESEND_API_KEY = 're_fixture'
+  try {
+    assert.equal((await POST(await localizedRequest('pi_fixture_email', 'el'))).status, 200)
+    assert.deepEqual(db.emails.map(email => email.body.to[0]).sort(), ['fixture@example.com', 'info@dive-meister.com'])
+    assert.match(db.emails.find(email => email.body.to[0] === 'fixture@example.com').body.subject, /Επιβεβαίωση παραγγελίας/)
+    assert.deepEqual(db.orders[0].meta_data, [{ key: 'meister_locale', value: 'el' }])
+    assert.equal((await POST(await localizedRequest('pi_fixture_email', 'el'))).status, 200)
+    assert.equal(db.emails.length, 2, 'A webhook retry must not send another email')
+  } finally { delete process.env.RESEND_API_KEY }
+}))
+test('an email outage never blocks or fails the order, and is noted on it', async () => withBackend(async db => {
+  process.env.RESEND_API_KEY = 're_fixture'
+  db.resendFails = true
+  try {
+    assert.equal((await POST(paidRequest('pi_fixture_email_down'))).status, 200)
+    assert.equal(db.orders.length, 1)
+    assert.ok(db.notes.some(entry => /could not be sent/.test(entry.note)))
+  } finally { delete process.env.RESEND_API_KEY }
 }))
