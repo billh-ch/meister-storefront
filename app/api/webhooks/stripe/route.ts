@@ -7,6 +7,7 @@ import { findOrderByPayment } from '@/lib/woocommerce/queries/find-order-by-paym
 import { randomUUID } from 'node:crypto'
 import type { Redis } from '@upstash/redis'
 import { lockerFromStripeMetadata, requiresBoxNowLocker } from '@/lib/checkout/box-now'
+import { notifyOrderCreated } from '@/lib/email/notify'
 
 // Stripe's SDK needs Node crypto for signature verification, not Edge.
 export const runtime = 'nodejs'
@@ -127,6 +128,7 @@ export async function POST(request: Request) {
     const input = {
       customerId: wcCustomerId || undefined,
       coupon,
+      locale: metadata.locale,
       lineItems: lines.map((line) => ({
         productId: Number(line.p),
         variationId: line.v ? Number(line.v) : undefined,
@@ -187,6 +189,13 @@ export async function POST(request: Request) {
     )
     if (!completed) throw new Error('Order processing lease changed')
     console.info('[stripe webhook]', { eventId: event.id, paymentIntentId, orderId: order.id, stage: 'complete', recovered: Boolean(existing) })
+    // After the order is safely recorded: customer confirmation and the
+    // owner's alert. Never throws and never changes the response, so an
+    // email problem can neither lose an order nor trigger a Stripe retry.
+    await notifyOrderCreated(order as Parameters<typeof notifyOrderCreated>[0], {
+      locale: metadata.locale,
+      fallbackEmail: checkoutSession.customer_details?.email ?? checkoutSession.customer_email ?? undefined,
+    })
     return NextResponse.json({ received: true, orderId: order.id })
   } catch (error) {
     // A timed-out POST may still commit at WooCommerce. Keep its lease until

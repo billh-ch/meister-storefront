@@ -51,6 +51,8 @@ export interface CreateOrderInput {
    *  existed. */
   shippingLine?: CreateOrderShippingLine
   boxNowLocker?: BoxNowLocker
+  /** Shopper's language, kept on the order so later emails use it. */
+  locale?: string
   /** Native WooCommerce coupon, already validated and charged by Stripe. */
   coupon?: { code: string; discount: number }
 }
@@ -101,6 +103,13 @@ export async function addOrderNote(orderId: number, note: string): Promise<void>
   await wcMutate(`/orders/${orderId}/notes`, 'POST', { note, customer_note: false })
 }
 
+function orderMeta(input: CreateOrderInput): { key: string; value: string }[] {
+  return [
+    ...(input.boxNowLocker && requiresBoxNowLocker(input.shipping.country, input.shippingLine?.methodId) ? lockerOrderMetaData(input.boxNowLocker) : []),
+    ...(input.locale === 'en' || input.locale === 'el' ? [{ key: 'meister_locale', value: input.locale }] : []),
+  ]
+}
+
 function orderBody(input: CreateOrderInput) {
   return {
     customer_id: input.customerId ?? 0,
@@ -123,9 +132,7 @@ function orderBody(input: CreateOrderInput) {
       : {}),
     billing: input.billing,
     shipping: input.shipping,
-    ...(input.boxNowLocker && requiresBoxNowLocker(input.shipping.country, input.shippingLine?.methodId)
-      ? { meta_data: lockerOrderMetaData(input.boxNowLocker) }
-      : {}),
+    ...(orderMeta(input).length > 0 ? { meta_data: orderMeta(input) } : {}),
     payment_method: 'stripe',
     payment_method_title: 'Credit Card (Stripe)',
     set_paid: true,
