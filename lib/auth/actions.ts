@@ -81,7 +81,19 @@ export async function loginAction(input: {
   }
 
   if (!response.ok) {
-    return { ok: false, error: t('Incorrect email or password.') }
+    // Only a genuine credential rejection from the JWT plugin is "incorrect".
+    // A proxy 403, 5xx or HTML error page is an infrastructure problem and
+    // must not be reported to the shopper as a wrong password.
+    let code = ''
+    try {
+      const body = (await response.json()) as { code?: unknown } | null
+      code = typeof body?.code === 'string' ? body.code : ''
+    } catch { /* non-JSON body: not from the JWT plugin */ }
+    console.error('[auth] login rejected', { status: response.status, code: code || 'none' })
+    if (/incorrect_password|invalid_username|invalid_email|empty_(username|password)/.test(code)) {
+      return { ok: false, error: t('Incorrect email or password.') }
+    }
+    return { ok: false, error: t('Could not reach the store right now. Please try again shortly.') }
   }
 
   try {
