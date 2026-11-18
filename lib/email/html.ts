@@ -62,12 +62,12 @@ export function layout(opts: {
 <table role="presentation" width="600" cellpadding="0" cellspacing="0" style="width:100%;max-width:600px;">
  <tr><td style="background:${c.card};">
   <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:${c.card};">
-   <tr><td style="padding:24px 28px 8px;"><table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr>
-     <td style="font-family:${display};font-size:11px;letter-spacing:2px;font-weight:bold;color:${c.gold};">MEISTER &amp; MEISTER DIVE</td>
-     <td align="right" style="font-size:10px;letter-spacing:1px;color:${c.muted};white-space:nowrap;padding-left:12px;">${escapeHtml(opts.date ?? '')}</td></tr></table></td></tr>
+   <tr><td style="padding:28px 28px 8px;"><img src="${emailAssetBase()}/email/meister-logo.png" alt="Meister — Specialize Diving Gear" width="544" style="display:block;width:100%;max-width:544px;height:auto;border:0;font-family:${display};font-size:20px;font-weight:bold;color:${c.gold};"></td></tr>
    ${hero}
    <tr><td style="padding:20px 28px 0;"><h1 style="margin:0;font-family:${display};font-size:24px;line-height:1.25;font-weight:800;letter-spacing:0.5px;text-transform:uppercase;color:${c.text};">${escapeHtml(opts.heading)}</h1>
-     ${opts.subtitle ? `<p style="margin:4px 0 0;padding:0 0 10px;font-size:12px;letter-spacing:1px;text-transform:uppercase;color:${c.soft};border-bottom:1px solid ${c.line};">${escapeHtml(opts.subtitle)}</p>` : ''}</td></tr>
+     ${opts.subtitle || opts.date ? `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin-top:4px;"><tr>
+       <td style="padding:0 0 10px;font-size:12px;letter-spacing:1px;text-transform:uppercase;color:${c.soft};border-bottom:1px solid ${c.line};">${escapeHtml(opts.subtitle ?? '')}</td>
+       <td align="right" style="padding:0 0 10px 12px;font-size:11px;letter-spacing:1px;color:${c.muted};white-space:nowrap;border-bottom:1px solid ${c.line};">${escapeHtml(opts.date ?? '')}</td></tr></table>` : ''}</td></tr>
    <tr><td style="padding:16px 28px 24px;font-size:13px;line-height:1.7;color:${c.soft};">${opts.body}</td></tr>
    ${footer}
   </table></td></tr>
