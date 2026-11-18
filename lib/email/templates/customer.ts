@@ -104,3 +104,44 @@ export function buildOrderCompleted(order: EmailOrder, locale: Locale): BuiltEma
   const subject = pickup ? t('Your order {number} is ready for pickup', { number }) : t('Your order {number} is on its way', { number })
   return { subject, html: layout({ locale, preheader: heading, heading, subtitle: t('Order {number}', { number }), date: receiptDate(order.date_created_gmt || order.date_created), hero: heroImage(order), body }), text }
 }
+
+export function buildOrderCancelled(order: EmailOrder, locale: Locale): BuiltEmail {
+  const t = (s: string, v?: Record<string, string | number>) => translate(locale, s, v)
+  const number = orderNumber(order)
+  const heading = t('Your order has been cancelled')
+  const intro = `${greeting(order, locale)} ${t('your order {number} has been cancelled.', { number })}`
+  const refundNote = t('If you have already paid, we will refund you. You will receive a separate email when the refund is issued.')
+  const itemLines = orderTotals(order).lines.map(l => `${l.quantity} × ${l.name}${l.options.length ? ` (${l.options.join(', ')})` : ''}`)
+  const body = paragraph(intro) + section(t('Your items'), `<p style="margin:0;">${linesHtml(itemLines)}</p>`) +
+    `<p style="margin:20px 0 0;color:${c.text};">${escapeHtml(refundNote)}</p>` +
+    `<p style="margin:16px 0 0;color:${c.muted};font-size:12px;">${escapeHtml(contactLine(locale))}</p>`
+  const text = [heading, '', intro, '', ...itemLines, '', refundNote, '', contactLine(locale)].join('\n')
+  return {
+    subject: t('Your order {number} has been cancelled', { number }),
+    html: layout({ locale, preheader: heading, heading, subtitle: t('Order {number}', { number }), date: receiptDate(order.date_created_gmt || order.date_created), hero: heroImage(order), body }),
+    text,
+  }
+}
+
+/** `amountCents` is this refund; `full` means the order is now refunded in full. */
+export function buildOrderRefunded(order: EmailOrder, locale: Locale, refund: { amountCents: number; full: boolean }): BuiltEmail {
+  const t = (s: string, v?: Record<string, string | number>) => translate(locale, s, v)
+  const number = orderNumber(order)
+  const amount = formatMoney(refund.amountCents, order.currency, locale)
+  const heading = t('Your refund has been issued')
+  const intro = `${greeting(order, locale)} ${t("we've issued a refund of {amount} for order {number}.", { amount, number })}`
+  const partial = refund.full ? '' : t('This is a partial refund. The rest of your order stays as it is.')
+  const timing = t('Refunds usually appear on your statement within 5–10 business days, depending on your bank.')
+  const body = paragraph(intro) + (partial ? paragraph(partial) : '') +
+    `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin-top:8px;"><tr>
+      <td style="padding:10px 0;border-top:1px solid ${c.line};border-bottom:1px solid ${c.line};color:${c.text};font-weight:bold;">${escapeHtml(t('Refund amount'))}</td>
+      <td align="right" style="padding:10px 0;border-top:1px solid ${c.line};border-bottom:1px solid ${c.line};font-size:22px;font-weight:bold;color:${c.text};">${escapeHtml(amount)}</td></tr></table>` +
+    `<p style="margin:20px 0 0;">${escapeHtml(timing)}</p>` +
+    `<p style="margin:16px 0 0;color:${c.muted};font-size:12px;">${escapeHtml(contactLine(locale))}</p>`
+  const text = [heading, '', intro, ...(partial ? ['', partial] : []), '', `${t('Refund amount')}: ${amount}`, '', timing, '', contactLine(locale)].join('\n')
+  return {
+    subject: t('Refund issued for order {number}', { number }),
+    html: layout({ locale, preheader: heading, heading, subtitle: t('Order {number}', { number }), date: receiptDate(order.date_created_gmt || order.date_created), body }),
+    text,
+  }
+}

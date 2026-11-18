@@ -3,6 +3,7 @@ import { registerHooks } from 'node:module'
 import test from 'node:test'
 import assert from 'node:assert/strict'
 const modules = {
+  '@/lib/email/send-welcome': 'export const scheduleWelcomeEmail = async () => {}',
   '@/lib/i18n/server': `import { translate } from '${new URL('../lib/i18n/index.ts', import.meta.url)}'; export const getLocale = async () => globalThis.localeFixture.locale; export const getTranslator = async () => source => translate(globalThis.localeFixture.locale, source)`,
   '@/lib/auth/session': 'export const getSession = async () => globalThis.localeFixture.session; export const login = async () => {}; export const logout = async () => { globalThis.localeFixture.loggedOut = true }',
   'next/navigation': 'export const redirect = url => { throw new Error(url) }',

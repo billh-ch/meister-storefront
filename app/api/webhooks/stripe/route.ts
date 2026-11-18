@@ -8,6 +8,8 @@ import { randomUUID } from 'node:crypto'
 import type { Redis } from '@upstash/redis'
 import { lockerFromStripeMetadata, requiresBoxNowLocker } from '@/lib/checkout/box-now'
 import { notifyOrderCreated } from '@/lib/email/notify'
+import { handleRefundCreated } from '@/lib/refunds/handle-refund'
+import { ORDER_BY_PAYMENT_TTL, orderByPaymentKey, realRefundDeps } from '@/lib/refunds/real-deps'
 
 // Stripe's SDK needs Node crypto for signature verification, not Edge.
 export const runtime = 'nodejs'
@@ -65,6 +67,18 @@ export async function POST(request: Request) {
     event = stripe.webhooks.constructEvent(rawBody, signature, webhookSecret)
   } catch {
     return NextResponse.json({ error: 'Invalid signature' }, { status: 400 })
+  }
+
+  // Refund made in the Stripe dashboard: mirror it in WooCommerce and email the customer.
+  if (event.type === 'refund.created') {
+    try {
+      const result = await handleRefundCreated(event.data.object as Stripe.Refund, realRefundDeps)
+      console.info('[stripe webhook]', { eventId: event.id, type: event.type, result: result.status })
+      return NextResponse.json({ received: true, result: result.status })
+    } catch (error) {
+      console.error('[stripe webhook]', { eventId: event.id, type: event.type, error: error instanceof Error ? error.name : 'UnknownError' })
+      return NextResponse.json({ error: 'refund handling failed' }, { status: 503 })
+    }
   }
 
   if (event.type !== 'checkout.session.completed' && event.type !== 'checkout.session.async_payment_succeeded') {
@@ -179,6 +193,10 @@ export async function POST(request: Request) {
       JSON.stringify({ id: order.id, number: order.number }),
       { ex: 60 * 60 * 24 },
     )
+
+    // Durable payment → order lookup, used later to find the order when a
+    // refund is issued in Stripe. Best effort: refunds can still fall back to a search.
+    await redis.set(orderByPaymentKey(paymentIntentId), String(order.id), { ex: ORDER_BY_PAYMENT_TTL }).catch(() => undefined)
 
     // Marked 'done' only after real success — a failed attempt below
     // releases the lock instead, so Stripe's own retry can attempt again.

@@ -6,13 +6,14 @@ const reply = (status: number, message: string) => Response.json({ message }, { 
 
 /**
  * Receives WooCommerce's signed "order updated" delivery and emails the
- * customer when the order has just been completed. Always acknowledges a
+ * customer when the order is completed or cancelled. Always acknowledges a
  * valid delivery with 200: WooCommerce disables a webhook after repeated
  * failures, and an email problem is recorded on the order instead.
  */
 export async function handleOrderWebhook(request: Request, deps: {
   secret: string
   onCompleted: (order: EmailOrder) => Promise<unknown>
+  onCancelled?: (order: EmailOrder) => Promise<unknown>
 }): Promise<Response> {
   if (!deps.secret) return reply(503, 'Webhook is not configured.')
   const advertised = request.headers.get('content-length')
@@ -42,7 +43,8 @@ export async function handleOrderWebhook(request: Request, deps: {
   let order: EmailOrder
   try { order = JSON.parse(raw.toString('utf8')) } catch { return reply(400, 'Invalid JSON.') }
   if (!order || Array.isArray(order) || !Number.isSafeInteger(order.id) || order.id <= 0) return reply(400, 'Invalid order.')
-  if (order.status !== 'completed') return reply(200, 'No email for this status.')
-  try { await deps.onCompleted(order) } catch { /* recorded by the notifier; never fail the delivery */ }
-  return reply(200, 'Completed-order email handled.')
+  const handler = order.status === 'completed' ? deps.onCompleted : order.status === 'cancelled' ? deps.onCancelled : undefined
+  if (!handler) return reply(200, 'No email for this status.')
+  try { await handler(order) } catch { /* recorded by the notifier; never fail the delivery */ }
+  return reply(200, `${order.status === 'completed' ? 'Completed' : 'Cancelled'}-order email handled.`)
 }

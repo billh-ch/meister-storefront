@@ -11,6 +11,8 @@ const PHOTO = 'https://photos.example/fins.jpg'
 import '../tests/helpers/typescript-imports.mjs'
 const { buildOrderConfirmation, buildOrderCompleted } = await import('../lib/email/templates/customer.ts')
 const { buildOwnerAlert } = await import('../lib/email/templates/owner.ts')
+const { buildOrderCancelled, buildOrderRefunded } = await import('../lib/email/templates/customer.ts')
+const { buildWelcome } = await import('../lib/email/templates/account.ts')
 
 const dir = process.argv[2]
 if (!dir) { console.error('Usage: node scripts/render-email-preview.mjs <output-dir>'); process.exit(1) }
@@ -34,6 +36,11 @@ const files = {
   'completed-en.html': buildOrderCompleted(order, 'en').html,
   'completed-el.html': buildOrderCompleted(order, 'el').html,
   'owner-alert.html': buildOwnerAlert(order).html,
+  'cancelled-en.html': buildOrderCancelled(order, 'en').html,
+  'refunded-partial-en.html': buildOrderRefunded(order, 'en', { amountCents: 2500, full: false }).html,
+  'refunded-full-el.html': buildOrderRefunded(order, 'el', { amountCents: 9300, full: true }).html,
+  'welcome-en.html': buildWelcome({ firstName: 'Maria', locale: 'en', offer: { code: 'WELCOME5', percent: 5 } }).html,
+  'welcome-el.html': buildWelcome({ firstName: 'Μαρία', locale: 'el', offer: { code: 'WELCOME5', percent: 5 } }).html,
 }
 for (const [name, html] of Object.entries(files)) writeFileSync(join(dir, name), html.replaceAll(PHOTO, `${publicUrl}/images/diving-fins-category-image.jpg`))
 console.log(`Wrote ${Object.keys(files).length} previews to ${dir}`)

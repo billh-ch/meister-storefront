@@ -3,7 +3,7 @@ import type { ResolvedCart } from '@/lib/cart/resolve'
 import { evaluateCoupon, normalizeCouponCode, type CouponResult, type WcCoupon } from './evaluate'
 
 /** Live lookup: coupon state (expiry, usage) must never come from a cache. */
-async function fetchCoupon(code: string): Promise<WcCoupon | null> {
+export async function fetchCoupon(code: string): Promise<WcCoupon | null> {
   const coupons = await wcFetch<WcCoupon[]>('/coupons', { code, per_page: '10' })
   return coupons.find(coupon => coupon.code.toLowerCase() === code.toLowerCase()) ?? null
 }
