@@ -17,8 +17,8 @@ function itemsHtml(order: EmailOrder, locale: Locale) {
   const totals = orderTotals(order)
   const money = (value: number) => formatMoney(value, order.currency, locale)
   const rows = totals.lines.map(line => `<tr>
-    <td style="padding:8px 0;border-bottom:1px solid ${c.line};vertical-align:top;">${escapeHtml(`${line.quantity} × ${line.name}`)}${line.options.length ? `<br><span style="font-size:12px;color:${c.muted};">${escapeHtml(line.options.join(' · '))}</span>` : ''}</td>
-    <td align="right" style="padding:8px 0 8px 12px;border-bottom:1px solid ${c.line};vertical-align:top;white-space:nowrap;">${escapeHtml(money(line.gross))}</td></tr>`).join('')
+    <td style="padding:8px 0;border-bottom:1px dashed ${c.line};vertical-align:top;color:${c.text};">${escapeHtml(`${line.quantity} × ${line.name}`)}${line.options.length ? `<br><span style="font-size:12px;color:${c.muted};">${escapeHtml(line.options.join(' · '))}</span>` : ''}</td>
+    <td align="right" style="padding:8px 0 8px 12px;border-bottom:1px dashed ${c.line};vertical-align:top;white-space:nowrap;color:${c.text};">${escapeHtml(money(line.gross))}</td></tr>`).join('')
   return { totals, money, rows }
 }
 
@@ -27,7 +27,7 @@ function totalsRows(order: EmailOrder, locale: Locale) {
   const { totals, money } = itemsHtml(order, locale)
   const code = order.coupon_lines?.find(line => line.code)?.code
   const row = (label: string, value: string, strong = false) =>
-    `<tr><td style="padding:4px 0;${strong ? 'font-weight:bold;font-size:16px;' : ''}">${escapeHtml(label)}</td><td align="right" style="padding:4px 0;${strong ? 'font-weight:bold;font-size:16px;' : ''}">${escapeHtml(value)}</td></tr>`
+    `<tr><td style="padding:4px 0;${strong ? `font-weight:bold;font-size:16px;color:${c.text};border-top:1px dashed ${c.line};` : ''}">${escapeHtml(label)}</td><td align="right" style="padding:4px 0;${strong ? `font-weight:bold;font-size:16px;color:${c.gold};border-top:1px dashed ${c.line};` : ''}">${escapeHtml(value)}</td></tr>`
   const plain: string[] = [`${t('Items')}: ${money(totals.itemsCents)}`]
   let html = row(t('Items'), money(totals.itemsCents))
   if (totals.discountCents > 0) {
@@ -47,7 +47,7 @@ function deliveryHtml(order: EmailOrder, locale: Locale) {
   const locker = lockerLines(order)
   const where = isPickup(order) ? [seller.address] : locker.length ? locker : addressLines(order.shipping)
   const title = isPickup(order) ? t('Pickup from our store') : locker.length ? t('Pickup point') : t('Delivery address')
-  return { title, where, method, html: section(title, `<p style="margin:0;">${method ? `<strong>${escapeHtml(method)}</strong><br>` : ''}${linesHtml(where)}</p>`) }
+  return { title, where, method, html: section(title, `<p style="margin:0;">${method ? `<strong style="color:${c.text};">${escapeHtml(method)}</strong><br>` : ''}${linesHtml(where)}</p>`) }
 }
 
 const greeting = (order: EmailOrder, locale: Locale) => {
@@ -68,7 +68,7 @@ export function buildOrderConfirmation(order: EmailOrder, locale: Locale): Built
   const heading = t('Thank you for your order')
   const intro = `${greeting(order, locale)} ${t("we've received your payment and your order is being prepared.")}`
   const body = paragraph(intro) +
-    `<p style="margin:0 0 4px;"><strong>${escapeHtml(t('Order {number}', { number }))}</strong> · ${escapeHtml(formatDate(order.date_created_gmt || order.date_created, locale))}</p>` +
+    `<p style="margin:0 0 4px;color:${c.text};"><strong>${escapeHtml(t('Order {number}', { number }))}</strong> · ${escapeHtml(formatDate(order.date_created_gmt || order.date_created, locale))}</p>` +
     section(t('Your items'), `<table role="presentation" width="100%" cellpadding="0" cellspacing="0">${rows}</table>`) + totals.html +
     delivery.html + section(t('Payment'), paragraph(t('Paid online by card.')).replace('margin:0 0 12px', 'margin:0')) +
     `<p style="margin:24px 0 0;color:${c.muted};">${escapeHtml(contactLine(locale))}</p>`
@@ -89,7 +89,7 @@ export function buildOrderCompleted(order: EmailOrder, locale: Locale): BuiltEma
   const heading = pickup ? t('Your order is ready for pickup') : t('Your order is on its way')
   const intro = `${greeting(order, locale)} ${pickup ? t('your order {number} is ready to collect from our store.', { number }) : t('your order {number} has been dispatched.', { number })}`
   const trackingHtml = tracking.length ? section(t('Tracking'), tracking.map(entry =>
-    `<p style="margin:0 0 4px;">${entry.carrier ? `<strong>${escapeHtml(entry.carrier)}</strong> · ` : ''}${escapeHtml(t('Tracking number: {number}', { number: entry.number }))}</p>${entry.url ? button(entry.url, t('Track your parcel')) : ''}`).join('')) : ''
+    `<p style="margin:0 0 4px;">${entry.carrier ? `<strong style="color:${c.text};">${escapeHtml(entry.carrier)}</strong> · ` : ''}${escapeHtml(t('Tracking number: {number}', { number: entry.number }))}</p>${entry.url ? button(entry.url, t('Track your parcel')) : ''}`).join('')) : ''
   const itemLines = orderTotals(order).lines
   const body = paragraph(intro) + trackingHtml + delivery.html +
     section(t('Your items'), `<p style="margin:0;">${linesHtml(itemLines.map(l => `${l.quantity} × ${l.name}${l.options.length ? ` (${l.options.join(', ')})` : ''}`))}</p>`) +

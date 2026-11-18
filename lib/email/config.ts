@@ -18,9 +18,12 @@ export function sellerIdentity() {
   }
 }
 
-/** Email clients ignore CSS variables, so the brand palette lives here once. */
+/** Email clients ignore CSS variables, so the storefront palette (app/globals.css) lives here once. */
 export const emailTheme = {
-  page: '#F2F2EF', card: '#FFFFFF', header: '#1B1B18', gold: '#FFD700',
-  text: '#222222', muted: '#6B6B66', line: '#E3E3DE',
-  font: "Helvetica, Arial, 'Segoe UI', sans-serif",
+  page: '#111111', card: '#1B1B18', header: '#000000', gold: '#FFD700',
+  text: '#FFFFFF', soft: '#CCCCCC', muted: '#999999', line: '#444444', onGold: '#1B1B18',
+  /** Space Mono is the storefront body font; Courier is the safe monospace fallback. */
+  font: "'Space Mono', 'Cascadia Mono', 'Courier New', Courier, monospace",
+  displayEn: "'Zalando Sans Expanded', 'Arial Black', Arial, sans-serif",
+  displayEl: "'Syne', 'Arial Black', Arial, sans-serif",
 } as const

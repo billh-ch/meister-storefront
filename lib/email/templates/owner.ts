@@ -15,7 +15,7 @@ export function buildOwnerAlert(order: EmailOrder): BuiltEmail {
   const body = paragraph(`A new paid order has been placed: ${number}, total ${money(totals.totalCents)}.`) +
     section('Customer', `<p style="margin:0;">${linesHtml(customer.length ? customer : ['(no contact details on the order)'])}</p>`) +
     section('Items', `<p style="margin:0;">${linesHtml(items)}</p>`) +
-    section('Delivery', `<p style="margin:0;">${method ? `<strong>${escapeHtml(method)}</strong><br>` : ''}${linesHtml(addressLines(order.shipping))}</p>`) +
+    section('Delivery', `<p style="margin:0;">${method ? `<strong style="color:#FFFFFF;">${escapeHtml(method)}</strong><br>` : ''}${linesHtml(addressLines(order.shipping))}</p>`) +
     (coupon ? section('Discount code', paragraph(`${coupon} (−${money(totals.discountCents)})`)) : '') +
     `<p style="margin:24px 0 0;color:${c.muted};">Open the order in WooCommerce to fulfil it.</p>`
   const text = [`New order ${number} — ${money(totals.totalCents)}`, '', ...customer, '', ...items, '', method ?? '', ...addressLines(order.shipping), ...(coupon ? ['', `Discount code: ${coupon}`] : [])].join('\n')
