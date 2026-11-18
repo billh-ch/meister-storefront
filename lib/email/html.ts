@@ -62,7 +62,9 @@ export function layout(opts: {
 <table role="presentation" width="600" cellpadding="0" cellspacing="0" style="width:100%;max-width:600px;">
  <tr><td style="background:${c.card};">
   <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:${c.card};">
-   <tr><td style="padding:28px 28px 8px;"><img src="${emailAssetBase()}/email/meister-logo.png" alt="Meister — Specialize Diving Gear" width="544" style="display:block;width:100%;max-width:544px;height:auto;border:0;font-family:${display};font-size:20px;font-weight:bold;color:${c.gold};"></td></tr>
+   <tr><td style="padding:24px 28px 8px;"><table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr>
+     <td valign="middle" style="font-family:${display};font-size:12px;letter-spacing:3px;font-weight:bold;color:${c.gold};">MEISTER &amp; MEISTER DIVE</td>
+     <td valign="middle" align="right" width="110" style="padding-left:12px;"><img src="${emailAssetBase()}/email/meister-logo.png" alt="Meister" width="110" style="display:block;width:110px;max-width:110px;height:auto;border:0;font-family:${display};font-size:12px;font-weight:bold;color:${c.gold};"></td></tr></table></td></tr>
    ${hero}
    <tr><td style="padding:20px 28px 0;"><h1 style="margin:0;font-family:${display};font-size:24px;line-height:1.25;font-weight:800;letter-spacing:0.5px;text-transform:uppercase;color:${c.text};">${escapeHtml(opts.heading)}</h1>
      ${opts.subtitle || opts.date ? `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin-top:4px;"><tr>
