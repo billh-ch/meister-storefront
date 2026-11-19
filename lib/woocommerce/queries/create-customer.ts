@@ -40,3 +40,15 @@ export async function createWcCustomer(input: {
 
   return customer.id
 }
+
+/** Customer lookup for password reset. WooCommerce's customer list is limited to
+ *  the `customer` role by default, so admin and shop-manager accounts never match. */
+export async function findWcCustomerForReset(email: string): Promise<{ id: number; email: string; firstName?: string } | null> {
+  const [customer] = await wcFetch<WcCustomer[]>('/customers', { email, per_page: '1' })
+  return customer ? { id: customer.id, email: customer.email, firstName: customer.first_name || undefined } : null
+}
+
+/** Sets a customer's password with the admin key (no WordPress-side plugin needed). */
+export async function setWcCustomerPassword(customerId: number, password: string): Promise<void> {
+  await wcMutate<WcCustomer>(`/customers/${customerId}`, 'PUT', { password })
+}

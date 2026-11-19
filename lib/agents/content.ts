@@ -72,7 +72,7 @@ export function prefersMarkdown(accept: string): boolean {
   return !html || markdown.q > html.q || (markdown.q === html.q && markdown.index < html.index)
 }
 export function isPublicContentPath(path: string): boolean {
-  return !/^\/(?:api|_next|\.well-known|images|account|wishlist|compare|cart|checkout|search|sign-in|sign-up)(?:\/|$)/.test(path) &&
+  return !/^\/(?:api|_next|\.well-known|images|account|wishlist|compare|cart|checkout|search|sign-in|sign-up|forgot-password|reset-password)(?:\/|$)/.test(path) &&
     !/^\/[^/]+\.(?:svg|ico|png|jpe?g|webp|avif|gif|css|js|map|woff2?|ttf|txt|xml|json)$/i.test(path)
 }
 export function markdownResponse(body: string, status = 200): Response {

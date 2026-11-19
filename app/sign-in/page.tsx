@@ -17,13 +17,13 @@ export async function generateMetadata(): Promise<Metadata> { return {
 } }
 
 interface SignInPageProps {
-  searchParams: Promise<{ redirect_url?: string }>
+  searchParams: Promise<{ redirect_url?: string; reset?: string }>
 }
 
 export default async function SignInPage({ searchParams }: SignInPageProps) {
   const t = await getTranslator()
 
-  const { redirect_url } = await searchParams
+  const { redirect_url, reset } = await searchParams
 
   return (
     <main style={{ backgroundColor: '#1B1B18' }}>
@@ -36,7 +36,19 @@ export default async function SignInPage({ searchParams }: SignInPageProps) {
           {t("SIGN IN")}
         </h1>
 
+        {reset === '1' && (
+          <p role="status" className="p-3 text-sm text-white" style={{ fontFamily: MONO, border: '1px solid #FFD700' }}>
+            {t('Your password has been updated. Please sign in.')}
+          </p>
+        )}
+
         <SignInForm redirectUrl={redirect_url ?? '/account'} />
+
+        <p className="text-sm text-[#999999]" style={{ fontFamily: MONO }}>
+          <Link href="/forgot-password" className="text-[#FFD700] hover:underline">
+            {t('Forgot your password?')}
+          </Link>
+        </p>
 
         <p className="text-sm text-[#999999]" style={{ fontFamily: MONO }}>
           {t("Don't have an account?")}{' '}
