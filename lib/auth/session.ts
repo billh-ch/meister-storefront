@@ -1,5 +1,6 @@
 import { cookies } from 'next/headers'
 import { getIronSession, type IronSession } from 'iron-session'
+import { isSessionRevoked } from './session-validity'
 import { SESSION_COOKIE_NAME, getSessionPassword, type SessionData } from './session-options'
 
 export type { SessionData }
@@ -10,7 +11,7 @@ export type { SessionData }
  * WooCommerce by that id.
  */
 export async function getSession(): Promise<IronSession<SessionData>> {
-  return getIronSession<SessionData>(await cookies(), {
+  const session = await getIronSession<SessionData>(await cookies(), {
     cookieName: SESSION_COOKIE_NAME,
     password: getSessionPassword(),
     cookieOptions: {
@@ -18,11 +19,18 @@ export async function getSession(): Promise<IronSession<SessionData>> {
       sameSite: 'lax',
     },
   })
+  // A password reset signs out every earlier session. Server Components cannot
+  // rewrite the cookie, so the revoked session is simply read as signed out.
+  if (session.wcCustomerId && (await isSessionRevoked(session.wcCustomerId, session.iat))) {
+    session.wcCustomerId = undefined
+  }
+  return session
 }
 
 export async function login(wcCustomerId: number): Promise<void> {
   const session = await getSession()
   session.wcCustomerId = wcCustomerId
+  session.iat = Date.now()
   await session.save()
 }
 

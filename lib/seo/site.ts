@@ -28,7 +28,7 @@ export function buildIndexingHeaders(env: SiteEnvironment = process.env) {
     return [{ source: '/:path*', headers: [{ key: 'X-Robots-Tag', value: 'noindex, nofollow' }] }]
   }
   return [
-    ...['/cart/:path*', '/checkout/:path*', '/account/:path*', '/wishlist/:path*', '/compare/:path*', '/sign-in', '/sign-up']
+    ...['/cart/:path*', '/checkout/:path*', '/account/:path*', '/wishlist/:path*', '/compare/:path*', '/sign-in', '/sign-up', '/forgot-password', '/reset-password']
       .flatMap(source => [source, `/el${source}`]).map(source => ({ source, headers: [{ key: 'X-Robots-Tag', value: 'noindex, nofollow' }] })),
     ...['/search', '/el/search'].map(source => ({ source, headers: [{ key: 'X-Robots-Tag', value: 'noindex, follow' }] })),
   ]

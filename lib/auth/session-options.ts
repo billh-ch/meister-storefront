@@ -5,6 +5,8 @@
  */
 export interface SessionData {
   wcCustomerId?: number
+  /** Epoch ms the session was issued; compared with a password-reset cut-off. */
+  iat?: number
 }
 
 export const SESSION_COOKIE_NAME = 'mm_session'
