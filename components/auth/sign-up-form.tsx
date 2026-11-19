@@ -5,6 +5,7 @@ import { useState, useTransition, type FormEvent } from 'react'
 import { useRouter } from 'next/navigation'
 import { registerAction } from '@/lib/auth/actions'
 import { getSafeRedirectUrl } from '@/lib/auth/safe-redirect'
+import PasswordField from './password-field'
 
 const MONO = 'var(--font-space-mono), monospace'
 
@@ -34,6 +35,10 @@ export default function SignUpForm({
     event.preventDefault()
     setError('')
     const formData = new FormData(event.currentTarget)
+    if (String(formData.get('password') ?? '') !== String(formData.get('confirmPassword') ?? '')) {
+      setError("Passwords don't match.")
+      return
+    }
 
     startTransition(async () => {
       const result = await registerAction({
@@ -114,28 +119,15 @@ export default function SignUpForm({
         />
       </div>
 
-      <div className="flex flex-col gap-1">
-        <label
-          htmlFor="sign-up-password"
-          className="text-xs font-bold tracking-wide text-white uppercase"
-          style={{ fontFamily: MONO }}
-        >
-          {t("Password")}
-        </label>
-        <input
-          id="sign-up-password"
-          name="password"
-          type="password"
-          required
-          minLength={8}
-          autoComplete="new-password"
-          className="w-full min-w-0 bg-transparent px-3 py-2 text-sm text-white outline-none"
-          style={{ border: '1px solid #444444', fontFamily: MONO }}
-        />
-        <p className="text-xs text-[#999999]" style={{ fontFamily: MONO }}>
-          {t("At least 8 characters.")}
-        </p>
-      </div>
+      <PasswordField
+        id="sign-up-password"
+        name="password"
+        label={t("Password")}
+        autoComplete="new-password"
+        minLength={8}
+        hint={t("At least 8 characters.")}
+      />
+      <PasswordField id="sign-up-confirm-password" name="confirmPassword" label={t("Confirm password")} autoComplete="new-password" />
 
       {error && (
         <p aria-live="polite" className="text-xs" style={{ fontFamily: MONO, color: '#FF6B6B' }}>

@@ -5,6 +5,7 @@ import { useState, useTransition, type FormEvent } from 'react'
 import { useRouter } from 'next/navigation'
 import { loginAction } from '@/lib/auth/actions'
 import { getSafeRedirectUrl } from '@/lib/auth/safe-redirect'
+import PasswordField from './password-field'
 
 const MONO = 'var(--font-space-mono), monospace'
 
@@ -55,24 +56,7 @@ export default function SignInForm({ redirectUrl }: { redirectUrl: string }) {
         />
       </div>
 
-      <div className="flex flex-col gap-1">
-        <label
-          htmlFor="sign-in-password"
-          className="text-xs font-bold tracking-wide text-white uppercase"
-          style={{ fontFamily: MONO }}
-        >
-          {t("Password")}
-        </label>
-        <input
-          id="sign-in-password"
-          name="password"
-          type="password"
-          required
-          autoComplete="current-password"
-          className="w-full min-w-0 bg-transparent px-3 py-2 text-sm text-white outline-none"
-          style={{ border: '1px solid #444444', fontFamily: MONO }}
-        />
-      </div>
+      <PasswordField id="sign-in-password" name="password" label={t("Password")} autoComplete="current-password" />
 
       {error && (
         <p aria-live="polite" className="text-xs" style={{ fontFamily: MONO, color: '#FF6B6B' }}>
