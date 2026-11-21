@@ -21,4 +21,6 @@ export interface Order {
    *  created through this app's Stripe checkout. */
   transactionId: string
   lineItems: OrderLineItem[]
+  /** ISO time until which the customer may cancel it themselves; absent when they can't. */
+  cancellableUntil?: string
 }

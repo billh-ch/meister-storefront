@@ -6,6 +6,7 @@ import { redirect } from 'next/navigation'
 import Navbar from '@/components/navbar'
 import Footer from '@/components/footer'
 import SimpleBreadcrumbs from '@/components/collection/simple-breadcrumbs'
+import CancelOrder from '@/components/account/cancel-order'
 import LogoutButton from '@/components/auth/logout-button'
 import AddressForm from '@/components/account/address-form'
 import { getSession } from '@/lib/auth/session'
@@ -98,7 +99,7 @@ export default async function AccountPage() {
                   </span>
                   <span
                     className="text-xs font-bold tracking-wide uppercase"
-                    style={{ fontFamily: MONO, color: '#4ADE80' }}
+                    style={{ fontFamily: MONO, color: order.status === 'cancelled' || order.status === 'refunded' || order.status === 'failed' ? '#999999' : '#4ADE80' }}
                   >
                     {t(order.status)}
                   </span>
@@ -113,6 +114,14 @@ export default async function AccountPage() {
                     </li>
                   ))}
                 </ul>
+                {order.status === 'cancelled' && (
+                  <p className="mt-2 text-xs text-[#999999]" style={{ fontFamily: MONO }}>
+                    {t('If you paid for this order, your refund usually appears within 5–10 business days.')}
+                  </p>
+                )}
+                {order.cancellableUntil && (
+                  <CancelOrder orderId={order.id} orderNumber={order.number} total={order.total} deadline={order.cancellableUntil} />
+                )}
               </div>
             ))}
           </div>
