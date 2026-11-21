@@ -10,6 +10,7 @@ import { fetchShippingRates, type StoreApiAddress } from './queries/get-shipping
 import { mapProduct } from './mappers/map-product'
 import { mapProductDetail } from './mappers/map-product-detail'
 import { mapOrder } from './mappers/map-order'
+import { cancelEligibility, cancelWindowMs } from '@/lib/orders/cancel'
 import { asUnavailableProductPreview } from './preview-product'
 
 const useMock = process.env.NEXT_PUBLIC_USE_MOCK_DATA === 'true'
@@ -110,7 +111,12 @@ export async function getOrdersByCustomer(customerId: number): Promise<Order[]> 
   if (useMock) return []
 
   const orders = await fetchOrdersByCustomer(customerId)
-  return orders.map(mapOrder)
+  const now = Date.now()
+  const windowMs = cancelWindowMs()
+  return orders.map(order => {
+    const eligible = cancelEligibility(order, { customerId, now, windowMs })
+    return { ...mapOrder(order), ...(eligible.ok ? { cancellableUntil: new Date(eligible.deadline).toISOString() } : {}) }
+  })
 }
 
 /** No mock fallback — same reasoning as getOrdersByCustomer/getProductById:

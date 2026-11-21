@@ -18,6 +18,8 @@ export interface RefundDeps {
   recordedRefundIds: (orderId: number) => Promise<string[]>
   createWooRefund: (orderId: number, refund: { stripeRefundId: string; amountCents: number }) => Promise<void>
   notify: NotifyDeps
+  /** Finishes a cancellation the customer started from their account (idempotent; throws to request a retry). */
+  finishCustomerCancel?: (orderId: number, refund: { id: string; amountCents: number; reason: string }) => Promise<unknown>
 }
 
 /**
@@ -35,6 +37,14 @@ export async function handleRefundCreated(refund: Stripe.Refund, deps: RefundDep
 
   const orderId = (await deps.orderIdForPayment(paymentIntentId)) ?? (await deps.orderIdByScan(paymentIntentId))
   if (!orderId) return { status: 'order_not_found' }
+
+  // Started by the customer from their account: the storefront owns the rest
+  // (record, cancel, one specific email). This is its safety net if that run
+  // stopped halfway, so it never sends the generic refund email.
+  if (refund.metadata?.source === 'customer_cancel' && deps.finishCustomerCancel) {
+    await deps.finishCustomerCancel(orderId, { id: refund.id, amountCents: refund.amount, reason: String(refund.metadata.cancel_reason || 'none') })
+    return { status: 'processed', orderId, wooSynced: true, email: 'customer-cancel' }
+  }
 
   const claimKey = `refund:handled:${refund.id}`
   if (!(await deps.notify.claim(claimKey, 60 * 60 * 24 * 90))) return { status: 'duplicate' }

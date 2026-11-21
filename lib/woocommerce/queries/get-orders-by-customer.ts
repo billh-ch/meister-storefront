@@ -11,6 +11,11 @@ export interface WcOrder {
   number: string
   status: string
   date_created: string
+  date_created_gmt?: string
+  customer_id?: number
+  currency?: string
+  refunds?: { id?: number; total?: string }[]
+  meta_data?: { key: string; value: unknown }[]
   total: string
   transaction_id: string
   line_items: WcOrderLineItem[]

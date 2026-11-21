@@ -5,9 +5,9 @@ import { fetchWcCustomerById } from '@/lib/woocommerce/queries/get-customer-by-i
 import { orderAlertRecipient } from './config'
 import { metaValue, orderNumber, refundedCents, type EmailOrder } from './order'
 import { sendEmail } from './resend'
-import { buildOrderCancelled, buildOrderCompleted, buildOrderConfirmation, buildOrderRefunded } from './templates/customer'
+import { buildCustomerCancelled, buildOrderCancelled, buildOrderCompleted, buildOrderConfirmation, buildOrderRefunded } from './templates/customer'
 import { buildWelcome, type WelcomeOffer } from './templates/account'
-import { buildOwnerAlert } from './templates/owner'
+import { buildOwnerAlert, buildOwnerCancelAlert } from './templates/owner'
 
 export type Outcome = 'sent' | 'duplicate' | 'skipped' | 'failed'
 export interface NotifyDeps {
@@ -103,6 +103,8 @@ export async function notifyOrderCompleted(order: EmailOrder, deps: NotifyDeps =
 /** Cancellation email, once per order, when WooCommerce reports it cancelled. */
 export async function notifyOrderCancelled(order: EmailOrder, deps: NotifyDeps = realDeps): Promise<Outcome> {
   if (!process.env.RESEND_API_KEY) return 'skipped'
+  // Cancelled by the customer from their account: that flow sends its own, more specific email.
+  if (metaValue(order, 'meister_customer_cancel')) return 'skipped'
   const locale = localeOf(metaValue(order, 'meister_locale'))
   return sendOnce({
     order, deps, label: `The "cancelled" email for order ${orderNumber(order)}`, claimKey: `email:order-cancelled:${order.id}`, idempotencyKey: `order-cancelled-${order.id}`,
@@ -146,4 +148,25 @@ export async function notifyWelcome(
     console.error('[email]', { customerId: input.customerId, label: 'welcome', error: error instanceof Error ? error.name : 'UnknownError' })
     return 'failed'
   }
+}
+
+/** Customer cancelled from their account: one confirmation to them, one alert to the shop. */
+export async function notifyCustomerCancelled(
+  order: EmailOrder,
+  cancel: { refundId: string; amountCents: number; reason: string; problems: string[] },
+  deps: NotifyDeps = realDeps,
+): Promise<{ customer: Outcome; owner: Outcome }> {
+  if (!process.env.RESEND_API_KEY) return { customer: 'skipped', owner: 'skipped' }
+  const locale = localeOf(metaValue(order, 'meister_locale'))
+  const [customer, owner] = await Promise.all([
+    sendOnce({
+      order, deps, label: `The cancellation email for order ${orderNumber(order)}`, claimKey: `email:customer-cancel:${order.id}`, idempotencyKey: `customer-cancel-${order.id}`,
+      to: () => recipientFor(order, undefined, deps), build: () => buildCustomerCancelled(order, locale, { amountCents: cancel.amountCents }),
+    }),
+    sendOnce({
+      order, deps, label: 'The cancellation alert email', claimKey: `email:customer-cancel-alert:${order.id}`, idempotencyKey: `customer-cancel-alert-${order.id}`,
+      to: async () => orderAlertRecipient(), build: () => buildOwnerCancelAlert(order, cancel),
+    }),
+  ])
+  return { customer, owner }
 }

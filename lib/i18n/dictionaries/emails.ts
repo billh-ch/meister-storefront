@@ -60,4 +60,7 @@ export const emailsGreek: Record<string, string> = {
   "the password for your account was just changed.": "ο κωδικός πρόσβασης του λογαριασμού σας μόλις άλλαξε.",
   "If this wasn't you, reset your password again straight away and contact us at {email}.": "Αν δεν το κάνατε εσείς, επαναφέρετε αμέσως τον κωδικό σας ξανά και επικοινωνήστε μαζί μας στο {email}.",
   "You are receiving this email because the password of your account was changed.": "Λαμβάνετε αυτό το email επειδή ο κωδικός πρόσβασης του λογαριασμού σας άλλαξε.",
+  "as you requested, your order {number} has been cancelled.": "όπως ζητήσατε, η παραγγελία σας {number} ακυρώθηκε.",
+  "We've refunded {amount} to your original payment method.": "Επιστρέψαμε {amount} στον αρχικό τρόπο πληρωμής σας.",
+  "Cancelled items": "Προϊόντα που ακυρώθηκαν",
 }

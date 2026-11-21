@@ -145,3 +145,28 @@ export function buildOrderRefunded(order: EmailOrder, locale: Locale, refund: { 
     text,
   }
 }
+
+/** The customer cancelled from their account and has already been refunded. */
+export function buildCustomerCancelled(order: EmailOrder, locale: Locale, refund: { amountCents: number }): BuiltEmail {
+  const t = (s: string, v?: Record<string, string | number>) => translate(locale, s, v)
+  const number = orderNumber(order)
+  const amount = formatMoney(refund.amountCents, order.currency, locale)
+  const heading = t('Your order has been cancelled')
+  const intro = `${greeting(order, locale)} ${t('as you requested, your order {number} has been cancelled.', { number })}`
+  const refunded = t("We've refunded {amount} to your original payment method.", { amount })
+  const timing = t('Refunds usually appear on your statement within 5–10 business days, depending on your bank.')
+  const itemLines = orderTotals(order).lines.map(l => `${l.quantity} × ${l.name}${l.options.length ? ` (${l.options.join(', ')})` : ''}`)
+  const body = paragraph(intro) + paragraph(refunded) +
+    `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin-top:8px;"><tr>
+      <td style="padding:10px 0;border-top:1px solid ${c.line};border-bottom:1px solid ${c.line};color:${c.text};font-weight:bold;">${escapeHtml(t('Refund amount'))}</td>
+      <td align="right" style="padding:10px 0;border-top:1px solid ${c.line};border-bottom:1px solid ${c.line};font-size:22px;font-weight:bold;color:${c.text};">${escapeHtml(amount)}</td></tr></table>` +
+    `<p style="margin:16px 0 0;color:${c.text};">${escapeHtml(timing)}</p>` +
+    section(t('Cancelled items'), `<p style="margin:0;">${linesHtml(itemLines)}</p>`) +
+    `<p style="margin:16px 0 0;color:${c.muted};font-size:12px;">${escapeHtml(contactLine(locale))}</p>`
+  const text = [heading, '', intro, refunded, `${t('Refund amount')}: ${amount}`, timing, '', ...itemLines, '', contactLine(locale)].join('\n')
+  return {
+    subject: t('Your order {number} has been cancelled', { number }),
+    html: layout({ locale, preheader: heading, heading, subtitle: t('Order {number}', { number }), date: receiptDate(order.date_created_gmt || order.date_created), hero: heroImage(order), body }),
+    text,
+  }
+}

@@ -4,6 +4,8 @@ import { wcFetch, wcFetchOrNull, wcFetchWithMeta, wcMutate } from '@/lib/woocomm
 import { realDeps } from '@/lib/email/notify'
 import type { EmailOrder } from '@/lib/email/order'
 import type { RefundDeps } from './handle-refund'
+import { finishCustomerCancel, isCancelReason } from '@/lib/orders/cancel'
+import { realCancelDeps } from '@/lib/orders/cancel-deps'
 
 /** PaymentIntent → WooCommerce order id, written by the paid-order webhook. Kept for over a year. */
 export const ORDER_BY_PAYMENT_TTL = 60 * 60 * 24 * 400
@@ -53,4 +55,7 @@ export const realRefundDeps: RefundDeps = {
   },
 
   notify: realDeps,
+
+  finishCustomerCancel: (orderId, refund) =>
+    finishCustomerCancel(orderId, { id: refund.id, amountCents: refund.amountCents, reason: isCancelReason(refund.reason) ? refund.reason : 'other' }, realCancelDeps()),
 }
