@@ -29,9 +29,9 @@ export function mapProduct(product: WcProduct, locale: string = 'en'): Product {
     image: gallery[0]?.src ?? '',
     gallery,
     swatches: [],
-    category: mapCategorySlug(product.categories.map(c => c.id)),
+    category: mapCategorySlug(product.categories),
     // Cheap `find` over the attribute list — safe on this ~50x listing path.
-    brand: mapBrand(product.attributes),
+    brand: mapBrand(product.attributes, product.brands),
     stockStatus: toStockStatus(product.stock_status),
     // WooCommerce's computed flag, not a price comparison — scheduled sales
     // make a comparison wrong at the edges.

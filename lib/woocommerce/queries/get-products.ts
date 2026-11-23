@@ -48,6 +48,9 @@ export interface WcProduct {
   categories: WcCategory[]
   /** Includes the brand attribute (`Εταιρία` / `pa_εταιρία`); see `map-brand.ts`. */
   attributes: WcProductAttribute[]
+  /** WooCommerce's built-in Brands taxonomy (WooCommerce 9.6+). Absent on older stores. */
+  brands?: { id: number; name: string; slug: string }[]
+  sku?: string
   type: string
   status: string
 }
