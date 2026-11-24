@@ -9,9 +9,14 @@ import type { Catalogue } from './types'
 export async function loadGearCatalogue(locale: Locale): Promise<Catalogue | null> {
   try {
     const raw = await fetchProducts({ requireComplete: true, fresh: true })
-    return connectCatalogue(raw.filter(p => p.status === 'publish').map(p => ({ ...mapProduct(p, locale), stockStatus: p.stock_status })))
+    return connectCatalogue(raw.filter(p => p.status === 'publish').map(p => ({ ...mapProduct(p, locale), stockStatus: p.stock_status, gearKey: gearKeyOf(p.meta_data) })))
   } catch {
     console.error('[Gear Finder] Published catalogue is temporarily unavailable')
     return null
   }
+}
+
+function gearKeyOf(meta: { key: string; value: unknown }[] | undefined): string | undefined {
+  const value = meta?.find(entry => entry.key === 'meister_gear_finder')?.value
+  return typeof value === 'string' && /^(wetsuits|fins):[a-z0-9-]+$/.test(value.trim()) ? value.trim() : undefined
 }

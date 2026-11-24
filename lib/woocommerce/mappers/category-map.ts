@@ -66,11 +66,23 @@ const DEFAULT_SLUG = 'accessories'
  */
 const SLUG_PRIORITY = ['fins', 'accessories', 'suits', 'merch', 'guns'] as const
 
-export function mapCategorySlug(categoryIds: number[]): string {
+/**
+ * Accepts the product's categories as WooCommerce returns them. The new
+ * catalog assigns every product to one of five top-level categories whose
+ * slugs ARE the storefront slugs (`fins`, `suits`, …), so no database IDs are
+ * needed. The ID table above is only a fallback for the legacy Pi catalog.
+ */
+export function mapCategorySlug(categories: readonly (number | { id: number; slug?: string })[]): string {
   const matched = new Set<string>()
-  for (const id of categoryIds) {
-    const slug = CATEGORY_ID_TO_SLUG[id]
-    if (slug) matched.add(slug)
+  for (const category of categories) {
+    const slug = typeof category === 'number' ? undefined : category.slug?.toLowerCase()
+    if (slug && (SLUG_PRIORITY as readonly string[]).includes(slug)) matched.add(slug)
+  }
+  if (matched.size === 0) {
+    for (const category of categories) {
+      const slug = CATEGORY_ID_TO_SLUG[typeof category === 'number' ? category : category.id]
+      if (slug) matched.add(slug)
+    }
   }
   for (const slug of SLUG_PRIORITY) {
     if (matched.has(slug)) return slug

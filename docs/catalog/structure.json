@@ -1,0 +1,104 @@
+{
+  "$comment": "Target structure for the new Meister WooCommerce catalog. Read by the migration agent (docs/catalog/AGENT-INSTRUCTIONS.md). Storefront contract: every product is assigned to exactly ONE top-level section below (slug must match exactly) plus any number of its subcategories.",
+  "settings": {
+    "woocommerce_default_country": "GR",
+    "woocommerce_currency": "EUR",
+    "woocommerce_price_num_decimals": "2",
+    "woocommerce_calc_taxes": "yes",
+    "woocommerce_prices_include_tax": "yes",
+    "woocommerce_tax_display_shop": "incl",
+    "woocommerce_tax_display_cart": "incl",
+    "woocommerce_tax_based_on": "billing",
+    "woocommerce_weight_unit": "kg",
+    "woocommerce_dimension_unit": "cm",
+    "woocommerce_manage_stock": "yes",
+    "woocommerce_enable_coupons": "yes",
+    "woocommerce_enable_reviews": "no",
+    "permalink_structure": "/%postname%/"
+  },
+  "tax": {
+    "$comment": "PLACEHOLDER pending the owner's accountant. Flag in every report.",
+    "standard": [{ "country": "GR", "rate": "24.0000", "name": "ΦΠΑ", "shipping": true }]
+  },
+  "disable_native_emails": [
+    "WC_Email_New_Order", "WC_Email_Customer_Processing_Order", "WC_Email_Customer_Completed_Order",
+    "WC_Email_Customer_Refunded_Order", "WC_Email_Cancelled_Order", "WC_Email_Customer_New_Account",
+    "WC_Email_Customer_On_Hold_Order", "WC_Email_Failed_Order", "WC_Email_Customer_Invoice", "WC_Email_Customer_Note"
+  ],
+  "sections": [
+    {
+      "slug": "fins", "name": "Fins", "name_el": "Πτερύγια",
+      "children": [
+        { "slug": "complete-fins", "name": "Complete fins", "name_el": "Πτερύγια", "legacy_ids": [104] },
+        { "slug": "carbon-fiberglass-fins", "name": "Carbon & fiberglass fins", "name_el": "Πτερύγια Carbon / Υαλονήματος", "legacy_ids": [129] },
+        { "slug": "foot-pockets", "name": "Foot pockets", "name_el": "Πέδιλα", "legacy_ids": [86] },
+        { "slug": "blades", "name": "Blades", "name_el": "Λεπίδες", "legacy_ids": [119] },
+        { "slug": "fin-accessories", "name": "Fin & blade accessories", "name_el": "Παρελκόμενα Πτερυγίων, Λεπίδων", "legacy_ids": [87] }
+      ]
+    },
+    {
+      "slug": "suits", "name": "Wetsuits", "name_el": "Στολές", "legacy_ids": [17],
+      "children": [
+        { "slug": "smoothskin-open-cell", "name": "Smoothskin / open cell", "name_el": "Λείο / Ξυρισμένο", "legacy_ids": [111] },
+        { "slug": "lined-open-cell", "name": "Lined / open cell", "name_el": "Φόδρα / Ξυρισμένο", "legacy_ids": [112] },
+        { "slug": "smoothskin-lined", "name": "Smoothskin / lined", "name_el": "Λείο / Φόδρα", "legacy_ids": [170] },
+        { "slug": "lined-lined", "name": "Lined / lined", "name_el": "Φόδρα / Φόδρα", "legacy_ids": [95] }
+      ]
+    },
+    {
+      "slug": "guns", "name": "Spearguns", "name_el": "Ψαροντούφεκα",
+      "children": [
+        { "slug": "band-spearguns", "name": "Band spearguns", "name_el": "Λαστιχοβόλα", "legacy_ids": [27] },
+        { "slug": "spearguns", "name": "Spearguns", "name_el": "Ψαροντούφεκα", "legacy_ids": [26] },
+        { "slug": "speargun-accessories", "name": "Speargun parts & accessories", "name_el": "Αξεσουάρ Όπλων", "legacy_ids": [36] }
+      ]
+    },
+    {
+      "slug": "accessories", "name": "Accessories", "name_el": "Αξεσουάρ", "legacy_ids": [23, 37, 177],
+      "children": [
+        { "slug": "masks", "name": "Masks", "name_el": "Μάσκες", "legacy_ids": [91] },
+        { "slug": "gloves", "name": "Gloves", "name_el": "Γάντια", "legacy_ids": [18] },
+        { "slug": "socks", "name": "Neoprene socks", "name_el": "Καλτσάκια", "legacy_ids": [31] },
+        { "slug": "bags", "name": "Bags", "name_el": "Σάκοι Μεταφοράς", "legacy_ids": [35] },
+        { "slug": "weights-belts-vests", "name": "Weights, belts & vests", "name_el": "Ζώνες - Βάρη - Γιλέκα", "legacy_ids": [88] },
+        { "slug": "buoys", "name": "Buoys", "name_el": "Σημαδούρες", "legacy_ids": [138] },
+        { "slug": "buoy-accessories", "name": "Buoy accessories", "name_el": "Αξεσουάρ Σημαδούρων", "legacy_ids": [176] },
+        { "slug": "dive-watches", "name": "Dive watches & computers", "name_el": "Καταδυτικά Ρολόγια", "legacy_ids": [214, 215] }
+      ]
+    },
+    {
+      "slug": "merch", "name": "Apparel", "name_el": "Ένδυση", "legacy_ids": [38],
+      "children": [
+        { "slug": "t-shirts", "name": "T-shirts", "name_el": "Κοντομάνικα", "legacy_ids": [39] },
+        { "slug": "hats", "name": "Beanies & caps", "name_el": "Σκούφοι - Καπέλα", "legacy_ids": [93] },
+        { "slug": "sweatshirts", "name": "Sweatshirts & long sleeves", "name_el": "Φούτερ - Μπλούζες", "legacy_ids": [40] },
+        { "slug": "jackets", "name": "Jackets & windbreakers", "name_el": "Ζακέτες - Μπουφάν", "legacy_ids": [101] },
+        { "slug": "vests-shorts-hoods", "name": "Vests, shorts & hoods", "name_el": "Γιλέκα - Σόρτς - Κουκούλες", "legacy_ids": [102] }
+      ]
+    }
+  ],
+  "section_priority": ["fins", "accessories", "suits", "merch", "guns"],
+  "brand": {
+    "$comment": "Use WooCommerce's built-in Brands (product_brand taxonomy, WooCommerce 9.6+). Legacy source: attribute pa_εταιρία (first option). Do NOT recreate the pa_εταιρία attribute.",
+    "legacy_attribute": "pa_εταιρία"
+  },
+  "gear_finder": {
+    "$comment": "Set product custom field meister_gear_finder on the product whose legacy Pi ID is the key. Each value must exist on exactly one product.",
+    "meta_key": "meister_gear_finder",
+    "by_legacy_id": {
+      "4781": "wetsuits:lined", "4796": "wetsuits:camo", "4908": "wetsuits:fire", "4512": "wetsuits:sheico",
+      "4497": "wetsuits:daiwabo", "4465": "wetsuits:pro", "4480": "wetsuits:scs",
+      "4608": "fins:evo", "4636": "fins:evo-long", "4580": "fins:f1", "4437": "fins:f1-30",
+      "4720": "fins:f1-30-color-skin", "4553": "fins:f1-30-long", "4664": "fins:x", "4692": "fins:x-long", "4869": "fins:plastic-long"
+    }
+  },
+  "legacy_id_meta_key": "meister_legacy_id",
+  "glossary_el_en": {
+    "Πτερύγια": "fins", "Πέδιλα": "foot pockets", "Λεπίδες": "blades", "Στολή / Στολές": "wetsuit(s)",
+    "Λείο": "smoothskin", "Φόδρα": "lined (nylon jersey)", "Ξυρισμένο": "open cell", "Μάσκα": "mask",
+    "Αναπνευστήρας": "snorkel", "Ψαροντούφεκο / Ψαροτούφεκο": "speargun", "Λαστιχοβόλο": "band speargun",
+    "Σημαδούρα": "buoy", "Ζώνη βαρών": "weight belt", "Βάρη": "weights", "Γιλέκο": "vest",
+    "Καλτσάκια": "neoprene socks", "Γάντια": "gloves", "Σάκος": "bag", "Κουκούλα": "hood",
+    "Σκληρότητα": "stiffness", "Πάχος": "thickness", "Μέγεθος": "size", "Χρώμα": "color", "Εταιρία": "brand"
+  }
+}

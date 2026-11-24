@@ -5,6 +5,8 @@ import type { Catalogue, Commerce } from './types'
 interface CatalogueProduct {
   id: string; slug: string; name: string; price: number; category: string;
   image: string; stockStatus: string; priceFrom: boolean
+  /** `meister_gear_finder` custom field, e.g. `fins:evo`. Preferred over the pinned numeric ID. */
+  gearKey?: string
 }
 function decodedSlug(value: string): string {
   try { return decodeURIComponent(value).normalize('NFC') } catch { return '' }
@@ -16,8 +18,10 @@ export function connectCatalogue(products: CatalogueProduct[]): Catalogue {
     const slug = decodedSlug(product.slug)
     bySlug.set(slug, [...(bySlug.get(slug) ?? []), product])
   }
-  function current(id: string, category: string) {
-    const matches = products.filter(product => product.id === id)
+  function current(id: string, category: string, gearKey: string) {
+    // The custom field survives a catalog rebuild; the numeric ID is the legacy fallback.
+    const tagged = products.filter(product => product.gearKey === gearKey)
+    const matches = tagged.length > 0 ? tagged : products.filter(product => product.id === id)
     if (matches.length !== 1) return null
     const p = matches[0]
     const slug = decodedSlug(p.slug)
@@ -27,7 +31,7 @@ export function connectCatalogue(products: CatalogueProduct[]): Catalogue {
     return { price: [p.price, p.price], stock, commerce }
   }
   return {
-    suits: PRODUCTS.flatMap(model => { const live = current(CATALOGUE_IDS.wetsuits[model.id], 'suits'); return live ? [{ ...model, ...live }] : [] }),
-    fins: FIN_PRODUCTS.flatMap(model => { const live = current(CATALOGUE_IDS.fins[model.id], 'fins'); return live ? [{ ...model, ...live }] : [] }),
+    suits: PRODUCTS.flatMap(model => { const live = current(CATALOGUE_IDS.wetsuits[model.id], 'suits', `wetsuits:${model.id}`); return live ? [{ ...model, ...live }] : [] }),
+    fins: FIN_PRODUCTS.flatMap(model => { const live = current(CATALOGUE_IDS.fins[model.id], 'fins', `fins:${model.id}`); return live ? [{ ...model, ...live }] : [] }),
   }
 }

@@ -10,7 +10,12 @@ const BRAND_ATTRIBUTE_NAME = 'εταιρία'
 
 export function mapBrand(
   attributes: readonly WcProductAttribute[] | undefined,
+  brands?: readonly { name?: string }[] | undefined,
 ): string | null {
+  // WooCommerce's built-in Brands taxonomy (used by the new catalog) wins.
+  const native = brands?.find(brand => brand.name?.trim())?.name?.trim()
+  if (native) return native
+
   const attribute = attributes?.find(
     (candidate) =>
       candidate.slug?.toLowerCase() === BRAND_ATTRIBUTE_SLUG ||
