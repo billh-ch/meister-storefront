@@ -29,6 +29,9 @@ export interface WcProduct {
   /** Private server inputs. Never spread these into browser product objects. */
   meister_translation_source?: unknown
   meister_translations?: unknown
+  /** Set by the meister-product-addons plugin when it is active and prices
+   *  add-ons on WooCommerce orders. Without it, add-on meta is ignored. */
+  meister_addons_pricing?: unknown
   meta_data?: { key: string; value: unknown }[]
   id: number
   name: string

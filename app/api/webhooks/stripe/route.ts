@@ -10,19 +10,13 @@ import { lockerFromStripeMetadata, requiresBoxNowLocker } from '@/lib/checkout/b
 import { notifyOrderCreated } from '@/lib/email/notify'
 import { handleRefundCreated } from '@/lib/refunds/handle-refund'
 import { ORDER_BY_PAYMENT_TTL, orderByPaymentKey, realRefundDeps } from '@/lib/refunds/real-deps'
+import { decodeAddonRefs } from '@/lib/addons/contract'
+import type { CartLineMeta } from '@/lib/checkout/stripe-lines'
+import { orderTotalCheck } from '@/lib/checkout/total-check'
 
 // Stripe's SDK needs Node crypto for signature verification, not Edge.
 export const runtime = 'nodejs'
 export const maxDuration = 60
-
-interface CartLineMeta {
-  p: string
-  v?: string
-  q: number
-  /** Axis picks the variation itself doesn't pin ("Any …" axes), so the
-   *  shop can see the full choice on the order. */
-  a?: Record<string, string>
-}
 
 function addressFromMetadata(metadata: Stripe.Metadata): WcAddress {
   return {
@@ -130,9 +124,10 @@ export async function POST(request: Request) {
     if (!wcCustomerId && !address.email) {
       throw new Error('Guest checkout Session metadata is missing the billing email')
     }
-    if (!Array.isArray(lines) || lines.some(line => !/^\d+$/.test(line.p) || Number(line.p) <= 0 || (line.v && (!/^\d+$/.test(line.v) || Number(line.v) <= 0)) || !Number.isInteger(line.q) || line.q <= 0)) {
+    if (!Array.isArray(lines) || lines.some(line => !/^\d+$/.test(line.p) || Number(line.p) <= 0 || (line.v && (!/^\d+$/.test(line.v) || Number(line.v) <= 0)) || !Number.isInteger(line.q) || line.q <= 0 || decodeAddonRefs(line.o) === null)) {
       throw new Error('Checkout Session cart contents are invalid')
     }
+    const hasAddons = lines.some(line => (decodeAddonRefs(line.o) ?? []).length > 0)
 
     const couponDiscount = Number(metadata.couponDiscount)
     const coupon = metadata.couponCode && Number.isFinite(couponDiscount) && couponDiscount > 0
@@ -151,6 +146,7 @@ export async function POST(request: Request) {
           line.a && Object.keys(line.a).length > 0
             ? Object.entries(line.a).map(([key, value]) => ({ key, value }))
             : undefined,
+        addonRefs: decodeAddonRefs(line.o) ?? undefined,
       })),
       billing: address,
       shipping: address,
@@ -171,17 +167,21 @@ export async function POST(request: Request) {
     stage = 'woo-create'
     const order = existing ?? await createOrder(input)
 
-    // WooCommerce re-prices the order itself, so for a discounted order check
-    // it agrees with what Stripe actually charged. A difference (rounding on
-    // VAT-inclusive prices, a changed coupon) never blocks the order; it is
-    // flagged on the order for the shop team instead. Best effort.
-    if (!existing && coupon && typeof checkoutSession.amount_total === 'number') {
-      // Whole cents: euro floats can turn a one-cent difference into 0.00999….
-      const paid = checkoutSession.amount_total / 100
-      if (Math.round(Number(order.total) * 100) !== checkoutSession.amount_total) {
-        console.warn('[stripe webhook]', { paymentIntentId, orderId: order.id, note: 'coupon-total-mismatch' })
-        await addOrderNote(order.id, `Total check: Stripe charged €${paid.toFixed(2)} but WooCommerce computed €${Number(order.total).toFixed(2)} with discount code ${coupon.code}. Please review before fulfilling.`).catch(() => undefined)
-      }
+    // WooCommerce re-prices the order itself, so whenever that is more than
+    // a copy of the product price (a discount code, or add-ons priced by the
+    // meister-product-addons plugin) check it agrees with what Stripe actually
+    // charged. A difference (rounding on VAT-inclusive prices, a changed
+    // coupon or add-on, the add-ons plugin not active) never blocks the order;
+    // it is flagged on the order for the shop team instead. Best effort.
+    const totalNote = existing ? null : orderTotalCheck({
+      orderTotal: order.total,
+      amountTotalCents: checkoutSession.amount_total,
+      couponCode: coupon?.code,
+      hasAddons,
+    })
+    if (totalNote) {
+      console.warn('[stripe webhook]', { paymentIntentId, orderId: order.id, note: 'order-total-mismatch' })
+      await addOrderNote(order.id, totalNote).catch(() => undefined)
     }
 
     // Lets the confirmation page resolve a guest's order — it has no session

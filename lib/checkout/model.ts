@@ -19,7 +19,9 @@ export function normalizeShippingAddress(values: Partial<AddressInput>): Shippin
 
 /** A consistency check only. All charged amounts still come from WooCommerce. */
 export function checkoutCartSignature(lines: ResolvedCartLine[]): string {
-  return JSON.stringify(lines.map(line => [line.productId, line.resolvedVariationId ?? line.variationId ?? '', line.quantity, line.unitPrice, Object.entries(line.attributes).sort()]))
+  // Add-on refs and prices are included, so an add-on price change between
+  // the shopper's summary and payment is caught like any other price change.
+  return JSON.stringify(lines.map(line => [line.productId, line.resolvedVariationId ?? line.variationId ?? '', line.quantity, line.unitPrice, Object.entries(line.attributes).sort(), ...(line.chosenAddons?.length ? [line.chosenAddons.map(addon => [addon.ref, addon.priceCents])] : [])]))
 }
 
 export function checkoutCartIssues(cart: ResolvedCart): CheckoutCartIssue[] {

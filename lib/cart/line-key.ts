@@ -12,9 +12,11 @@ import type { CartItem } from './schema'
  * cookie entries are "the same line".
  */
 export function cartLineKey(
-  item: Pick<CartItem, 'productId' | 'variationId' | 'selectedOptions'>,
+  item: Pick<CartItem, 'productId' | 'variationId' | 'selectedOptions' | 'addons'>,
 ): string {
-  return `${item.productId}:${item.variationId ?? ''}:${serializeOptions(item.selectedOptions)}`
+  // Different add-ons are a different item to make, so they never merge.
+  const addons = [...(item.addons ?? [])].sort().join(',')
+  return `${item.productId}:${item.variationId ?? ''}:${serializeOptions(item.selectedOptions)}${addons ? `:+${addons}` : ''}`
 }
 
 /** Deterministic (key-sorted) so `{a,b}` and `{b,a}` produce the same string. */

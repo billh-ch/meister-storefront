@@ -24,7 +24,14 @@ export interface CreateOrderLineItem {
    *  and pack the right item. `key`/`value` is WooCommerce's line-item meta
    *  shape; `key` shows as the label in the admin. */
   metaData?: { key: string; value: string }[]
+  /** Chosen add-ons (`"group:option"`, `lib/addons`). Sent as the hidden line
+   *  meta `_meister_addons`; the meister-product-addons plugin re-checks them
+   *  against the product, prices them and adds the visible add-on lines. */
+  addonRefs?: string[]
 }
+
+/** Hidden order-line meta read by `wordpress/meister-product-addons`. */
+export const ADDONS_LINE_META_KEY = '_meister_addons'
 
 export interface CreateOrderShippingLine {
   /** WooCommerce's shipping method *type* (`flat_rate`, `local_pickup`, a
@@ -70,6 +77,9 @@ export interface WcCreatedOrder {
  * line item — WooCommerce prices `line_items` itself from its own live
  * product data when only `product_id`/`variation_id`/`quantity` are given,
  * so nothing here can dictate a price, only reference a product/variation id.
+ * Add-ons follow the same rule: only their ids travel (`_meister_addons`),
+ * and the meister-product-addons plugin prices them inside WooCommerce with
+ * WooCommerce's own VAT calculation, before totals and coupons are applied.
  *
  * Deliberately **no mock fallback and no try/catch-to-mock** — a failed
  * order creation must throw and surface as a real failure, never silently
@@ -113,12 +123,18 @@ function orderMeta(input: CreateOrderInput): { key: string; value: string }[] {
 function orderBody(input: CreateOrderInput) {
   return {
     customer_id: input.customerId ?? 0,
-    line_items: input.lineItems.map((item) => ({
-      product_id: item.productId,
-      variation_id: item.variationId,
-      quantity: item.quantity,
-      ...(item.metaData && item.metaData.length > 0 ? { meta_data: item.metaData } : {}),
-    })),
+    line_items: input.lineItems.map((item) => {
+      const metaData = [
+        ...(item.metaData ?? []),
+        ...(item.addonRefs && item.addonRefs.length > 0 ? [{ key: ADDONS_LINE_META_KEY, value: item.addonRefs.join(',') }] : []),
+      ]
+      return {
+        product_id: item.productId,
+        variation_id: item.variationId,
+        quantity: item.quantity,
+        ...(metaData.length > 0 ? { meta_data: metaData } : {}),
+      }
+    }),
     ...(input.shippingLine
       ? {
           shipping_lines: [

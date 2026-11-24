@@ -37,11 +37,23 @@ const selectedOptionsSchema = z
     message: 'Too many options',
   })
 
+/**
+ * Chosen paid add-ons as `"<group>:<option>"` references (`lib/addons`).
+ * Identity only: never a name or a price. Shape-checked here; whether the
+ * product really offers them, at what price, is decided on every read in
+ * `lib/cart/resolve.ts`.
+ */
+// Same pattern and limit as `ADDON_REF_PATTERN` / `MAX_ADDON_REFS` in
+// `lib/addons/contract.ts` (tests assert they match). Kept inline because
+// this file is loaded by plain Node in tests, without the `@/` resolver.
+export const addonRefsSchema = z.array(z.string().regex(/^[a-z0-9]+(?:-[a-z0-9]+)*:[a-z0-9]+(?:-[a-z0-9]+)*$/)).max(40)
+
 export const cartItemSchema = z.object({
   productId: wcIdSchema,
   variationId: wcIdSchema.optional(),
   quantity: z.number().int().positive().max(99),
   selectedOptions: selectedOptionsSchema.optional(),
+  addons: addonRefsSchema.optional(),
 })
 
 export const cartSchema = z.array(cartItemSchema).max(50)

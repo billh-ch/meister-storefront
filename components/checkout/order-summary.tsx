@@ -3,6 +3,7 @@ import { useTranslation } from '@/components/i18n/locale-provider'
 import type { ResolvedCartLine } from '@/lib/cart/resolve'
 import { cartLineKey } from '@/lib/cart/line-key'
 import { formatVariationLabel } from '@/lib/cart/variation-label'
+import AddonLines from '@/components/cart/addon-lines'
 import { formatPrice } from '@/lib/mock-data'
 
 const MONO = 'var(--font-space-mono), monospace'
@@ -45,6 +46,7 @@ export default function OrderSummary({ lines, subtotal, shippingCost, discount =
               {Object.keys(line.attributes).length > 0 && (
                 <span className="mt-0.5 text-[#999999]">{formatVariationLabel(line.attributes, ' · ', t)}</span>
               )}
+              <AddonLines addons={line.chosenAddons} className="mt-0.5 text-[#999999]" />
             </span>
             <span className="whitespace-nowrap text-white">{formatPrice(line.unitPrice * line.quantity)}</span>
           </div>

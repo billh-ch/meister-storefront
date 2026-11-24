@@ -1,0 +1,180 @@
+{
+ "about": "Shared by tests/product-addons.test.mjs and tests/product-addons-php.test.php: both validators must agree on every case.",
+ "cases": [
+  {
+   "label": "valid definition",
+   "raw": "{\"version\":1,\"groups\":[{\"id\":\"camo\",\"type\":\"single\",\"name\":{\"en\":\"Camo pattern\",\"el\":\"Μοτίβο παραλλαγής\"},\"options\":[{\"id\":\"split\",\"name\":{\"en\":\"Split camo pattern\",\"el\":\"Μερικό μοτίβο παραλλαγής\"},\"price\":\"30.00\"},{\"id\":\"full\",\"name\":{\"en\":\"Full camo pattern\",\"el\":\"Πλήρες μοτίβο παραλλαγής\"},\"price\":\"40.00\"}]},{\"id\":\"extras\",\"type\":\"multi\",\"name\":{\"en\":\"Extras\",\"el\":\"Επιπλέον\"},\"options\":[{\"id\":\"knee-pads\",\"name\":{\"en\":\"Knee pads\",\"el\":\"Επιγονατίδες\"},\"price\":\"25.00\"},{\"id\":\"velcro\",\"name\":{\"en\":\"Velcro\",\"el\":\"Velcro\"},\"price\":\"20.00\"}]}]}",
+   "valid": true
+  },
+  {
+   "label": "valid with high price",
+   "raw": "{\"version\":1,\"groups\":[{\"id\":\"camo\",\"type\":\"single\",\"name\":{\"en\":\"Camo pattern\",\"el\":\"Μοτίβο παραλλαγής\"},\"options\":[{\"id\":\"split\",\"name\":{\"en\":\"Split camo pattern\",\"el\":\"Μερικό μοτίβο παραλλαγής\"},\"price\":\"99999.99\"},{\"id\":\"full\",\"name\":{\"en\":\"Full camo pattern\",\"el\":\"Πλήρες μοτίβο παραλλαγής\"},\"price\":\"40.00\"}]},{\"id\":\"extras\",\"type\":\"multi\",\"name\":{\"en\":\"Extras\",\"el\":\"Επιπλέον\"},\"options\":[{\"id\":\"knee-pads\",\"name\":{\"en\":\"Knee pads\",\"el\":\"Επιγονατίδες\"},\"price\":\"25.00\"},{\"id\":\"velcro\",\"name\":{\"en\":\"Velcro\",\"el\":\"Velcro\"},\"price\":\"20.00\"}]}]}",
+   "valid": true
+  },
+  {
+   "label": "valid one-cent price",
+   "raw": "{\"version\":1,\"groups\":[{\"id\":\"camo\",\"type\":\"single\",\"name\":{\"en\":\"Camo pattern\",\"el\":\"Μοτίβο παραλλαγής\"},\"options\":[{\"id\":\"split\",\"name\":{\"en\":\"Split camo pattern\",\"el\":\"Μερικό μοτίβο παραλλαγής\"},\"price\":\"0.01\"},{\"id\":\"full\",\"name\":{\"en\":\"Full camo pattern\",\"el\":\"Πλήρες μοτίβο παραλλαγής\"},\"price\":\"40.00\"}]},{\"id\":\"extras\",\"type\":\"multi\",\"name\":{\"en\":\"Extras\",\"el\":\"Επιπλέον\"},\"options\":[{\"id\":\"knee-pads\",\"name\":{\"en\":\"Knee pads\",\"el\":\"Επιγονατίδες\"},\"price\":\"25.00\"},{\"id\":\"velcro\",\"name\":{\"en\":\"Velcro\",\"el\":\"Velcro\"},\"price\":\"20.00\"}]}]}",
+   "valid": true
+  },
+  {
+   "label": "valid 80-character Greek name",
+   "raw": "{\"version\":1,\"groups\":[{\"id\":\"camo\",\"type\":\"single\",\"name\":{\"en\":\"Camo pattern\",\"el\":\"αααααααααααααααααααααααααααααααααααααααααααααααααααααααααααααααααααααααααααααααα\"},\"options\":[{\"id\":\"split\",\"name\":{\"en\":\"Split camo pattern\",\"el\":\"Μερικό μοτίβο παραλλαγής\"},\"price\":\"30.00\"},{\"id\":\"full\",\"name\":{\"en\":\"Full camo pattern\",\"el\":\"Πλήρες μοτίβο παραλλαγής\"},\"price\":\"40.00\"}]},{\"id\":\"extras\",\"type\":\"multi\",\"name\":{\"en\":\"Extras\",\"el\":\"Επιπλέον\"},\"options\":[{\"id\":\"knee-pads\",\"name\":{\"en\":\"Knee pads\",\"el\":\"Επιγονατίδες\"},\"price\":\"25.00\"},{\"id\":\"velcro\",\"name\":{\"en\":\"Velcro\",\"el\":\"Velcro\"},\"price\":\"20.00\"}]}]}",
+   "valid": true
+  },
+  {
+   "label": "invalid JSON",
+   "raw": "{\"version\":1,",
+   "valid": false
+  },
+  {
+   "label": "empty string",
+   "raw": "",
+   "valid": false
+  },
+  {
+   "label": "JSON array",
+   "raw": "[]",
+   "valid": false
+  },
+  {
+   "label": "unknown version",
+   "raw": "{\"version\":2,\"groups\":[{\"id\":\"camo\",\"type\":\"single\",\"name\":{\"en\":\"Camo pattern\",\"el\":\"Μοτίβο παραλλαγής\"},\"options\":[{\"id\":\"split\",\"name\":{\"en\":\"Split camo pattern\",\"el\":\"Μερικό μοτίβο παραλλαγής\"},\"price\":\"30.00\"},{\"id\":\"full\",\"name\":{\"en\":\"Full camo pattern\",\"el\":\"Πλήρες μοτίβο παραλλαγής\"},\"price\":\"40.00\"}]},{\"id\":\"extras\",\"type\":\"multi\",\"name\":{\"en\":\"Extras\",\"el\":\"Επιπλέον\"},\"options\":[{\"id\":\"knee-pads\",\"name\":{\"en\":\"Knee pads\",\"el\":\"Επιγονατίδες\"},\"price\":\"25.00\"},{\"id\":\"velcro\",\"name\":{\"en\":\"Velcro\",\"el\":\"Velcro\"},\"price\":\"20.00\"}]}]}",
+   "valid": false
+  },
+  {
+   "label": "version as string",
+   "raw": "{\"version\":\"1\",\"groups\":[{\"id\":\"camo\",\"type\":\"single\",\"name\":{\"en\":\"Camo pattern\",\"el\":\"Μοτίβο παραλλαγής\"},\"options\":[{\"id\":\"split\",\"name\":{\"en\":\"Split camo pattern\",\"el\":\"Μερικό μοτίβο παραλλαγής\"},\"price\":\"30.00\"},{\"id\":\"full\",\"name\":{\"en\":\"Full camo pattern\",\"el\":\"Πλήρες μοτίβο παραλλαγής\"},\"price\":\"40.00\"}]},{\"id\":\"extras\",\"type\":\"multi\",\"name\":{\"en\":\"Extras\",\"el\":\"Επιπλέον\"},\"options\":[{\"id\":\"knee-pads\",\"name\":{\"en\":\"Knee pads\",\"el\":\"Επιγονατίδες\"},\"price\":\"25.00\"},{\"id\":\"velcro\",\"name\":{\"en\":\"Velcro\",\"el\":\"Velcro\"},\"price\":\"20.00\"}]}]}",
+   "valid": false
+  },
+  {
+   "label": "extra top-level key",
+   "raw": "{\"version\":1,\"groups\":[{\"id\":\"camo\",\"type\":\"single\",\"name\":{\"en\":\"Camo pattern\",\"el\":\"Μοτίβο παραλλαγής\"},\"options\":[{\"id\":\"split\",\"name\":{\"en\":\"Split camo pattern\",\"el\":\"Μερικό μοτίβο παραλλαγής\"},\"price\":\"30.00\"},{\"id\":\"full\",\"name\":{\"en\":\"Full camo pattern\",\"el\":\"Πλήρες μοτίβο παραλλαγής\"},\"price\":\"40.00\"}]},{\"id\":\"extras\",\"type\":\"multi\",\"name\":{\"en\":\"Extras\",\"el\":\"Επιπλέον\"},\"options\":[{\"id\":\"knee-pads\",\"name\":{\"en\":\"Knee pads\",\"el\":\"Επιγονατίδες\"},\"price\":\"25.00\"},{\"id\":\"velcro\",\"name\":{\"en\":\"Velcro\",\"el\":\"Velcro\"},\"price\":\"20.00\"}]}],\"extra\":true}",
+   "valid": false
+  },
+  {
+   "label": "no groups",
+   "raw": "{\"version\":1,\"groups\":[]}",
+   "valid": false
+  },
+  {
+   "label": "uppercase id",
+   "raw": "{\"version\":1,\"groups\":[{\"id\":\"Camo\",\"type\":\"single\",\"name\":{\"en\":\"Camo pattern\",\"el\":\"Μοτίβο παραλλαγής\"},\"options\":[{\"id\":\"split\",\"name\":{\"en\":\"Split camo pattern\",\"el\":\"Μερικό μοτίβο παραλλαγής\"},\"price\":\"30.00\"},{\"id\":\"full\",\"name\":{\"en\":\"Full camo pattern\",\"el\":\"Πλήρες μοτίβο παραλλαγής\"},\"price\":\"40.00\"}]},{\"id\":\"extras\",\"type\":\"multi\",\"name\":{\"en\":\"Extras\",\"el\":\"Επιπλέον\"},\"options\":[{\"id\":\"knee-pads\",\"name\":{\"en\":\"Knee pads\",\"el\":\"Επιγονατίδες\"},\"price\":\"25.00\"},{\"id\":\"velcro\",\"name\":{\"en\":\"Velcro\",\"el\":\"Velcro\"},\"price\":\"20.00\"}]}]}",
+   "valid": false
+  },
+  {
+   "label": "id with underscore",
+   "raw": "{\"version\":1,\"groups\":[{\"id\":\"camo_x\",\"type\":\"single\",\"name\":{\"en\":\"Camo pattern\",\"el\":\"Μοτίβο παραλλαγής\"},\"options\":[{\"id\":\"split\",\"name\":{\"en\":\"Split camo pattern\",\"el\":\"Μερικό μοτίβο παραλλαγής\"},\"price\":\"30.00\"},{\"id\":\"full\",\"name\":{\"en\":\"Full camo pattern\",\"el\":\"Πλήρες μοτίβο παραλλαγής\"},\"price\":\"40.00\"}]},{\"id\":\"extras\",\"type\":\"multi\",\"name\":{\"en\":\"Extras\",\"el\":\"Επιπλέον\"},\"options\":[{\"id\":\"knee-pads\",\"name\":{\"en\":\"Knee pads\",\"el\":\"Επιγονατίδες\"},\"price\":\"25.00\"},{\"id\":\"velcro\",\"name\":{\"en\":\"Velcro\",\"el\":\"Velcro\"},\"price\":\"20.00\"}]}]}",
+   "valid": false
+  },
+  {
+   "label": "id with trailing hyphen",
+   "raw": "{\"version\":1,\"groups\":[{\"id\":\"camo\",\"type\":\"single\",\"name\":{\"en\":\"Camo pattern\",\"el\":\"Μοτίβο παραλλαγής\"},\"options\":[{\"id\":\"split-\",\"name\":{\"en\":\"Split camo pattern\",\"el\":\"Μερικό μοτίβο παραλλαγής\"},\"price\":\"30.00\"},{\"id\":\"full\",\"name\":{\"en\":\"Full camo pattern\",\"el\":\"Πλήρες μοτίβο παραλλαγής\"},\"price\":\"40.00\"}]},{\"id\":\"extras\",\"type\":\"multi\",\"name\":{\"en\":\"Extras\",\"el\":\"Επιπλέον\"},\"options\":[{\"id\":\"knee-pads\",\"name\":{\"en\":\"Knee pads\",\"el\":\"Επιγονατίδες\"},\"price\":\"25.00\"},{\"id\":\"velcro\",\"name\":{\"en\":\"Velcro\",\"el\":\"Velcro\"},\"price\":\"20.00\"}]}]}",
+   "valid": false
+  },
+  {
+   "label": "id too long",
+   "raw": "{\"version\":1,\"groups\":[{\"id\":\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",\"type\":\"single\",\"name\":{\"en\":\"Camo pattern\",\"el\":\"Μοτίβο παραλλαγής\"},\"options\":[{\"id\":\"split\",\"name\":{\"en\":\"Split camo pattern\",\"el\":\"Μερικό μοτίβο παραλλαγής\"},\"price\":\"30.00\"},{\"id\":\"full\",\"name\":{\"en\":\"Full camo pattern\",\"el\":\"Πλήρες μοτίβο παραλλαγής\"},\"price\":\"40.00\"}]},{\"id\":\"extras\",\"type\":\"multi\",\"name\":{\"en\":\"Extras\",\"el\":\"Επιπλέον\"},\"options\":[{\"id\":\"knee-pads\",\"name\":{\"en\":\"Knee pads\",\"el\":\"Επιγονατίδες\"},\"price\":\"25.00\"},{\"id\":\"velcro\",\"name\":{\"en\":\"Velcro\",\"el\":\"Velcro\"},\"price\":\"20.00\"}]}]}",
+   "valid": false
+  },
+  {
+   "label": "duplicate group id",
+   "raw": "{\"version\":1,\"groups\":[{\"id\":\"camo\",\"type\":\"single\",\"name\":{\"en\":\"Camo pattern\",\"el\":\"Μοτίβο παραλλαγής\"},\"options\":[{\"id\":\"split\",\"name\":{\"en\":\"Split camo pattern\",\"el\":\"Μερικό μοτίβο παραλλαγής\"},\"price\":\"30.00\"},{\"id\":\"full\",\"name\":{\"en\":\"Full camo pattern\",\"el\":\"Πλήρες μοτίβο παραλλαγής\"},\"price\":\"40.00\"}]},{\"id\":\"camo\",\"type\":\"multi\",\"name\":{\"en\":\"Extras\",\"el\":\"Επιπλέον\"},\"options\":[{\"id\":\"knee-pads\",\"name\":{\"en\":\"Knee pads\",\"el\":\"Επιγονατίδες\"},\"price\":\"25.00\"},{\"id\":\"velcro\",\"name\":{\"en\":\"Velcro\",\"el\":\"Velcro\"},\"price\":\"20.00\"}]}]}",
+   "valid": false
+  },
+  {
+   "label": "option id reused across groups",
+   "raw": "{\"version\":1,\"groups\":[{\"id\":\"camo\",\"type\":\"single\",\"name\":{\"en\":\"Camo pattern\",\"el\":\"Μοτίβο παραλλαγής\"},\"options\":[{\"id\":\"split\",\"name\":{\"en\":\"Split camo pattern\",\"el\":\"Μερικό μοτίβο παραλλαγής\"},\"price\":\"30.00\"},{\"id\":\"full\",\"name\":{\"en\":\"Full camo pattern\",\"el\":\"Πλήρες μοτίβο παραλλαγής\"},\"price\":\"40.00\"}]},{\"id\":\"extras\",\"type\":\"multi\",\"name\":{\"en\":\"Extras\",\"el\":\"Επιπλέον\"},\"options\":[{\"id\":\"split\",\"name\":{\"en\":\"Knee pads\",\"el\":\"Επιγονατίδες\"},\"price\":\"25.00\"},{\"id\":\"velcro\",\"name\":{\"en\":\"Velcro\",\"el\":\"Velcro\"},\"price\":\"20.00\"}]}]}",
+   "valid": false
+  },
+  {
+   "label": "unknown type",
+   "raw": "{\"version\":1,\"groups\":[{\"id\":\"camo\",\"type\":\"required\",\"name\":{\"en\":\"Camo pattern\",\"el\":\"Μοτίβο παραλλαγής\"},\"options\":[{\"id\":\"split\",\"name\":{\"en\":\"Split camo pattern\",\"el\":\"Μερικό μοτίβο παραλλαγής\"},\"price\":\"30.00\"},{\"id\":\"full\",\"name\":{\"en\":\"Full camo pattern\",\"el\":\"Πλήρες μοτίβο παραλλαγής\"},\"price\":\"40.00\"}]},{\"id\":\"extras\",\"type\":\"multi\",\"name\":{\"en\":\"Extras\",\"el\":\"Επιπλέον\"},\"options\":[{\"id\":\"knee-pads\",\"name\":{\"en\":\"Knee pads\",\"el\":\"Επιγονατίδες\"},\"price\":\"25.00\"},{\"id\":\"velcro\",\"name\":{\"en\":\"Velcro\",\"el\":\"Velcro\"},\"price\":\"20.00\"}]}]}",
+   "valid": false
+  },
+  {
+   "label": "required key",
+   "raw": "{\"version\":1,\"groups\":[{\"id\":\"camo\",\"type\":\"single\",\"name\":{\"en\":\"Camo pattern\",\"el\":\"Μοτίβο παραλλαγής\"},\"options\":[{\"id\":\"split\",\"name\":{\"en\":\"Split camo pattern\",\"el\":\"Μερικό μοτίβο παραλλαγής\"},\"price\":\"30.00\"},{\"id\":\"full\",\"name\":{\"en\":\"Full camo pattern\",\"el\":\"Πλήρες μοτίβο παραλλαγής\"},\"price\":\"40.00\"}],\"required\":true},{\"id\":\"extras\",\"type\":\"multi\",\"name\":{\"en\":\"Extras\",\"el\":\"Επιπλέον\"},\"options\":[{\"id\":\"knee-pads\",\"name\":{\"en\":\"Knee pads\",\"el\":\"Επιγονατίδες\"},\"price\":\"25.00\"},{\"id\":\"velcro\",\"name\":{\"en\":\"Velcro\",\"el\":\"Velcro\"},\"price\":\"20.00\"}]}]}",
+   "valid": false
+  },
+  {
+   "label": "missing Greek name",
+   "raw": "{\"version\":1,\"groups\":[{\"id\":\"camo\",\"type\":\"single\",\"name\":{\"en\":\"Camo pattern\"},\"options\":[{\"id\":\"split\",\"name\":{\"en\":\"Split camo pattern\",\"el\":\"Μερικό μοτίβο παραλλαγής\"},\"price\":\"30.00\"},{\"id\":\"full\",\"name\":{\"en\":\"Full camo pattern\",\"el\":\"Πλήρες μοτίβο παραλλαγής\"},\"price\":\"40.00\"}]},{\"id\":\"extras\",\"type\":\"multi\",\"name\":{\"en\":\"Extras\",\"el\":\"Επιπλέον\"},\"options\":[{\"id\":\"knee-pads\",\"name\":{\"en\":\"Knee pads\",\"el\":\"Επιγονατίδες\"},\"price\":\"25.00\"},{\"id\":\"velcro\",\"name\":{\"en\":\"Velcro\",\"el\":\"Velcro\"},\"price\":\"20.00\"}]}]}",
+   "valid": false
+  },
+  {
+   "label": "extra locale",
+   "raw": "{\"version\":1,\"groups\":[{\"id\":\"camo\",\"type\":\"single\",\"name\":{\"en\":\"Camo pattern\",\"el\":\"Μοτίβο παραλλαγής\",\"de\":\"x\"},\"options\":[{\"id\":\"split\",\"name\":{\"en\":\"Split camo pattern\",\"el\":\"Μερικό μοτίβο παραλλαγής\"},\"price\":\"30.00\"},{\"id\":\"full\",\"name\":{\"en\":\"Full camo pattern\",\"el\":\"Πλήρες μοτίβο παραλλαγής\"},\"price\":\"40.00\"}]},{\"id\":\"extras\",\"type\":\"multi\",\"name\":{\"en\":\"Extras\",\"el\":\"Επιπλέον\"},\"options\":[{\"id\":\"knee-pads\",\"name\":{\"en\":\"Knee pads\",\"el\":\"Επιγονατίδες\"},\"price\":\"25.00\"},{\"id\":\"velcro\",\"name\":{\"en\":\"Velcro\",\"el\":\"Velcro\"},\"price\":\"20.00\"}]}]}",
+   "valid": false
+  },
+  {
+   "label": "empty name",
+   "raw": "{\"version\":1,\"groups\":[{\"id\":\"camo\",\"type\":\"single\",\"name\":{\"en\":\"Camo pattern\",\"el\":\"Μοτίβο παραλλαγής\"},\"options\":[{\"id\":\"split\",\"name\":{\"en\":\"\",\"el\":\"Μερικό μοτίβο παραλλαγής\"},\"price\":\"30.00\"},{\"id\":\"full\",\"name\":{\"en\":\"Full camo pattern\",\"el\":\"Πλήρες μοτίβο παραλλαγής\"},\"price\":\"40.00\"}]},{\"id\":\"extras\",\"type\":\"multi\",\"name\":{\"en\":\"Extras\",\"el\":\"Επιπλέον\"},\"options\":[{\"id\":\"knee-pads\",\"name\":{\"en\":\"Knee pads\",\"el\":\"Επιγονατίδες\"},\"price\":\"25.00\"},{\"id\":\"velcro\",\"name\":{\"en\":\"Velcro\",\"el\":\"Velcro\"},\"price\":\"20.00\"}]}]}",
+   "valid": false
+  },
+  {
+   "label": "name with markup",
+   "raw": "{\"version\":1,\"groups\":[{\"id\":\"camo\",\"type\":\"single\",\"name\":{\"en\":\"Camo pattern\",\"el\":\"Μοτίβο παραλλαγής\"},\"options\":[{\"id\":\"split\",\"name\":{\"en\":\"a<b\",\"el\":\"Μερικό μοτίβο παραλλαγής\"},\"price\":\"30.00\"},{\"id\":\"full\",\"name\":{\"en\":\"Full camo pattern\",\"el\":\"Πλήρες μοτίβο παραλλαγής\"},\"price\":\"40.00\"}]},{\"id\":\"extras\",\"type\":\"multi\",\"name\":{\"en\":\"Extras\",\"el\":\"Επιπλέον\"},\"options\":[{\"id\":\"knee-pads\",\"name\":{\"en\":\"Knee pads\",\"el\":\"Επιγονατίδες\"},\"price\":\"25.00\"},{\"id\":\"velcro\",\"name\":{\"en\":\"Velcro\",\"el\":\"Velcro\"},\"price\":\"20.00\"}]}]}",
+   "valid": false
+  },
+  {
+   "label": "name with newline",
+   "raw": "{\"version\":1,\"groups\":[{\"id\":\"camo\",\"type\":\"single\",\"name\":{\"en\":\"Camo pattern\",\"el\":\"Μοτίβο παραλλαγής\"},\"options\":[{\"id\":\"split\",\"name\":{\"en\":\"a\\nb\",\"el\":\"Μερικό μοτίβο παραλλαγής\"},\"price\":\"30.00\"},{\"id\":\"full\",\"name\":{\"en\":\"Full camo pattern\",\"el\":\"Πλήρες μοτίβο παραλλαγής\"},\"price\":\"40.00\"}]},{\"id\":\"extras\",\"type\":\"multi\",\"name\":{\"en\":\"Extras\",\"el\":\"Επιπλέον\"},\"options\":[{\"id\":\"knee-pads\",\"name\":{\"en\":\"Knee pads\",\"el\":\"Επιγονατίδες\"},\"price\":\"25.00\"},{\"id\":\"velcro\",\"name\":{\"en\":\"Velcro\",\"el\":\"Velcro\"},\"price\":\"20.00\"}]}]}",
+   "valid": false
+  },
+  {
+   "label": "name with outer space",
+   "raw": "{\"version\":1,\"groups\":[{\"id\":\"camo\",\"type\":\"single\",\"name\":{\"en\":\"Camo pattern\",\"el\":\"Μοτίβο παραλλαγής\"},\"options\":[{\"id\":\"split\",\"name\":{\"en\":\"Split \",\"el\":\"Μερικό μοτίβο παραλλαγής\"},\"price\":\"30.00\"},{\"id\":\"full\",\"name\":{\"en\":\"Full camo pattern\",\"el\":\"Πλήρες μοτίβο παραλλαγής\"},\"price\":\"40.00\"}]},{\"id\":\"extras\",\"type\":\"multi\",\"name\":{\"en\":\"Extras\",\"el\":\"Επιπλέον\"},\"options\":[{\"id\":\"knee-pads\",\"name\":{\"en\":\"Knee pads\",\"el\":\"Επιγονατίδες\"},\"price\":\"25.00\"},{\"id\":\"velcro\",\"name\":{\"en\":\"Velcro\",\"el\":\"Velcro\"},\"price\":\"20.00\"}]}]}",
+   "valid": false
+  },
+  {
+   "label": "81-character name",
+   "raw": "{\"version\":1,\"groups\":[{\"id\":\"camo\",\"type\":\"single\",\"name\":{\"en\":\"Camo pattern\",\"el\":\"ααααααααααααααααααααααααααααααααααααααααααααααααααααααααααααααααααααααααααααααααα\"},\"options\":[{\"id\":\"split\",\"name\":{\"en\":\"Split camo pattern\",\"el\":\"Μερικό μοτίβο παραλλαγής\"},\"price\":\"30.00\"},{\"id\":\"full\",\"name\":{\"en\":\"Full camo pattern\",\"el\":\"Πλήρες μοτίβο παραλλαγής\"},\"price\":\"40.00\"}]},{\"id\":\"extras\",\"type\":\"multi\",\"name\":{\"en\":\"Extras\",\"el\":\"Επιπλέον\"},\"options\":[{\"id\":\"knee-pads\",\"name\":{\"en\":\"Knee pads\",\"el\":\"Επιγονατίδες\"},\"price\":\"25.00\"},{\"id\":\"velcro\",\"name\":{\"en\":\"Velcro\",\"el\":\"Velcro\"},\"price\":\"20.00\"}]}]}",
+   "valid": false
+  },
+  {
+   "label": "no options",
+   "raw": "{\"version\":1,\"groups\":[{\"id\":\"camo\",\"type\":\"single\",\"name\":{\"en\":\"Camo pattern\",\"el\":\"Μοτίβο παραλλαγής\"},\"options\":[]},{\"id\":\"extras\",\"type\":\"multi\",\"name\":{\"en\":\"Extras\",\"el\":\"Επιπλέον\"},\"options\":[{\"id\":\"knee-pads\",\"name\":{\"en\":\"Knee pads\",\"el\":\"Επιγονατίδες\"},\"price\":\"25.00\"},{\"id\":\"velcro\",\"name\":{\"en\":\"Velcro\",\"el\":\"Velcro\"},\"price\":\"20.00\"}]}]}",
+   "valid": false
+  },
+  {
+   "label": "price as number",
+   "raw": "{\"version\":1,\"groups\":[{\"id\":\"camo\",\"type\":\"single\",\"name\":{\"en\":\"Camo pattern\",\"el\":\"Μοτίβο παραλλαγής\"},\"options\":[{\"id\":\"split\",\"name\":{\"en\":\"Split camo pattern\",\"el\":\"Μερικό μοτίβο παραλλαγής\"},\"price\":30},{\"id\":\"full\",\"name\":{\"en\":\"Full camo pattern\",\"el\":\"Πλήρες μοτίβο παραλλαγής\"},\"price\":\"40.00\"}]},{\"id\":\"extras\",\"type\":\"multi\",\"name\":{\"en\":\"Extras\",\"el\":\"Επιπλέον\"},\"options\":[{\"id\":\"knee-pads\",\"name\":{\"en\":\"Knee pads\",\"el\":\"Επιγονατίδες\"},\"price\":\"25.00\"},{\"id\":\"velcro\",\"name\":{\"en\":\"Velcro\",\"el\":\"Velcro\"},\"price\":\"20.00\"}]}]}",
+   "valid": false
+  },
+  {
+   "label": "price without cents",
+   "raw": "{\"version\":1,\"groups\":[{\"id\":\"camo\",\"type\":\"single\",\"name\":{\"en\":\"Camo pattern\",\"el\":\"Μοτίβο παραλλαγής\"},\"options\":[{\"id\":\"split\",\"name\":{\"en\":\"Split camo pattern\",\"el\":\"Μερικό μοτίβο παραλλαγής\"},\"price\":\"30\"},{\"id\":\"full\",\"name\":{\"en\":\"Full camo pattern\",\"el\":\"Πλήρες μοτίβο παραλλαγής\"},\"price\":\"40.00\"}]},{\"id\":\"extras\",\"type\":\"multi\",\"name\":{\"en\":\"Extras\",\"el\":\"Επιπλέον\"},\"options\":[{\"id\":\"knee-pads\",\"name\":{\"en\":\"Knee pads\",\"el\":\"Επιγονατίδες\"},\"price\":\"25.00\"},{\"id\":\"velcro\",\"name\":{\"en\":\"Velcro\",\"el\":\"Velcro\"},\"price\":\"20.00\"}]}]}",
+   "valid": false
+  },
+  {
+   "label": "price with comma",
+   "raw": "{\"version\":1,\"groups\":[{\"id\":\"camo\",\"type\":\"single\",\"name\":{\"en\":\"Camo pattern\",\"el\":\"Μοτίβο παραλλαγής\"},\"options\":[{\"id\":\"split\",\"name\":{\"en\":\"Split camo pattern\",\"el\":\"Μερικό μοτίβο παραλλαγής\"},\"price\":\"30,00\"},{\"id\":\"full\",\"name\":{\"en\":\"Full camo pattern\",\"el\":\"Πλήρες μοτίβο παραλλαγής\"},\"price\":\"40.00\"}]},{\"id\":\"extras\",\"type\":\"multi\",\"name\":{\"en\":\"Extras\",\"el\":\"Επιπλέον\"},\"options\":[{\"id\":\"knee-pads\",\"name\":{\"en\":\"Knee pads\",\"el\":\"Επιγονατίδες\"},\"price\":\"25.00\"},{\"id\":\"velcro\",\"name\":{\"en\":\"Velcro\",\"el\":\"Velcro\"},\"price\":\"20.00\"}]}]}",
+   "valid": false
+  },
+  {
+   "label": "zero price",
+   "raw": "{\"version\":1,\"groups\":[{\"id\":\"camo\",\"type\":\"single\",\"name\":{\"en\":\"Camo pattern\",\"el\":\"Μοτίβο παραλλαγής\"},\"options\":[{\"id\":\"split\",\"name\":{\"en\":\"Split camo pattern\",\"el\":\"Μερικό μοτίβο παραλλαγής\"},\"price\":\"0.00\"},{\"id\":\"full\",\"name\":{\"en\":\"Full camo pattern\",\"el\":\"Πλήρες μοτίβο παραλλαγής\"},\"price\":\"40.00\"}]},{\"id\":\"extras\",\"type\":\"multi\",\"name\":{\"en\":\"Extras\",\"el\":\"Επιπλέον\"},\"options\":[{\"id\":\"knee-pads\",\"name\":{\"en\":\"Knee pads\",\"el\":\"Επιγονατίδες\"},\"price\":\"25.00\"},{\"id\":\"velcro\",\"name\":{\"en\":\"Velcro\",\"el\":\"Velcro\"},\"price\":\"20.00\"}]}]}",
+   "valid": false
+  },
+  {
+   "label": "negative price",
+   "raw": "{\"version\":1,\"groups\":[{\"id\":\"camo\",\"type\":\"single\",\"name\":{\"en\":\"Camo pattern\",\"el\":\"Μοτίβο παραλλαγής\"},\"options\":[{\"id\":\"split\",\"name\":{\"en\":\"Split camo pattern\",\"el\":\"Μερικό μοτίβο παραλλαγής\"},\"price\":\"-1.00\"},{\"id\":\"full\",\"name\":{\"en\":\"Full camo pattern\",\"el\":\"Πλήρες μοτίβο παραλλαγής\"},\"price\":\"40.00\"}]},{\"id\":\"extras\",\"type\":\"multi\",\"name\":{\"en\":\"Extras\",\"el\":\"Επιπλέον\"},\"options\":[{\"id\":\"knee-pads\",\"name\":{\"en\":\"Knee pads\",\"el\":\"Επιγονατίδες\"},\"price\":\"25.00\"},{\"id\":\"velcro\",\"name\":{\"en\":\"Velcro\",\"el\":\"Velcro\"},\"price\":\"20.00\"}]}]}",
+   "valid": false
+  },
+  {
+   "label": "leading zero",
+   "raw": "{\"version\":1,\"groups\":[{\"id\":\"camo\",\"type\":\"single\",\"name\":{\"en\":\"Camo pattern\",\"el\":\"Μοτίβο παραλλαγής\"},\"options\":[{\"id\":\"split\",\"name\":{\"en\":\"Split camo pattern\",\"el\":\"Μερικό μοτίβο παραλλαγής\"},\"price\":\"030.00\"},{\"id\":\"full\",\"name\":{\"en\":\"Full camo pattern\",\"el\":\"Πλήρες μοτίβο παραλλαγής\"},\"price\":\"40.00\"}]},{\"id\":\"extras\",\"type\":\"multi\",\"name\":{\"en\":\"Extras\",\"el\":\"Επιπλέον\"},\"options\":[{\"id\":\"knee-pads\",\"name\":{\"en\":\"Knee pads\",\"el\":\"Επιγονατίδες\"},\"price\":\"25.00\"},{\"id\":\"velcro\",\"name\":{\"en\":\"Velcro\",\"el\":\"Velcro\"},\"price\":\"20.00\"}]}]}",
+   "valid": false
+  },
+  {
+   "label": "price too large",
+   "raw": "{\"version\":1,\"groups\":[{\"id\":\"camo\",\"type\":\"single\",\"name\":{\"en\":\"Camo pattern\",\"el\":\"Μοτίβο παραλλαγής\"},\"options\":[{\"id\":\"split\",\"name\":{\"en\":\"Split camo pattern\",\"el\":\"Μερικό μοτίβο παραλλαγής\"},\"price\":\"100000.00\"},{\"id\":\"full\",\"name\":{\"en\":\"Full camo pattern\",\"el\":\"Πλήρες μοτίβο παραλλαγής\"},\"price\":\"40.00\"}]},{\"id\":\"extras\",\"type\":\"multi\",\"name\":{\"en\":\"Extras\",\"el\":\"Επιπλέον\"},\"options\":[{\"id\":\"knee-pads\",\"name\":{\"en\":\"Knee pads\",\"el\":\"Επιγονατίδες\"},\"price\":\"25.00\"},{\"id\":\"velcro\",\"name\":{\"en\":\"Velcro\",\"el\":\"Velcro\"},\"price\":\"20.00\"}]}]}",
+   "valid": false
+  },
+  {
+   "label": "extra option key",
+   "raw": "{\"version\":1,\"groups\":[{\"id\":\"camo\",\"type\":\"single\",\"name\":{\"en\":\"Camo pattern\",\"el\":\"Μοτίβο παραλλαγής\"},\"options\":[{\"id\":\"split\",\"name\":{\"en\":\"Split camo pattern\",\"el\":\"Μερικό μοτίβο παραλλαγής\"},\"price\":\"30.00\",\"sku\":\"x\"},{\"id\":\"full\",\"name\":{\"en\":\"Full camo pattern\",\"el\":\"Πλήρες μοτίβο παραλλαγής\"},\"price\":\"40.00\"}]},{\"id\":\"extras\",\"type\":\"multi\",\"name\":{\"en\":\"Extras\",\"el\":\"Επιπλέον\"},\"options\":[{\"id\":\"knee-pads\",\"name\":{\"en\":\"Knee pads\",\"el\":\"Επιγονατίδες\"},\"price\":\"25.00\"},{\"id\":\"velcro\",\"name\":{\"en\":\"Velcro\",\"el\":\"Velcro\"},\"price\":\"20.00\"}]}]}",
+   "valid": false
+  }
+ ]
+}

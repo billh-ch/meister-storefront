@@ -12,6 +12,7 @@ import CartShoppingLayout from '@/components/cart/cart-shopping-layout'
 import { getCart } from '@/lib/cart/cookie'
 import { resolveCartItems } from '@/lib/cart/resolve'
 import { formatVariationLabel } from '@/lib/cart/variation-label'
+import AddonLines from '@/components/cart/addon-lines'
 import { cartLineKey } from '@/lib/cart/line-key'
 import { formatPrice } from '@/lib/mock-data'
 
@@ -117,6 +118,7 @@ export default async function CartPage() {
                             {formatVariationLabel(line.attributes, ' · ', t)}
                           </p>
                         )}
+                        <AddonLines addons={line.chosenAddons} className="mt-1 text-xs text-[#999999]" />
                         {line.checkoutIssue ? (
                           <div className="mt-1 text-xs text-[#FF6B6B]">
                             <p>{t(line.checkoutIssue)}</p>
@@ -144,6 +146,7 @@ export default async function CartPage() {
                       productId={line.productId}
                       variationId={line.variationId}
                       selectedOptions={line.selectedOptions}
+                      addons={line.addons}
                       quantity={line.quantity}
                     />
                   </div>

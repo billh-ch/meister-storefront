@@ -11,6 +11,7 @@ import { cartLineKey } from '@/lib/cart/line-key'
 import { CART_OPEN_EVENT, CART_UPDATED_EVENT } from '@/lib/cart/client-events'
 import { formatPrice } from '@/lib/mock-data'
 import CartLineControls from './cart-line-controls'
+import AddonLines from './addon-lines'
 import CartRecommendations from './cart-recommendations'
 
 const MONO = 'var(--font-space-mono), monospace'
@@ -134,11 +135,12 @@ export default function CartDrawer() {
                             <div className="flex min-w-0 flex-1 flex-col gap-2 break-words">
                               <Link href={`/products/${line.slug}`} onClick={close} className="text-sm font-bold">{line.name}</Link>
                               {Object.entries(line.attributes).map(([name, value]) => <p key={name} className="text-xs">{t(name)}: {value}</p>)}
+                              <AddonLines addons={line.chosenAddons} className="text-xs" />
                               <p className="text-sm">{formatPrice(line.unitPrice)} × {line.quantity}</p>
                               {line.checkoutIssue ? <p className="text-xs text-[#FF6B6B]">{t(line.checkoutIssue)}</p> : !line.purchasable && <p className="text-xs">{t("Out of stock")}</p>}
                             </div>
                           </div>
-                          {!onCheckoutPage && <CartLineControls productId={line.productId} variationId={line.variationId} selectedOptions={line.selectedOptions} quantity={line.quantity} onPendingChange={setMutationPending} />}
+                          {!onCheckoutPage && <CartLineControls productId={line.productId} variationId={line.variationId} selectedOptions={line.selectedOptions} addons={line.addons} quantity={line.quantity} onPendingChange={setMutationPending} />}
                         </li>
                       ))}
                     </ul>

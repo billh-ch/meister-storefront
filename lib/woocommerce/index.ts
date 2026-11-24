@@ -37,9 +37,9 @@ export async function getProducts(locale: string = 'en'): Promise<Product[]> {
   }
 }
 
-function findMockDetail(slug: string): ProductDetail | null {
+function findMockDetail(slug: string, locale: string = 'en'): ProductDetail | null {
   const product = mockProducts.find((candidate) => candidate.slug === slug)
-  return product ? toMockProductDetail(product) : null
+  return product ? toMockProductDetail(product, locale) : null
 }
 
 /** Strict public detail lookup for agent tools: never return demo/outage data. */
@@ -62,7 +62,7 @@ export async function getPublishedProductBySlug(slug: string): Promise<ProductDe
  *   credentials), so it falls back to mock data exactly like getProducts().
  */
 export async function getProductBySlug(slug: string, locale: string = 'en'): Promise<ProductDetail | null> {
-  if (useMock) return findMockDetail(slug)
+  if (useMock) return findMockDetail(slug, locale)
 
   try {
     const wcProduct = await fetchProductBySlug(slug)
@@ -78,7 +78,8 @@ export async function getProductBySlug(slug: string, locale: string = 'en'): Pro
       error,
     )
     const preview = findMockDetail(slug)
-    return preview ? asUnavailableProductPreview(preview) : null
+    // Sample add-ons belong to demo mode only, never to an outage preview of a real product.
+    return preview ? asUnavailableProductPreview({ ...preview, addons: [] }) : null
   }
 }
 
@@ -93,7 +94,7 @@ export async function getProductBySlug(slug: string, locale: string = 'en'): Pro
 export async function getProductById(id: string, locale: string = 'en'): Promise<ProductDetail | null> {
   if (useMock) {
     const product = mockProducts.find((candidate) => candidate.id === id)
-    return product ? toMockProductDetail(product) : null
+    return product ? toMockProductDetail(product, locale) : null
   }
 
   const wcProduct = await fetchProductById(id)
