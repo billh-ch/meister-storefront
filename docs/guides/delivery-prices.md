@@ -16,7 +16,7 @@ Enter the rate **before VAT**. With 24% VAT and 2-decimal rounding:
 |---|---|
 | €3.00 | 2.42 |
 | €5.00 | 4.03 |
-| €10.00 | Not possible exactly: 8.06 gives €9.99, 8.07 gives €10.01 |
+| €9.99 (Europe; €10.00 is not possible exactly) | 8.06 |
 | €15.00 | 12.10 |
 
-The same applies to BOX NOW's own price setting. Check the delivery price on the storefront checkout after any change.
+Chosen rates: Greece 2.42, Cyprus 4.03, Europe 8.06, rest of world 12.10. The same applies to BOX NOW's own price setting (2.42 for €3.00). Check the delivery price on the storefront checkout after any change.
