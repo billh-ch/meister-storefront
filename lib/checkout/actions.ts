@@ -200,6 +200,9 @@ export async function createCheckoutSessionAction(
         shippingMethodId: method.wcMethodId,
         shippingMethodTitle: method.title,
         shippingCost: String(shipping),
+        // The VAT-exclusive rate WooCommerce stores; the webhook sends this as
+        // the order's shipping line so WooCommerce adds back the same VAT.
+        shippingNet: method.netCost.toFixed(2),
         ...(appliedCouponCode ? { couponCode: appliedCouponCode, couponDiscount: String(discountCents / 100) } : {}),
         ship_email: parsed.data.email ?? '',
         ship_first_name: parsed.data.firstName,

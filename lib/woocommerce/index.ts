@@ -10,6 +10,7 @@ import { fetchShippingRates, type StoreApiAddress } from './queries/get-shipping
 import { mapProduct } from './mappers/map-product'
 import { mapProductDetail } from './mappers/map-product-detail'
 import { mapOrder } from './mappers/map-order'
+import { shippingAmounts } from './mappers/map-shipping-rate'
 import { cancelEligibility, cancelWindowMs } from '@/lib/orders/cancel'
 import { asUnavailableProductPreview } from './preview-product'
 
@@ -144,7 +145,10 @@ export interface ShippingMethod {
    *  `shipping_lines[].method_id` expects. */
   wcMethodId: string
   title: string
+  /** What the customer pays for delivery, VAT included. */
   cost: number
+  /** The same rate before VAT, as WooCommerce stores it (order shipping line). */
+  netCost: number
   isPickup: boolean
 }
 
@@ -160,8 +164,8 @@ export interface ShippingCartItem {
  *  WooCommerce shipping config to read, and checkout must still render
  *  something. Never reached against the live store. */
 const MOCK_SHIPPING_METHODS: ShippingMethod[] = [
-  { id: 'mock:1', wcMethodId: 'flat_rate', title: 'Standard Delivery', cost: 5, isPickup: false },
-  { id: 'mock:pickup', wcMethodId: 'local_pickup', title: 'Store pickup', cost: 0, isPickup: true },
+  { id: 'mock:1', wcMethodId: 'flat_rate', title: 'Standard Delivery', cost: 5, netCost: 5, isPickup: false },
+  { id: 'mock:pickup', wcMethodId: 'local_pickup', title: 'Store pickup', cost: 0, netCost: 0, isPickup: true },
 ]
 
 /**
@@ -193,7 +197,7 @@ export async function getShippingMethods(
     id: rate.rate_id,
     wcMethodId: rate.method_id,
     title: rate.name,
-    cost: Number.parseInt(rate.price, 10) / 10 ** rate.currency_minor_unit,
+    ...shippingAmounts(rate),
     isPickup: rate.method_id === 'local_pickup',
   }))
 }

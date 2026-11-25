@@ -33,7 +33,7 @@ async function fixture(methodId, run) {
   const id = `${methodId}:3`
   globalThis.boxNowSessionFixture = {
     cart: { lines: [line], unavailableCount: 0, subtotal: 80 },
-    quote: { status: 'ready', methods: [{ id, wcMethodId: methodId, title: methodId === 'box_now_delivery' ? 'BOX NOW' : 'Courier', cost: 2, isPickup: false }], cartSignature: checkoutCartSignature([line]) },
+    quote: { status: 'ready', methods: [{ id, wcMethodId: methodId, title: methodId === 'box_now_delivery' ? 'BOX NOW' : 'Courier', cost: 2, netCost: 1.61, isPickup: false }], cartSignature: checkoutCartSignature([line]) },
     stripe: { checkout: { sessions: { create: async input => { state.sessions.push(input); return { url: 'https://checkout.stripe.com/fixture' } } } } },
   }
   globalThis.fetch = async url => {
@@ -56,6 +56,8 @@ test('the real session route verifies BOX NOW and passes canonical details into 
   assert.equal(session.metadata.boxnow_locker_address, 'Canonical Street 144')
   assert.equal(session.metadata.boxnow_locker_postcode, '18545')
   assert.equal(session.metadata.boxnow_locker_country, 'GR')
+  assert.equal(session.metadata.shippingCost, '2', 'the customer pays the VAT-inclusive delivery price')
+  assert.equal(session.metadata.shippingNet, '1.61', 'WooCommerce receives the rate before VAT')
   assert.equal(session.metadata.ship_address1, address.address1, 'Billing/customer address is retained')
   assert.equal(session.metadata.shippingMethodId, 'box_now_delivery')
   assert.equal(session.line_items.at(-1).price_data.unit_amount, 200, 'WooCommerce supplies the shipping price')

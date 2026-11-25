@@ -25,6 +25,8 @@ export interface StoreApiShippingRate {
   /** Minor-unit integer string, e.g. `"200"` — divide by
    *  `10 ** currency_minor_unit` for the real amount. */
   price: string
+  /** VAT on that price, same minor units. WooCommerce rates exclude VAT. */
+  taxes?: string
   currency_minor_unit: number
 }
 
