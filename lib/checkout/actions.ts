@@ -6,7 +6,7 @@ import { getTranslator } from '@/lib/i18n/server'
 import { getSession } from '@/lib/auth/session'
 import { getCart } from '@/lib/cart/cookie'
 import { resolveCartItems } from '@/lib/cart/resolve'
-import { formatVariationLabel } from '@/lib/cart/variation-label'
+import { cartLinesMetadata, stripeProductLineItems } from './stripe-lines'
 import { getStripe } from '@/lib/stripe'
 import { getBaseUrl } from '@/lib/url'
 import { addressSchema, shippingAddressSchema, type AddressInput, type ShippingAddressInput } from '@/lib/address/schema'
@@ -43,10 +43,10 @@ export async function getShippingMethodsAction(input: ShippingAddressInput): Pro
  * Sessions" with no custom payment UI on our side) — the customer is
  * redirected to `checkoutSession.url` to pay on Stripe's own page, then
  * back to `success_url`. Line items are priced from `resolveCartItems`'
- * live WooCommerce data, never from anything the client posts; WooCommerce
- * re-prices the order itself again at webhook time from the same product
- * ids, so a tampered metadata value can reference a bad id but never
- * dictate what gets charged in either system.
+ * live WooCommerce data (variation + chosen add-ons), never from anything
+ * the client posts; WooCommerce re-prices the order itself again at webhook
+ * time from the same ids, so a tampered metadata value can reference a bad
+ * id but never dictate what gets charged in either system.
  */
 export async function createCheckoutSessionAction(
   input: AddressInput,
@@ -140,49 +140,17 @@ export async function createCheckoutSessionAction(
   catch (error) { return { error: t(error instanceof Error ? error.message : 'Could not verify your BOX NOW locker. Please try again.') } }
 
   // Metadata carries only *identity* — product/variation ids, quantities,
-  // the shopper's axis picks, and the shipping address — never a price.
-  // WooCommerce prices every line item itself from live product data at
-  // order-creation time, so a stale/tampered metadata value can reference a
+  // the shopper's axis picks and add-on ids, and the shipping address —
+  // never a price. WooCommerce prices every line item itself from live
+  // product data at order-creation time (the meister-product-addons plugin
+  // adds the add-on prices there), so a stale metadata value can reference a
   // bad id but can never dictate what gets charged.
-  //
-  // `a` is only the axes the variation does NOT pin ("Any …" axes like skin
-  // colour / hardness) — WooCommerce already records the pinned ones on the
-  // order from `variation_id`, so this is the minimum the shop needs to
-  // fulfil the right item.
-  const cartLines = resolved.lines.map((line) => {
-    const extraOptions = Object.fromEntries(
-      Object.entries(line.attributes).filter(([name]) => !(name in line.variantAttributes)),
-    )
-    return {
-      p: line.productId,
-      v: line.resolvedVariationId ?? line.variationId,
-      q: line.quantity,
-      ...(Object.keys(extraOptions).length > 0 ? { a: extraOptions } : {}),
-    }
-  })
+  const safeCartLinesJson = cartLinesMetadata(resolved.lines)
+  if (!safeCartLinesJson) {
+    return { error: t('Your cart is too large to pay for in one order. Please remove some items and try again.') }
+  }
 
-  // Stripe caps a metadata value at 500 chars. If a big multi-axis cart
-  // would blow that, drop the `a` fields rather than the order — our own
-  // checkout summary still shows everything from the cookie.
-  const cartLinesJson = JSON.stringify(cartLines)
-  const safeCartLinesJson =
-    cartLinesJson.length <= 480
-      ? cartLinesJson
-      : JSON.stringify(cartLines.map((line) => ({ p: line.p, v: line.v, q: line.q })))
-
-  const lineItems = resolved.lines.map((line) => {
-    // Show the chosen variation on Stripe's hosted page and the receipt too,
-    // so the last screen before payment matches our own checkout summary.
-    const variation = formatVariationLabel(line.attributes, ', ', t)
-    return {
-      price_data: {
-        currency: 'eur',
-        product_data: { name: variation ? `${line.name} (${variation})` : line.name },
-        unit_amount: Math.round(line.unitPrice * 100),
-      },
-      quantity: line.quantity,
-    }
-  })
+  const lineItems = stripeProductLineItems(resolved.lines, t)
 
   // Always shown, even when free (€0 pickup) — so the customer sees exactly
   // which delivery method they're getting on Stripe's hosted page and the

@@ -1,4 +1,5 @@
 import { BUSINESS_CONTACT } from './business-contact'
+import { localizeAddons, parseAddons, type AddonGroupView } from './addons/contract'
 /**
  * Mock/fallback data layer. Product shapes here (`Product`) are the contract
  * `lib/woocommerce` maps real WooCommerce REST data into — this file's
@@ -88,6 +89,9 @@ export interface ProductDetail extends Product {
   variants: ProductVariant[]
   weight: string
   dimensions: { length: string; width: string; height: string }
+  /** Paid extras (`lib/addons`), already validated and localized. Display
+   *  only: the cart stores ids and every price is re-resolved server-side. */
+  addons?: AddonGroupView[]
 }
 
 /* ----------------------------------------------------------------
@@ -141,7 +145,33 @@ function buildMockGallery(image: string, productName: string): ProductImage[] {
  * products is a "S / M / L"-style string, which becomes a single display-only
  * attribute for simple products, or selectable variants for variable fixtures.
  */
-export function toMockProductDetail(product: Product): ProductDetail {
+/**
+ * Sample add-ons for one mock wetsuit, so browser tests can exercise the
+ * add-on selector and cart without WooCommerce. Written as the raw meta JSON
+ * and run through the real parser, like a WooCommerce product would be.
+ */
+const MOCK_ADDONS_JSON: Record<string, string> = {
+  '4': JSON.stringify({
+    version: 1,
+    groups: [
+      { id: 'camo', type: 'single', name: { en: 'Camo pattern', el: 'Μοτίβο παραλλαγής' }, options: [
+        { id: 'split', name: { en: 'Split camo pattern', el: 'Μερικό μοτίβο παραλλαγής' }, price: '30.00' },
+        { id: 'full', name: { en: 'Full camo pattern', el: 'Πλήρες μοτίβο παραλλαγής' }, price: '40.00' },
+      ] },
+      { id: 'extras', type: 'multi', name: { en: 'Extras', el: 'Επιπλέον' }, options: [
+        { id: 'knee-pads', name: { en: 'Knee pads', el: 'Επιγονατίδες' }, price: '25.00' },
+        { id: 'velcro', name: { en: 'Velcro', el: 'Velcro' }, price: '20.00' },
+      ] },
+    ],
+  }),
+}
+
+export function mockAddons(productId: string, locale: string = 'en'): AddonGroupView[] {
+  const raw = MOCK_ADDONS_JSON[productId]
+  return raw ? localizeAddons(parseAddons(raw), locale) : []
+}
+
+export function toMockProductDetail(product: Product, locale: string = 'en'): ProductDetail {
   const sizeValues = product.options
     .split('/')
     .map((value) => value.trim())
@@ -174,6 +204,7 @@ export function toMockProductDetail(product: Product): ProductDetail {
     })) : [],
     weight: '',
     dimensions: { length: '', width: '', height: '' },
+    addons: mockAddons(product.id, locale),
   }
 }
 

@@ -221,6 +221,47 @@ test('an undiscounted paid session is unchanged by the coupon feature', async ()
   assert.equal(db.notes.length, 0)
 }))
 
+function addonRequest(pi, amountTotal, { coupon = false, o = 'camo:full,extras:knee-pads' } = {}) {
+  const request = paidRequest(pi)
+  return request.json().then(event => {
+    Object.assign(event.data.object, { amount_total: amountTotal })
+    event.data.object.metadata.cartLines = JSON.stringify([{ p: '501', v: '502', q: 1, a: { Size: 'M' }, o }])
+    if (coupon) Object.assign(event.data.object.metadata, { couponCode: 'TESTCOUPON', couponDiscount: '10' })
+    const body = JSON.stringify(event)
+    return new Request(request.url, { method: 'POST', body, headers: { 'stripe-signature': stripe.webhooks.generateTestHeaderString({ payload: body, secret: 'whsec_fixture' }) } })
+  })
+}
+test('a paid add-on line sends only the add-on ids to WooCommerce, never a price', async () => withBackend(async db => {
+  assert.equal((await POST(await addonRequest('pi_fixture_addons', 32300))).status, 200)
+  const item = db.orders[0].line_items[0]
+  assert.deepEqual(item.meta_data, [{ key: 'Size', value: 'M' }, { key: '_meister_addons', value: 'camo:full,extras:knee-pads' }])
+  for (const field of ['price', 'subtotal', 'total']) assert.equal(item[field], undefined, field)
+  assert.equal(db.notes.length, 0, 'WooCommerce total agrees with the Stripe charge')
+}))
+test('an add-on order whose Woo total differs from the Stripe charge is flagged even without a coupon', async () => withBackend(async db => {
+  db.orderTotal = '258.00'
+  assert.equal((await POST(await addonRequest('pi_fixture_addons_mismatch', 32300))).status, 200)
+  assert.equal(db.orders.length, 1, 'never blocked: the customer has paid')
+  assert.equal(db.notes.length, 1)
+  assert.match(db.notes[0].note, /Stripe charged €323\.00 but WooCommerce computed €258\.00 .*product add-ons/)
+  assert.equal(db.notes[0].customer_note, false)
+}))
+test('add-ons with a coupon are checked once against the discounted Stripe charge', async () => withBackend(async db => {
+  assert.equal((await POST(await addonRequest('pi_fixture_addons_coupon', 32300, { coupon: true }))).status, 200)
+  assert.deepEqual(db.orders[0].coupon_lines, [{ code: 'TESTCOUPON' }])
+  assert.equal(db.notes.length, 0)
+  db.orderTotal = '333.00'
+  assert.equal((await POST(await addonRequest('pi_fixture_addons_coupon_2', 32300, { coupon: true }))).status, 200)
+  assert.match(db.notes[0].note, /discount code TESTCOUPON and product add-ons/)
+}))
+test('malformed add-on metadata is refused before any order is written', async () => withBackend(async db => {
+  for (const o of ['camo:full,camo:full', 'CAMO:full', '']) {
+    const response = await POST(await addonRequest(`pi_fixture_addons_bad_${o.length}`, 32300, { o }))
+    assert.equal(response.status, 503, o)
+  }
+  assert.equal(db.orders.length, 0)
+}))
+
 function localizedRequest(pi, locale) {
   const request = paidRequest(pi)
   return request.json().then(event => {

@@ -12,6 +12,8 @@ interface CartLineControlsProps {
   /** Carried back into the cart actions so they address this exact line —
    *  two lines can share a `variationId` but differ on "Any …" axis picks. */
   selectedOptions?: Record<string, string>
+  /** Add-on ids: the same product with different add-ons is a different line. */
+  addons?: string[]
   quantity: number
   onPendingChange?: (pending: boolean) => void
 }
@@ -22,6 +24,7 @@ export default function CartLineControls({
   productId,
   variationId,
   selectedOptions,
+  addons,
   quantity,
   onPendingChange,
 }: CartLineControlsProps) {
@@ -48,11 +51,11 @@ export default function CartLineControls({
   }
 
   const handleQuantityChange = (next: number) => {
-    mutate(() => updateQuantityAction({ productId, variationId, selectedOptions, quantity: next }))
+    mutate(() => updateQuantityAction({ productId, variationId, selectedOptions, addons, quantity: next }))
   }
 
   const handleRemove = () => {
-    mutate(() => removeFromCartAction({ productId, variationId, selectedOptions }))
+    mutate(() => removeFromCartAction({ productId, variationId, selectedOptions, addons }))
   }
 
   return (

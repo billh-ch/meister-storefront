@@ -10,6 +10,7 @@ import { getCart, setCart } from './cookie'
 import { cartItemSchema, type CartItem } from './schema'
 import { cartLineKey } from './line-key'
 import { resolveCartSelection } from './selection'
+import { canonicalAddonRefs, resolveAddonSelection } from '@/lib/addons/contract'
 
 // Same id constraints as `cartItemSchema`, but `quantity` allows `<= 0` — that's
 // how a line gets removed (see `removeFromCartAction`) — which `cartItemSchema`
@@ -18,6 +19,7 @@ const updateQuantityInputSchema = z.object({
   productId: cartItemSchema.shape.productId,
   variationId: cartItemSchema.shape.variationId,
   selectedOptions: cartItemSchema.shape.selectedOptions,
+  addons: cartItemSchema.shape.addons,
   quantity: z.number().int().max(99),
 })
 
@@ -87,6 +89,8 @@ export async function addToCartAction(input: {
   variationId?: string
   quantity: number
   selectedOptions?: Record<string, string>
+  /** `"<group>:<option>"` add-on references; ids only, never prices. */
+  addons?: string[]
 }): Promise<CartActionResult> {
   const t = await getTranslator()
   const parsed = cartItemSchema.safeParse(input)
@@ -95,9 +99,19 @@ export async function addToCartAction(input: {
   const validation = await assertPurchasable(parsed.data.productId, parsed.data.variationId)
   if (!validation.ok) return validation
 
+  // Add-ons are checked strictly against this product's live definition. A
+  // reference it does not offer, a duplicate, or two choices in a pick-one
+  // group is refused outright rather than stored and repaired later.
+  const addonResult = resolveAddonSelection(validation.product.addons ?? [], parsed.data.addons)
+  if (!addonResult.ok) {
+    return { ok: false, error: t(addonResult.reason === 'invalid' ? 'Please check your add-on choices.' : 'That add-on is no longer available.') }
+  }
+  const addons = canonicalAddonRefs(parsed.data.addons)
+
   const newItem: CartItem = {
     ...parsed.data,
     selectedOptions: sanitizeSelectedOptions(validation.product, parsed.data.selectedOptions),
+    addons: addons.length > 0 ? addons : undefined,
   }
   const selection = resolveCartSelection(validation.product, newItem.variationId, newItem.selectedOptions)
   if (selection.issue) return { ok: false, error: t(selection.issue) }
@@ -125,6 +139,7 @@ export async function updateQuantityAction(input: {
   productId: string
   variationId?: string
   selectedOptions?: Record<string, string>
+  addons?: string[]
   quantity: number
 }): Promise<CartActionResult> {
   const t = await getTranslator()
@@ -152,6 +167,7 @@ export async function removeFromCartAction(input: {
   productId: string
   variationId?: string
   selectedOptions?: Record<string, string>
+  addons?: string[]
 }): Promise<CartActionResult> {
   return updateQuantityAction({ ...input, quantity: 0 })
 }

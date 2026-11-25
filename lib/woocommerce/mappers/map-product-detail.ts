@@ -4,6 +4,7 @@ import type {
   ProductVariant,
 } from '@/lib/mock-data'
 import { sanitizeProductHtml } from '@/lib/sanitize'
+import { ADDONS_VERSION, addonsFromMetaData, localizeAddons } from '@/lib/addons/contract'
 import { getProductContent } from '@/lib/product-content/translations'
 import type {
   WcProductDetail,
@@ -154,5 +155,16 @@ export function mapProductDetail(
     variants: variations.map(mapVariant),
     weight: wc.weight ?? '',
     dimensions: wc.dimensions ?? { length: '', width: '', height: '' },
+    addons: mapAddons(wc, locale),
   }
+}
+
+/**
+ * Add-ons are offered only when the WooCommerce plugin that prices them on
+ * the order reports itself active for this contract version. Otherwise the
+ * shopper would be charged for extras the WooCommerce order would not carry.
+ */
+function mapAddons(wc: WcProductDetail, locale: string) {
+  if (wc.meister_addons_pricing !== ADDONS_VERSION) return []
+  return localizeAddons(addonsFromMetaData(wc.meta_data), locale)
 }

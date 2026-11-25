@@ -16,6 +16,7 @@ import WishlistButton from '../wishlist/button'
 import ProductGallery from './product-gallery'
 import ProductTrustStrip from './product-trust-strip'
 import VariantSelector from './variant-selector'
+import AddonSelector from './addon-selector'
 import QuantityStepper from './quantity-stepper'
 
 interface ProductBuyBoxProps {
@@ -142,6 +143,8 @@ export default function ProductBuyBox({ product }: ProductBuyBoxProps) {
   )
 
   const [selected, setSelected] = useState<Record<string, string>>({})
+  const addonGroups = useMemo(() => product.addons ?? [], [product.addons])
+  const [addonChoice, setAddonChoice] = useState<Record<string, string[]>>({})
   const [quantity, setQuantity] = useState(1)
   const [missing, setMissing] = useState<string[]>([])
   const [confirmation, setConfirmation] = useState('')
@@ -156,7 +159,14 @@ export default function ProductBuyBox({ product }: ProductBuyBoxProps) {
     [product.variants, axisNames, selected],
   )
 
-  const price = activeVariant?.price ?? product.price
+  const basePrice = activeVariant?.price ?? product.price
+  // Display only. The cart re-prices every add-on from WooCommerce; the
+  // browser sends nothing but the chosen ids.
+  const addonCents = addonGroups.reduce((sum, group) => sum + group.options
+    .filter((option) => (addonChoice[group.id] ?? []).includes(option.id))
+    .reduce((groupSum, option) => groupSum + option.priceCents, 0), 0)
+  const price = (Math.round(basePrice * 100) + addonCents) / 100
+  const addonRefs = addonGroups.flatMap((group) => (addonChoice[group.id] ?? []).map((id) => `${group.id}:${id}`))
   const regularPrice = activeVariant?.regularPrice ?? product.regularPrice
   const onSale = activeVariant?.onSale ?? product.onSale
   const stockStatus = activeVariant?.stockStatus ?? product.stockStatus
@@ -177,8 +187,8 @@ export default function ProductBuyBox({ product }: ProductBuyBoxProps) {
   const needsOptions = axisNames.some((name) => !selected[name])
 
   const savingPercent =
-    onSale && regularPrice > price
-      ? Math.round(((regularPrice - price) / regularPrice) * 100)
+    onSale && regularPrice > basePrice
+      ? Math.round(((regularPrice - basePrice) / regularPrice) * 100)
       : 0
 
   /* Sticky mobile bar visibility — driven by the real CTA leaving the
@@ -202,6 +212,12 @@ export default function ProductBuyBox({ product }: ProductBuyBoxProps) {
   const handleSelect = useCallback((attributeName: string, value: string) => {
     setSelected((current) => ({ ...current, [attributeName]: value }))
     setMissing((current) => current.filter((name) => name !== attributeName))
+    setConfirmation('')
+    setIsConfirmationError(false)
+  }, [])
+
+  const handleAddonChange = useCallback((groupId: string, optionIds: string[]) => {
+    setAddonChoice((current) => ({ ...current, [groupId]: optionIds }))
     setConfirmation('')
     setIsConfirmationError(false)
   }, [])
@@ -249,6 +265,7 @@ export default function ProductBuyBox({ product }: ProductBuyBoxProps) {
         // axes like skin colour / hardness). Only meaningful for variable
         // products; a simple product has no axes so this is `{}`.
         selectedOptions: axisNames.length > 0 ? selected : undefined,
+        addons: addonRefs.length > 0 ? addonRefs : undefined,
       })
       if (result.ok) {
         setConfirmation(t('Added to cart — {quantity} × {name}', { quantity, name: product.name }))
@@ -259,7 +276,7 @@ export default function ProductBuyBox({ product }: ProductBuyBoxProps) {
         setIsConfirmationError(true)
       }
     })
-  }, [axisNames, selected, quantity, product.id, product.name, product.image, activeVariant, t])
+  }, [axisNames, selected, quantity, product.id, product.name, product.image, activeVariant, t, addonRefs])
 
   const isError = isConfirmationError
 
@@ -313,7 +330,7 @@ export default function ProductBuyBox({ product }: ProductBuyBoxProps) {
                 style={{ fontFamily: MONO }}
               >
                 {showRange
-                  ? `${formatPrice(range.min)} – ${formatPrice(range.max)}`
+                  ? `${formatPrice(range.min + addonCents / 100)} – ${formatPrice(range.max + addonCents / 100)}`
                   : formatPrice(price)}
               </span>
 
@@ -323,7 +340,7 @@ export default function ProductBuyBox({ product }: ProductBuyBoxProps) {
                     className="whitespace-nowrap text-base text-[#999999] line-through"
                     style={{ fontFamily: MONO }}
                   >
-                    {formatPrice(regularPrice)}
+                    {formatPrice(regularPrice + addonCents / 100)}
                   </span>
                   <span
                     className="px-2 py-0.5 text-[11px] font-bold tracking-wide text-[#1B1B18] uppercase"
@@ -335,7 +352,7 @@ export default function ProductBuyBox({ product }: ProductBuyBoxProps) {
               )}
             </div>
             <p className="mt-1 text-xs text-[#999999]" style={{ fontFamily: MONO }}>
-              {activeVariant ? t("Price for your selection · ") : ''}{t("VAT included")}
+              {activeVariant ? t("Price for your selection · ") : ''}{addonCents > 0 ? t('Includes add-ons of {amount} · ', { amount: formatPrice(addonCents / 100) }) : ''}{t("VAT included")}
             </p>
           </div>
 
@@ -381,7 +398,17 @@ export default function ProductBuyBox({ product }: ProductBuyBoxProps) {
             </div>
           )}
 
+          {addonGroups.length > 0 && (
+            <AddonSelector groups={addonGroups} chosen={addonChoice} onChange={handleAddonChange} />
+          )}
+
           <QuantityStepper value={quantity} onChange={handleQuantityChange} />
+
+          {addonGroups.length > 0 && !showRange && (
+            <p className="text-xs text-[#CCCCCC]" style={{ fontFamily: MONO }} data-line-price>
+              {t('Line price: {amount}', { amount: formatPrice((Math.round(price * 100) * quantity) / 100) })}
+            </p>
+          )}
 
           <div>
             <button

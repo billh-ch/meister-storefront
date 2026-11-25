@@ -40,6 +40,7 @@ The Cloudflare branch is a parallel build (`build:vinext`, `deploy:vinext`, `wra
 - **Password reset** — storefront-run (WordPress cannot send mail): hashed single-use tokens in Redis, Resend email, new password set via the Woo customer API, earlier sessions revoked by a cut-off time. See `docs/guides/password-reset.md`.
 - **Customer cancellation** — signed-in customers cancel their own Processing order within `CUSTOMER_CANCEL_WINDOW_HOURS` (default 2): Stripe refund first, then Woo Cancelled; idempotent finish shared with the `refund.created` webhook. See `docs/guides/order-cancellation.md`.
 - **Catalog identity** — sections come from top-level category **slugs** (`fins`, `suits`, `guns`, `accessories`, `merch`); legacy Pi category IDs are a fallback. Gear finder binds models by the `meister_gear_finder` product field (legacy IDs as fallback). Brand comes from WooCommerce Brands, then the legacy `pa_εταιρία` attribute. New-catalog migration: `docs/catalog/`.
+- **Product add-ons** — paid extras per product (e.g. wetsuit camo/knee pads) in the product meta `meister_addons` (JSON contract v1), edited and priced on Woo orders by the plugin `wordpress/meister-product-addons`; parsed fail-closed in `lib/addons/`. The cart stores add-on ids only, `resolve.ts` prices them from WooCommerce, and the total check runs for add-on orders. See `docs/guides/product-addons.md`.
 - **Features** — gear finder (`lib/gear-finder`, `docs/gear-finder.md`), compare, wishlist, BOX NOW (`docs/guides/box-now-checkout.md`).
 
 ## On `feat/cloudflare-preview` only

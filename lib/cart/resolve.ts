@@ -3,6 +3,11 @@ import type { StockStatus } from '@/lib/mock-data'
 import type { CartItem } from './schema'
 import { cartLineKey } from './line-key'
 import { resolveCartSelection } from './selection'
+import { resolveAddonSelection, toCents, type ChosenAddon } from '@/lib/addons/contract'
+
+/** Shown on a line whose saved add-ons no longer match the product. */
+export const ADDON_UNAVAILABLE_ISSUE = 'An add-on you chose is no longer available. Please remove this item and add it again.'
+export const ADDON_INVALID_ISSUE = 'The add-ons on this item are not valid. Please remove this item and add it again.'
 
 export interface ResolvedCartLine {
   productId: string
@@ -17,7 +22,16 @@ export interface ResolvedCartLine {
   name: string
   slug: string
   image: string
+  /** Live variation (or product) price plus every chosen add-on, in euros. */
   unitPrice: number
+  /** The variation (or product) price alone, before add-ons. */
+  baseUnitPrice: number
+  /** The add-on references stored on the cookie line, carried back so the
+   *  cart controls (and `cartLineKey`) can address this exact line. */
+  addons?: string[]
+  /** Those add-ons resolved against the live product, localized, with their
+   *  current prices; empty when none (or when they no longer resolve). */
+  chosenAddons: ChosenAddon[]
   /** Every variation axis the shopper chose, in the product's own order —
    *  the variation's pinned values plus the "Any …" axes recovered from
    *  `selectedOptions`. Shown on the cart and checkout summary. */
@@ -70,8 +84,17 @@ export async function resolveCartItems(cart: CartItem[], locale: string = 'en'):
       continue
     }
 
-    const { variant, attributes, issue } = resolveCartSelection(product, item.variationId, item.selectedOptions)
+    const { variant, attributes, issue: selectionIssue } = resolveCartSelection(product, item.variationId, item.selectedOptions)
     const stockStatus = variant?.stockStatus ?? product.stockStatus
+    // Prices come only from the live product: the cookie holds add-on ids.
+    // Anything that no longer matches makes the line unpurchasable rather
+    // than charging for, or quietly dropping, something the shopper chose.
+    const addonResult = resolveAddonSelection(product.addons ?? [], item.addons)
+    const addonIssue = addonResult.ok ? undefined : addonResult.reason === 'invalid' ? ADDON_INVALID_ISSUE : ADDON_UNAVAILABLE_ISSUE
+    const issue = selectionIssue ?? addonIssue
+    const baseUnitPrice = variant?.price ?? product.price
+    const chosenAddons = addonResult.ok ? addonResult.chosen : []
+    const unitPrice = (toCents(baseUnitPrice) + (addonResult.ok ? addonResult.totalCents : 0)) / 100
     lines.push({
       productId: item.productId,
       variationId: item.variationId,
@@ -81,7 +104,10 @@ export async function resolveCartItems(cart: CartItem[], locale: string = 'en'):
       name: product.name,
       slug: product.slug,
       image: variant?.image ?? product.image,
-      unitPrice: variant?.price ?? product.price,
+      unitPrice,
+      baseUnitPrice,
+      ...(item.addons?.length ? { addons: item.addons } : {}),
+      chosenAddons,
       attributes,
       variantAttributes: Object.fromEntries(Object.entries(variant?.attributes ?? {}).filter(([, value]) => value)),
       stockStatus,
@@ -91,9 +117,10 @@ export async function resolveCartItems(cart: CartItem[], locale: string = 'en'):
     })
   }
 
+  // Summed in whole cents, the same way Stripe is charged.
   const subtotal = lines
     .filter((line) => line.purchasable)
-    .reduce((sum, line) => sum + line.unitPrice * line.quantity, 0)
+    .reduce((sum, line) => sum + toCents(line.unitPrice) * line.quantity, 0) / 100
 
   return { lines, unavailableCount, subtotal }
 }
