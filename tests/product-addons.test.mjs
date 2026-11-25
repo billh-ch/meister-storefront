@@ -341,7 +341,8 @@ test('the total check runs for add-on orders without a coupon and compares whole
   assert.equal(orderTotalCheck({ orderTotal: '385.00', amountTotalCents: 38500, hasAddons: true }), null)
   assert.match(orderTotalCheck({ orderTotal: '320.00', amountTotalCents: 38500, hasAddons: true }), /Stripe charged €385\.00 but WooCommerce computed €320\.00 .*product add-ons/)
   assert.match(orderTotalCheck({ orderTotal: '346.49', amountTotalCents: 34650, hasAddons: true, couponCode: 'TEN' }), /discount code TEN and product add-ons/)
-  assert.equal(orderTotalCheck({ orderTotal: '1.00', amountTotalCents: 38500, hasAddons: false }), null, 'plain orders are unchanged')
+  assert.equal(orderTotalCheck({ orderTotal: '385.00', amountTotalCents: 38500, hasAddons: false }), null, 'plain matching orders pass')
+  assert.match(orderTotalCheck({ orderTotal: '388.72', amountTotalCents: 38800, hasAddons: false }), /Stripe charged €388\.00 but WooCommerce computed €388\.72 for this order\. /, 'every order is checked now, e.g. delivery VAT')
   assert.equal(orderTotalCheck({ orderTotal: '0.1', amountTotalCents: 10, hasAddons: true }), null, '0.1 € is 10 cents, not a float mismatch')
 })
 

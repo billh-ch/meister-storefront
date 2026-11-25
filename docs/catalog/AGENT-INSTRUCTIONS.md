@@ -64,7 +64,7 @@ Analyse the export and write `~/catalog-migration/proposal.md` plus `mapping.jso
 2. **Attribute plan:** list every attribute (global and custom) and its values. Propose a consolidated set of **global** attributes with English names and slugs (e.g. `pa_size`, `pa_thickness`, `pa_stiffness`, `pa_color`), and how each old attribute and value maps. Merge duplicates and spelling variants. Never merge values that mean different things. Brand (`pa_εταιρία`) becomes WooCommerce **Brands**, not an attribute.
 3. **Per-product table:** legacy ID, Greek name, proposed English name and slug, type, target categories, SKU, price, stock, number of images and variations, and issues.
 4. **Issues to flag:** missing or duplicate SKUs; variable products whose variations have empty or partial attributes, or that are unreachable or duplicated; prices ≤ 0 or missing; sale price ≥ regular price; missing images; page-builder shortcodes (`vc_`, `woodmart_`) in descriptions; products in no mapped category; any `structure.json → gear_finder` legacy ID that isn't in the export.
-5. **Shipping:** describe the Pi's zones and methods and propose how to recreate them. Don't recreate BOX NOW.
+5. **Shipping:** describe the Pi's zones and methods. Recreate them with the **before-VAT costs in `structure.json → shipping`** (not the Pi's old €3/€5/€10/€15, which the storefront would now charge plus VAT). Don't recreate BOX NOW; the owner enters its price, also before VAT.
 
 **Stop here.** Tell the owner the proposal is ready. Continue only when the owner approves it, with their decisions on every flagged item.
 

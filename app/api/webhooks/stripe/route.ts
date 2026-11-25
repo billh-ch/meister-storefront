@@ -158,7 +158,9 @@ export async function POST(request: Request) {
         ? {
             methodId: metadata.shippingMethodId,
             methodTitle: metadata.shippingMethodTitle ?? 'Shipping',
-            total: metadata.shippingCost ?? '0',
+            // WooCommerce adds VAT to a shipping line, so it gets the net rate.
+            // Sessions created before `shippingNet` existed fall back to the old value.
+            total: /^\d+(?:\.\d{1,2})?$/.test(metadata.shippingNet ?? '') ? metadata.shippingNet! : (metadata.shippingCost ?? '0'),
           }
         : undefined,
     }

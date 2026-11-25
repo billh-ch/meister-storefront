@@ -131,6 +131,19 @@ test('a verified paid webhook creates a paid guest order with delivery and all c
   assert.equal((await POST(paidRequest('pi_fixture_success'))).status, 200)
   assert.equal(db.orders.length, 1)
 }))
+const baseMetadata = {
+  wcCustomerId: '', cartLines: JSON.stringify([{ p: '501', q: 1 }]),
+  ship_first_name: 'Fixture', ship_last_name: 'Customer', ship_address1: 'Test 1', ship_city: 'Athens', ship_postcode: '10558', ship_country: 'GR', ship_email: 'fixture@example.com',
+  shippingMethodId: 'flat_rate', shippingMethodTitle: 'Delivery', shippingCost: '3',
+}
+test('delivery is sent to WooCommerce as the net rate, so WooCommerce adds back the same VAT', async () => withBackend(async db => {
+  assert.equal((await POST(paidRequest('pi_fixture_net', { metadata: { ...baseMetadata, shippingNet: '2.42' } }))).status, 200)
+  assert.equal(db.orders.at(-1).shipping_lines[0].total, '2.42')
+}))
+test('a session without a usable net rate (created before this change) keeps the old shipping total', async () => withBackend(async db => {
+  assert.equal((await POST(paidRequest('pi_fixture_net_bad', { metadata: { ...baseMetadata, shippingNet: '2.42abc' } }))).status, 200)
+  assert.equal(db.orders.at(-1).shipping_lines[0].total, '3')
+}))
 test('a paid BOX NOW session saves the selected locker on its WooCommerce order', async () => withBackend(async db => {
   const { lockerToStripeMetadata } = await import('../lib/checkout/box-now.ts')
   const locker = { id: '3', name: 'BOX NOW Test locker', address: 'Test Street 144', postcode: '18545', country: 'GR' }
